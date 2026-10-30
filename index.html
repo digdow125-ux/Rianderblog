@@ -1,421 +1,1303 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RIANDERBLOG - Global Shopping</title>
+<title>RIANDERBLOG | Premium Global Shopping</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</style>
-  PREMIUM PRODUCT DETAILS */
-.details-btn {
-  background: #f3ead7;
-  color: #5d4519;
-  padding: 11px;
-  border-radius: 7px;
-  font-weight: bold;
-  width: 100%;
+
+<style>
+:root {
+  --navy:#10213e;
+  --navy2:#1a3154;
+  --gold:#d6ad55;
+  --gold-dark:#ad812e;
+  --ink:#263244;
+  --muted:#687589;
+  --paper:#f5f6f9;
+  --line:#e5e8ee;
 }
+
+* { box-sizing:border-box; }
+
+html { scroll-behavior:smooth; }
+
+body {
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+}
+
+.topbar {
+  background:#0a1528;
+  color:#e1e6ef;
+  text-align:center;
+  padding:9px;
+  font-size:12px;
+  letter-spacing:.5px;
+}
+
+header {
+  background:var(--navy);
+  color:white;
+  padding:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+}
+
+.brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+}
+
+.brand-mark {
+  width:45px;
+  height:45px;
+  border:2px solid var(--gold);
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  color:var(--gold);
+  font-size:24px;
+  font-weight:900;
+}
+
+.brand-name {
+  font-size:25px;
+  font-weight:800;
+  letter-spacing:1px;
+  color:white;
+}
+
+.brand-name span { color:var(--gold); }
+
+.brand-tag {
+  font-size:10px;
+  color:#cbd4e2;
+  letter-spacing:2px;
+  margin-top:4px;
+}
+
+.header-note {
+  font-size:13px;
+  color:#d5dce7;
+}
+
+nav {
+  background:var(--navy2);
+  padding:0 20px;
+  display:flex;
+  gap:23px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+nav a {
+  color:white;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:bold;
+  padding:15px 0;
+}
+
+nav a:hover { color:var(--gold); }
+
+main {
+  max-width:1150px;
+  margin:auto;
+  padding:24px 18px;
+}
+
+.hero {
+  background:linear-gradient(115deg,#0a172c,#1b3456);
+  border-radius:17px;
+  padding:42px 35px;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:22px;
+}
+
+.hero-copy { max-width:650px; }
+
+.eyebrow {
+  color:var(--gold);
+  font-size:12px;
+  font-weight:bold;
+  letter-spacing:2px;
+}
+
+.hero h1 {
+  font-size:clamp(29px,5vw,45px);
+  line-height:1.12;
+  margin:12px 0;
+}
+
+.hero p {
+  color:#d9e0ea;
+  line-height:1.65;
+}
+
+.hero-link {
+  display:inline-block;
+  background:var(--gold);
+  color:#172238;
+  text-decoration:none;
+  padding:13px 19px;
+  border-radius:7px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.hero-stamp {
+  width:135px;
+  height:135px;
+  border:1px solid var(--gold);
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  color:var(--gold);
+  font-size:13px;
+  line-height:1.5;
+  flex:none;
+}
+
+.benefits {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin:17px 0 28px;
+}
+
+.benefit {
+  background:white;
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:15px;
+  text-align:center;
+  font-size:13px;
+  font-weight:bold;
+}
+
+.section-head { margin:27px 0 14px; }
+
+.section-head h2 {
+  margin:0;
+  color:var(--navy);
+  font-size:23px;
+}
+
+.section-head p {
+  color:var(--muted);
+  font-size:13px;
+}
+
+.search {
+  width:100%;
+  padding:14px;
+  border:1px solid #d8dee8;
+  border-radius:8px;
+  font-size:15px;
+}
+
+.categories {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:13px 0 20px;
+}
+
+button {
+  cursor:pointer;
+  border:0;
+  border-radius:7px;
+  padding:11px;
+  font-weight:bold;
+}
+
+.categories button {
+  background:white;
+  border:1px solid #dfe4ec;
+  color:#344054;
+  border-radius:22px;
+  padding:10px 15px;
+}
+
+.categories button.active,
+.categories button:hover {
+  background:var(--navy);
+  color:white;
+}
+
+.products {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+  gap:16px;
+}
+
+.product {
+  background:white;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:13px;
+  box-shadow:0 3px 13px rgba(16,33,62,.045);
+}
+
+.product:hover {
+  transform:translateY(-3px);
+  box-shadow:0 10px 28px rgba(16,33,62,.09);
+}
+
+.product img {
+  width:100%;
+  height:175px;
+  object-fit:contain;
+  background:#fafbfc;
+  border-radius:8px;
+}
+
+.product h3 {
+  font-size:16px;
+  color:var(--navy);
+}
+
+.product-desc {
+  font-size:13px;
+  line-height:1.5;
+  color:var(--muted);
+  min-height:36px;
+}
+
+.price {
+  font-size:19px;
+  font-weight:800;
+  color:var(--navy);
+}
+
+.product-actions {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:9px;
+}
+
+.details-btn {
+  background:#f3ead7;
+  color:#5d4519;
+}
+
+.add,.primary {
+  background:var(--navy);
+  color:white;
+}
+
+.buy {
+  display:block;
+  text-align:center;
+  background:var(--gold);
+  color:#172238;
+  padding:12px;
+  border-radius:7px;
+  text-decoration:none;
+  margin-top:8px;
+  font-weight:bold;
+}
+
+.panel {
+  background:white;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:20px;
+  margin-top:24px;
+}
+
+.panel h2 { color:var(--navy); }
+
+input {
+  width:100%;
+  padding:12px;
+  margin:7px 0;
+  border:1px solid #d8dee8;
+  border-radius:7px;
+  font-size:15px;
+}
+
+.secondary {
+  background:#e9edf3;
+  color:#29384e;
+  margin:5px;
+}
+
+.primary { margin:5px; }
+
+.cart-item {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
+  padding:12px 0;
+}
+
+.cart-item img {
+  width:65px;
+  height:65px;
+  object-fit:contain;
+}
+
+.cart-info {
+  flex:1;
+  min-width:130px;
+}
+
+.remove {
+  background:#fee8e8;
+  color:#9b2525;
+}
+
+.notice {
+  padding:10px;
+  background:#f5f0e5;
+  border-radius:7px;
+  margin-top:10px;
+}
+
+footer {
+  text-align:center;
+  background:var(--navy);
+  color:white;
+  padding:25px 18px;
+  margin-top:30px;
+}
+
+footer strong { color:var(--gold); }
+
+/* PRODUCT DETAILS WINDOW */
 
 .detail-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.75);
-  z-index: 9999;
-  padding: 15px;
-  align-items: center;
-  justify-content: center;
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(4,12,25,.76);
+  z-index:9999;
+  padding:15px;
+  align-items:center;
+  justify-content:center;
 }
 
-.detail-backdrop.open {
-  display: flex;
-}
+.detail-backdrop.open { display:flex; }
 
 .detail-box {
-  background: white;
-  width: 100%;
-  max-width: 750px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 25px;
-  border-radius: 15px;
-  position: relative;
-}
-
-.detail-box img {
-  width: 100%;
-  height: 260px;
-  object-fit: contain;
-  background: #f7f7f7;
-  border-radius: 10px;
-}
-
-.detail-box h2 {
-  color: #10213e;
-}
-
-.detail-price {
-  color: #b88a2e;
-  font-size: 25px;
-  font-weight: bold;
+  background:white;
+  width:100%;
+  max-width:780px;
+  max-height:90vh;
+  overflow-y:auto;
+  padding:27px;
+  border-radius:15px;
+  position:relative;
 }
 
 .detail-close {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  background: #eee;
-  font-size: 20px;
+  position:absolute;
+  right:12px;
+  top:12px;
+  background:#edf0f4;
+  font-size:19px;
 }
 
-@media(max-width:600px) {
-  .detail-box img { height: 200px; }
-}>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f4f6fa;color:#222}
-header{background:#172554;color:white;padding:22px}
-header h1{color:#fbbf24;margin:0}
-nav{background:#1e3a8a;padding:14px;display:flex;gap:18px;flex-wrap:wrap}
-nav a{color:white;text-decoration:none;font-weight:bold}
-main{max-width:1100px;margin:auto;padding:18px}
-.search{width:100%;padding:14px;border:1px solid #ccc;border-radius:8px;font-size:16px}
-.categories{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
-button{cursor:pointer;border:0;border-radius:6px;padding:11px}
-.categories button{background:#dbeafe}
-.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
-.product,.panel{background:white;border-radius:10px;padding:15px;box-shadow:0 2px 8px #ddd}
-.product img{width:100%;height:175px;object-fit:contain}
-.price{font-size:19px;font-weight:bold;color:#dc2626}
-.add{width:100%;background:#1e40af;color:white;margin-top:8px}
-.buy{display:block;text-align:center;background:#f59e0b;color:#111;padding:12px;border-radius:6px;text-decoration:none;margin-top:8px;font-weight:bold}
-.panel{margin-top:25px}
-input{width:100%;padding:12px;margin:7px 0;border:1px solid #ccc;border-radius:6px}
-.primary{background:#1e40af;color:white;margin:5px}
-.secondary{background:#ddd;margin:5px}
-.cart-item{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #ddd;padding:12px 0}
-.cart-item img{width:65px;height:65px;object-fit:contain}
-.cart-info{flex:1;min-width:130px}
-.remove{background:#fee2e2;color:#991b1b}
-footer{text-align:center;background:#172554;color:white;padding:22px;margin-top:30px}
-.notice{padding:10px;background:#eff6ff;border-radius:6px;margin-top:10px}
+.detail-content {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  padding-top:10px;
+}
+
+.detail-image {
+  width:100%;
+  height:300px;
+  object-fit:contain;
+  background:#f7f8fa;
+  border-radius:10px;
+}
+
+.detail-category {
+  color:var(--gold-dark);
+  font-size:12px;
+  font-weight:bold;
+  text-transform:uppercase;
+}
+
+.detail-content h2 {
+  color:var(--navy);
+  font-size:25px;
+}
+
+.detail-description {
+  color:#586579;
+  line-height:1.7;
+  white-space:pre-wrap;
+}
+
+.detail-price {
+  color:var(--gold-dark);
+  font-size:25px;
+  font-weight:800;
+}
+
+.detail-actions {
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+
+.detail-actions button,
+.detail-actions a {
+  flex:1;
+  min-width:125px;
+  text-align:center;
+  padding:13px;
+  border-radius:7px;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+.detail-add {
+  background:var(--navy);
+  color:white;
+}
+
+.detail-buy {
+  background:var(--gold);
+  color:#172238;
+}
+
+@media(max-width:650px) {
+  .header-note { display:none; }
+
+  nav { gap:15px; }
+
+  .hero { padding:29px 21px; }
+
+  .hero-stamp {
+    width:90px;
+    height:90px;
+    font-size:10px;
+  }
+
+  .benefits { grid-template-columns:1fr; }
+
+  .detail-content { grid-template-columns:1fr; }
+
+  .detail-image { height:220px; }
+}
 </style>
 </head>
+
 <body>
 
+<div class="topbar">
+A WORLD OF DISCOVERY • SHOP PRODUCTS FROM INTERNATIONAL SELLERS
+</div>
+
 <header>
-<h1>RIANDERBLOG</h1>
-<p>Your Global Shopping Destination</p>
+  <a class="brand" href="#">
+    <div class="brand-mark">R</div>
+    <div>
+      <div class="brand-name">RIANDER<span>BLOG</span></div>
+      <div class="brand-tag">GLOBAL MARKETPLACE</div>
+    </div>
+  </a>
+  <div class="header-note">Discover more. Shop beyond borders.</div>
 </header>
 
 <nav>
-<a href="#">Home</a>
-<a href="#products">Products</a>
-<a href="#cart">My Cart (<span id="cartCount">0</span>)</a>
-<a href="#account">My Account</a>
-<a href="#dashboard">Dashboard</a>
+  <a href="#">Home</a>
+  <a href="#products">Products</a>
+  <a href="#cart">My Cart (<span id="cartCount">0</span>)</a>
+  <a href="#account">My Account</a>
+  <a href="#dashboard">Dashboard</a>
 </nav>
 
 <main>
-<h2>Discover Products Worldwide</h2>
-<p>Explore products from international sellers.</p>
 
-<input class="search" id="search" placeholder="Search products...">
+<section class="hero">
+  <div class="hero-copy">
+    <div class="eyebrow">THE WORLD, WITHIN REACH</div>
+    <h1>Discover something extraordinary.</h1>
+    <p>
+      Explore products from international sellers,
+      compare your finds and continue to the supplier's
+      store when you're ready to buy.
+    </p>
+    <a class="hero-link" href="#products">Explore Products</a>
+  </div>
 
-<div class="categories">
-<button onclick="filterCategory('All')">All</button>
-<button onclick="filterCategory('Electronics')">Electronics</button>
-<button onclick="filterCategory('Accessories')">Accessories</button>
-<button onclick="filterCategory('Home')">Home</button>
-</div>
+  <div class="hero-stamp">
+    GLOBAL<br>FINDS<br><strong>RIANDERBLOG</strong>
+  </div>
+</section>
 
-<h2 id="products">Featured Products</h2>
-<div id="productList" class="products">Loading products...</div>
+<section class="benefits">
+  <div class="benefit">✦ Discover products worldwide</div>
+  <div class="benefit">✦ Save items in your shopping cart</div>
+  <div class="benefit">✦ Buy through the supplier</div>
+</section>
+
+<section id="products">
+
+  <div class="section-head">
+    <h2>Explore Our Products</h2>
+    <p>Choose a product to view its full details.</p>
+  </div>
+
+  <input
+    class="search"
+    id="search"
+    placeholder="Search products by name or description..."
+  >
+
+  <div class="categories">
+    <button class="active" onclick="filterCategory('All',this)">All</button>
+    <button onclick="filterCategory('Electronics',this)">Electronics</button>
+    <button onclick="filterCategory('Accessories',this)">Accessories</button>
+    <button onclick="filterCategory('Home',this)">Home</button>
+  </div>
+
+  <div id="productList" class="products">
+    Loading products...
+  </div>
+
+</section>
 
 <section id="cart" class="panel">
-<h2>🛒 My Shopping Cart</h2>
-<div id="cartItems">Your cart is empty.</div>
-<h3 id="cartTotal"></h3>
-<p id="cartNote"></p>
+  <h2>🛒 My Shopping Cart</h2>
+  <div id="cartItems">Your cart is empty.</div>
+  <h3 id="cartTotal"></h3>
+  <p id="cartNote"></p>
 </section>
 
 <section id="account" class="panel">
-<h2>Customer Account</h2>
-<p>Create an account or sign in.</p>
-<input id="email" type="email" placeholder="Email address">
-<input id="password" type="password" placeholder="Password">
-<button class="primary" onclick="signUp()">Create Account</button>
-<button class="primary" onclick="signIn()">Sign In</button>
-<button class="secondary" onclick="signOut()">Sign Out</button>
-<p id="message" class="notice">Not signed in yet.</p>
+  <h2>Customer Account</h2>
+
+  <p>Create an account or sign in.</p>
+
+  <input id="email" type="email" placeholder="Email address">
+  <input id="password" type="password" placeholder="Password">
+
+  <button class="primary" onclick="signUp()">Create Account</button>
+  <button class="primary" onclick="signIn()">Sign In</button>
+  <button class="secondary" onclick="signOut()">Sign Out</button>
+
+  <p id="message" class="notice">Not signed in yet.</p>
 </section>
 
 <section id="dashboard" class="panel">
-<h2>👤 My Customer Dashboard</h2>
-<p id="dashboardStatus">Checking your account...</p>
-<div id="dashboardDetails"></div>
-<button class="primary" onclick="showDashboard()">Refresh Dashboard</button>
-<p><a href="#cart">Go to My Shopping Cart</a></p>
+  <h2>👤 My Customer Dashboard</h2>
+
+  <p id="dashboardStatus">Checking your account...</p>
+
+  <div id="dashboardDetails"></div>
+
+  <button class="primary" onclick="showDashboard()">
+    Refresh Dashboard
+  </button>
+
+  <p><a href="#cart">Go to My Shopping Cart</a></p>
 </section>
+
 </main>
 
 <footer>
-<p>RIANDERBLOG © 2026</p>
-<p>Shop globally. Discover more.</p>
+  <p><strong>RIANDERBLOG</strong> © 2026</p>
+  <p>Shop globally. Discover more.</p>
+  <p>Payments and order fulfilment are handled by the supplier's website.</p>
 </footer>
 
+<!-- PRODUCT DETAILS WINDOW -->
+
+<div
+  id="productDetails"
+  class="detail-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Product details"
+  onclick="closeDetailsFromBackdrop(event)"
+>
+  <div class="detail-box">
+
+    <button class="detail-close" onclick="closeDetails()">×</button>
+
+    <div id="detailContent"></div>
+
+  </div>
+</div>
+
 <script>
-const SUPABASE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co";
-const SUPABASE_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
-const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+/* SUPABASE CONNECTION */
+
+const SUPABASE_URL =
+"https://yymdyxlbdgbrgrykdspx.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
 let allProducts = [];
 let currentCategory = "All";
 let cart = [];
 
 try {
- cart = JSON.parse(localStorage.getItem("rianderblog_cart") || "[]");
- if(!Array.isArray(cart)) cart = [];
-} catch(e) {
- cart = [];
+  cart = JSON.parse(
+    localStorage.getItem("rianderblog_cart") || "[]"
+  );
+
+  if (!Array.isArray(cart)) cart = [];
+
+} catch (e) {
+  cart = [];
 }
 
+/* SECURITY HELPERS */
+
 function escapeHTML(value) {
- return String(value ?? "").replace(/[&<>"']/g,c=>({
- "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
- }[c]));
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[c]));
 }
 
 function safeUrl(value) {
- try {
-  const u = new URL(value);
-  return ["https:","http:"].includes(u.protocol) ? u.href : "";
- } catch(e) { return ""; }
+  try {
+    const u = new URL(value);
+
+    return ["https:","http:"].includes(u.protocol)
+      ? u.href
+      : "";
+
+  } catch (e) {
+    return "";
+  }
 }
+
+/* CART STORAGE */
 
 function saveCart() {
- localStorage.setItem("rianderblog_cart",JSON.stringify(cart));
- updateCart();
+  localStorage.setItem(
+    "rianderblog_cart",
+    JSON.stringify(cart)
+  );
+
+  updateCart();
 }
+
+/* LOAD PRODUCTS */
 
 async function loadProducts() {
- const list = document.getElementById("productList");
- const {data,error} = await db
-  .from("products")
-  .select("*")
-  .eq("is_active",true);
 
- if(error) {
-  list.textContent = "Could not load products: " + error.message;
-  return;
- }
+  const list = document.getElementById("productList");
 
- allProducts = data || [];
- displayProducts();
- updateCart();
+  const {data,error} = await db
+    .from("products")
+    .select("*")
+    .eq("is_active",true);
+
+  if (error) {
+    list.textContent =
+      "Could not load products: " + error.message;
+    return;
+  }
+
+  allProducts = data || [];
+
+  displayProducts();
+  updateCart();
 }
+
+/* DISPLAY PRODUCTS */
 
 function displayProducts() {
- const search = document.getElementById("search").value.toLowerCase();
 
- const filtered = allProducts.filter(p =>
-  (currentCategory === "All" || p.category === currentCategory) &&
-  String(p.name || "").toLowerCase().includes(search)
- );
+  const search = document
+    .getElementById("search")
+    .value
+    .toLowerCase()
+    .trim();
 
- const list = document.getElementById("productList");
+  const filtered = allProducts.filter(p =>
 
- if(!filtered.length) {
-  list.textContent = "No products found.";
-  return;
- }
+    (currentCategory === "All" ||
+     p.category === currentCategory) &&
 
- list.innerHTML = filtered.map(p => `
-  <div class="product">
-   <img src="${safeUrl(p.image_url)}" alt="${escapeHTML(p.name)}">
-   <h3>${escapeHTML(p.name)}</h3>
-   <p>${escapeHTML(p.description || "")}</p>
-   <p class="price">${escapeHTML(p.currency || "USD")} ${Number(p.price || 0).toFixed(2)}</p>
-   <button class="add" onclick="addToCart('${escapeHTML(p.id)}')">Add to Cart</button>
-   <a class="buy" href="${safeUrl(p.affiliate_url)}" target="_blank" rel="noopener noreferrer">Buy at AliExpress</a>
-  </div>
- `).join("");
+    (
+      String(p.name || "").toLowerCase().includes(search) ||
+      String(p.description || "").toLowerCase().includes(search)
+    )
+  );
+
+  const list = document.getElementById("productList");
+
+  if (!filtered.length) {
+    list.textContent = "No products found.";
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => `
+
+    <article class="product">
+
+      ${
+        safeUrl(p.image_url)
+        ? `<img src="${safeUrl(p.image_url)}"
+             alt="${escapeHTML(p.name)}"
+             loading="lazy">`
+        : ""
+      }
+
+      <h3>${escapeHTML(p.name)}</h3>
+
+      <p class="product-desc">
+        ${escapeHTML(p.description || "Explore this product for more information.")}
+      </p>
+
+      <p class="price">
+        ${escapeHTML(p.currency || "USD")}
+        ${Number(p.price || 0).toFixed(2)}
+      </p>
+
+      <div class="product-actions">
+
+        <button
+          class="details-btn"
+          onclick="openDetails('${escapeHTML(p.id)}')"
+        >
+          View Details
+        </button>
+
+        <button
+          class="add"
+          onclick="addToCart('${escapeHTML(p.id)}')"
+        >
+          Add to Cart
+        </button>
+
+      </div>
+
+      ${
+        safeUrl(p.affiliate_url)
+        ? `<a class="buy"
+             href="${safeUrl(p.affiliate_url)}"
+             target="_blank"
+             rel="noopener noreferrer">
+             Visit Supplier
+           </a>`
+        : ""
+      }
+
+    </article>
+
+  `).join("");
 }
 
-function filterCategory(category) {
- currentCategory = category;
- displayProducts();
+/* CATEGORY FILTER */
+
+function filterCategory(category,button) {
+
+  currentCategory = category;
+
+  document
+    .querySelectorAll(".categories button")
+    .forEach(b => b.classList.remove("active"));
+
+  if (button) button.classList.add("active");
+
+  displayProducts();
 }
 
-document.getElementById("search").addEventListener("input",displayProducts);
+document
+  .getElementById("search")
+  .addEventListener("input",displayProducts);
+
+/* PRODUCT DETAILS */
+
+function openDetails(id) {
+
+  const p = allProducts.find(
+    x => String(x.id) === String(id)
+  );
+
+  if (!p) return;
+
+  const image = safeUrl(p.image_url);
+  const supplier = safeUrl(p.affiliate_url);
+
+  document.getElementById("detailContent").innerHTML = `
+
+    <div class="detail-content">
+
+      <div>
+
+        ${
+          image
+          ? `<img class="detail-image"
+               src="${image}"
+               alt="${escapeHTML(p.name)}">`
+          : `<div class="detail-image"
+               style="display:grid;place-items:center">
+               Image unavailable
+             </div>`
+        }
+
+      </div>
+
+      <div>
+
+        <div class="detail-category">
+          ${escapeHTML(p.category || "Featured Product")}
+        </div>
+
+        <h2>${escapeHTML(p.name)}</h2>
+
+        <div class="detail-price">
+          ${escapeHTML(p.currency || "USD")}
+          ${Number(p.price || 0).toFixed(2)}
+        </div>
+
+        <p class="detail-description">
+          ${escapeHTML(p.description || "More product information coming soon.")}
+        </p>
+
+        <p style="font-size:12px;color:#778195;line-height:1.5">
+          Check the supplier's listing for shipping costs,
+          availability and final price.
+        </p>
+
+        <div class="detail-actions">
+
+          <button
+            class="detail-add"
+            onclick="addToCart('${escapeHTML(p.id)}');closeDetails()"
+          >
+            Add to Cart
+          </button>
+
+          ${
+            supplier
+            ? `<a class="detail-buy"
+                 href="${supplier}"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                 Visit Supplier
+               </a>`
+            : ""
+          }
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+  document
+    .getElementById("productDetails")
+    .classList.add("open");
+
+  document.body.style.overflow = "hidden";
+}
+
+function closeDetails() {
+
+  document
+    .getElementById("productDetails")
+    .classList.remove("open");
+
+  document.body.style.overflow = "";
+}
+
+function closeDetailsFromBackdrop(event) {
+
+  if (event.target.id === "productDetails") {
+    closeDetails();
+  }
+}
+
+document.addEventListener("keydown",event => {
+
+  if (event.key === "Escape") {
+    closeDetails();
+  }
+
+});
+
+/* ADD TO CART */
 
 function addToCart(id) {
- const p = allProducts.find(x => String(x.id) === String(id));
- if(!p) return;
 
- const existing = cart.find(x => String(x.id) === String(id));
+  const p = allProducts.find(
+    x => String(x.id) === String(id)
+  );
 
- if(existing) {
-  existing.quantity++;
- } else {
-  cart.push({
-   id:p.id,
-   name:p.name,
-   price:Number(p.price || 0),
-   currency:p.currency || "USD",
-   image_url:p.image_url || "",
-   affiliate_url:p.affiliate_url || "",
-   quantity:1
-  });
- }
+  if (!p) return;
 
- saveCart();
- alert("Product added to your cart!");
+  const existing = cart.find(
+    x => String(x.id) === String(id)
+  );
+
+  if (existing) {
+
+    existing.quantity++;
+
+  } else {
+
+    cart.push({
+
+      id:p.id,
+      name:p.name,
+      price:Number(p.price || 0),
+      currency:p.currency || "USD",
+      image_url:p.image_url || "",
+      affiliate_url:p.affiliate_url || "",
+      quantity:1
+
+    });
+
+  }
+
+  saveCart();
+
+  alert("Product added to your cart!");
 }
+
+/* CHANGE QUANTITY */
 
 function changeQuantity(id,amount) {
- const item = cart.find(x => String(x.id) === String(id));
- if(!item) return;
- item.quantity += amount;
- if(item.quantity <= 0) {
-  cart = cart.filter(x => String(x.id) !== String(id));
- }
- saveCart();
+
+  const item = cart.find(
+    x => String(x.id) === String(id)
+  );
+
+  if (!item) return;
+
+  item.quantity += amount;
+
+  if (item.quantity <= 0) {
+
+    cart = cart.filter(
+      x => String(x.id) !== String(id)
+    );
+
+  }
+
+  saveCart();
 }
+
+/* REMOVE FROM CART */
 
 function removeFromCart(id) {
- cart = cart.filter(x => String(x.id) !== String(id));
- saveCart();
+
+  cart = cart.filter(
+    x => String(x.id) !== String(id)
+  );
+
+  saveCart();
 }
+
+/* UPDATE CART DISPLAY */
 
 function updateCart() {
- document.getElementById("cartCount").textContent =
-  cart.reduce((sum,x) => sum + x.quantity,0);
 
- const container = document.getElementById("cartItems");
- const totalElement = document.getElementById("cartTotal");
- const note = document.getElementById("cartNote");
+  document.getElementById("cartCount").textContent =
+    cart.reduce((sum,x) => sum + x.quantity,0);
 
- if(!cart.length) {
-  container.textContent = "Your cart is empty. Start shopping!";
-  totalElement.textContent = "";
-  note.textContent = "";
-  return;
- }
+  const container =
+    document.getElementById("cartItems");
 
- container.innerHTML = cart.map(item => `
-  <div class="cart-item">
-   <img src="${safeUrl(item.image_url)}" alt="">
-   <div class="cart-info">
-    <strong>${escapeHTML(item.name)}</strong>
-    <p>${escapeHTML(item.currency)} ${Number(item.price).toFixed(2)}</p>
-    <p>Subtotal: ${escapeHTML(item.currency)} ${(item.price * item.quantity).toFixed(2)}</p>
-   </div>
-   <button onclick="changeQuantity('${escapeHTML(item.id)}',-1)">−</button>
-   <strong>${item.quantity}</strong>
-   <button onclick="changeQuantity('${escapeHTML(item.id)}',1)">+</button>
-   <button class="remove" onclick="removeFromCart('${escapeHTML(item.id)}')">Remove</button>
-   <a class="buy" href="${safeUrl(item.affiliate_url)}" target="_blank" rel="noopener noreferrer">Buy this item</a>
-  </div>
- `).join("");
+  const totalElement =
+    document.getElementById("cartTotal");
 
- const totals = {};
- cart.forEach(item => {
-  const c = item.currency || "USD";
-  totals[c] = (totals[c] || 0) + item.price * item.quantity;
- });
+  const note =
+    document.getElementById("cartNote");
 
- totalElement.textContent = "Cart total: " +
-  Object.entries(totals).map(([c,v]) => c + " " + v.toFixed(2)).join(" + ");
+  if (!cart.length) {
 
- note.textContent = "Purchases and final payments are completed on the supplier's website.";
+    container.textContent =
+      "Your cart is empty. Start shopping!";
+
+    totalElement.textContent = "";
+    note.textContent = "";
+
+    return;
+  }
+
+  container.innerHTML = cart.map(item => `
+
+    <div class="cart-item">
+
+      ${
+        safeUrl(item.image_url)
+        ? `<img src="${safeUrl(item.image_url)}" alt="">`
+        : ""
+      }
+
+      <div class="cart-info">
+
+        <strong>${escapeHTML(item.name)}</strong>
+
+        <p>
+          ${escapeHTML(item.currency)}
+          ${Number(item.price).toFixed(2)}
+        </p>
+
+        <p>
+          Subtotal:
+          ${escapeHTML(item.currency)}
+          ${(item.price * item.quantity).toFixed(2)}
+        </p>
+
+      </div>
+
+      <button
+        onclick="changeQuantity('${escapeHTML(item.id)}',-1)"
+      >−</button>
+
+      <strong>${item.quantity}</strong>
+
+      <button
+        onclick="changeQuantity('${escapeHTML(item.id)}',1)"
+      >+</button>
+
+      <button
+        class="remove"
+        onclick="removeFromCart('${escapeHTML(item.id)}')"
+      >
+        Remove
+      </button>
+
+      ${
+        safeUrl(item.affiliate_url)
+        ? `<a class="buy"
+             href="${safeUrl(item.affiliate_url)}"
+             target="_blank"
+             rel="noopener noreferrer">
+             Buy this item
+           </a>`
+        : ""
+      }
+
+    </div>
+
+  `).join("");
+
+  const totals = {};
+
+  cart.forEach(item => {
+
+    const c = item.currency || "USD";
+
+    totals[c] = (totals[c] || 0) +
+      item.price * item.quantity;
+
+  });
+
+  totalElement.textContent =
+    "Cart total: " +
+    Object.entries(totals)
+      .map(([c,v]) => c + " " + v.toFixed(2))
+      .join(" + ");
+
+  note.textContent =
+    "Purchases and final payments are completed on the supplier's website.";
 }
+
+/* CUSTOMER REGISTRATION */
 
 async function signUp() {
- const email = document.getElementById("email").value.trim();
- const password = document.getElementById("password").value;
 
- if(!email || !password) {
-  document.getElementById("message").textContent = "Enter your email and password.";
-  return;
- }
+  const email =
+    document.getElementById("email").value.trim();
 
- const {error} = await db.auth.signUp({
-  email,password,
-  options:{
-   emailRedirectTo:window.location.origin + window.location.pathname
+  const password =
+    document.getElementById("password").value;
+
+  if (!email || !password) {
+
+    document.getElementById("message").textContent =
+      "Enter your email and password.";
+
+    return;
   }
- });
 
- document.getElementById("message").textContent =
-  error ? error.message : "Account created. Check your email to confirm your account.";
+  const {error} = await db.auth.signUp({
+
+    email,
+    password,
+
+    options: {
+      emailRedirectTo:
+        window.location.origin + window.location.pathname
+    }
+
+  });
+
+  document.getElementById("message").textContent =
+
+    error
+    ? error.message
+    : "Account created. Check your email to confirm your account.";
+
 }
+
+/* CUSTOMER LOGIN */
 
 async function signIn() {
- const email = document.getElementById("email").value.trim();
- const password = document.getElementById("password").value;
 
- const {error} = await db.auth.signInWithPassword({email,password});
+  const email =
+    document.getElementById("email").value.trim();
 
- document.getElementById("message").textContent =
-  error ? error.message : "You are signed in successfully!";
+  const password =
+    document.getElementById("password").value;
 
- await showDashboard();
+  const {error} =
+    await db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  document.getElementById("message").textContent =
+
+    error
+    ? error.message
+    : "You are signed in successfully!";
+
+  await showDashboard();
 }
+
+/* CUSTOMER LOGOUT */
 
 async function signOut() {
- const {error} = await db.auth.signOut();
 
- document.getElementById("message").textContent =
-  error ? error.message : "You are signed out.";
+  const {error} = await db.auth.signOut();
 
- await showDashboard();
+  document.getElementById("message").textContent =
+
+    error
+    ? error.message
+    : "You are signed out.";
+
+  await showDashboard();
 }
+
+/* CUSTOMER DASHBOARD */
 
 async function showDashboard() {
- const status = document.getElementById("dashboardStatus");
- const details = document.getElementById("dashboardDetails");
 
- status.textContent = "Checking your account...";
- details.textContent = "";
+  const status =
+    document.getElementById("dashboardStatus");
 
- try {
-  const {data,error} = await db.auth.getSession();
+  const details =
+    document.getElementById("dashboardDetails");
 
-  if(error) throw error;
+  status.textContent = "Checking your account...";
+  details.textContent = "";
 
-  const user = data.session?.user;
+  try {
 
-  if(!user) {
-   status.textContent = "You are not signed in.";
-   details.textContent = "Please sign in using the My Account section.";
-   return;
+    const {data,error} =
+      await db.auth.getSession();
+
+    if (error) throw error;
+
+    const user = data.session?.user;
+
+    if (!user) {
+
+      status.textContent =
+        "You are not signed in.";
+
+      details.textContent =
+        "Please sign in using the My Account section.";
+
+      return;
+    }
+
+    const itemCount =
+      cart.reduce((sum,item) => sum + item.quantity,0);
+
+    status.textContent =
+      "Welcome to RIANDERBLOG!";
+
+    details.innerHTML = `
+
+      <p>
+        <strong>Email:</strong>
+        ${escapeHTML(user.email)}
+      </p>
+
+      <p>
+        <strong>Account status:</strong>
+        ${user.email_confirmed_at ? "Verified" : "Not verified"}
+      </p>
+
+      <p>
+        <strong>Products in your cart:</strong>
+        ${itemCount}
+      </p>
+
+      <p>
+        <strong>Member since:</strong>
+        ${new Date(user.created_at).toLocaleDateString()}
+      </p>
+
+    `;
+
+  } catch (error) {
+
+    status.textContent =
+      "Could not load your account.";
+
+    details.textContent = error.message;
+
   }
-
-  const itemCount = cart.reduce((sum,item)=>sum + item.quantity,0);
-
-  status.textContent = "Welcome to RIANDERBLOG!";
-
-  details.innerHTML = `
-   <p><strong>Email:</strong> ${escapeHTML(user.email)}</p>
-   <p><strong>Account status:</strong> ${user.email_confirmed_at ? "Verified" : "Not verified"}</p>
-   <p><strong>Products in your cart:</strong> ${itemCount}</p>
-   <p><strong>Member since:</strong> ${new Date(user.created_at).toLocaleDateString()}</p>
-  `;
- } catch(error) {
-  status.textContent = "Could not load your account.";
-  details.textContent = error.message;
- }
 }
 
+/* AUTHENTICATION STATUS */
+
 db.auth.onAuthStateChange((event,session) => {
- document.getElementById("message").textContent =
-  session ? "You are signed in." : "You are not signed in.";
- showDashboard();
+
+  document.getElementById("message").textContent =
+    session
+    ? "You are signed in."
+    : "You are not signed in.";
+
+  showDashboard();
+
 });
+
+/* START WEBSITE */
 
 loadProducts();
 showDashboard();
+
 </script>
+
 </body>
-</html>
+  </html>
