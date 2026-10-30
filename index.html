@@ -6,36 +6,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RIANDERBLOG | Global Marketplace</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 :root{--navy:#101b35;--gold:#d9a943;--light:#f5f6fa}
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:var(--light);color:#20283a}
-header{background:var(--navy);color:white;padding:15px 5%;display:flex;justify-content:space-between;align-items:center}
+header{background:var(--navy);color:white;padding:15px 5%;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
 .logo{font-size:24px;font-weight:bold;color:var(--gold);letter-spacing:1px}
 .menu-container{position:relative}
-.menu-toggle{background:transparent;color:white;border:0;font-size:32px;cursor:pointer;padding:3px 12px}
-.dropdown-menu{position:absolute;right:0;top:45px;min-width:190px;background:white;border-radius:10px;box-shadow:0 5px 20px #0003;z-index:1000;overflow:hidden}
-.dropdown-menu button{display:block;width:100%;padding:14px;border:0;background:white;color:#101b35;text-align:left;cursor:pointer;font-weight:bold;font-size:15px}
+.menu-toggle{background:transparent;color:white;border:0;font-size:32px;cursor:pointer}
+.dropdown-menu{position:absolute;right:0;top:45px;min-width:200px;background:white;border-radius:10px;box-shadow:0 5px 20px #0003;z-index:1000;overflow:hidden}
+.dropdown-menu button{display:block;width:100%;padding:14px;border:0;background:white;color:var(--navy);text-align:left;cursor:pointer;font-weight:bold}
 .dropdown-menu button:hover{background:#f0f2f7}
-.hero{background:linear-gradient(120deg,#101b35,#263e68);color:white;padding:60px 7%;text-align:center}
+.hero{background:linear-gradient(120deg,#101b35,#263e68);color:white;padding:55px 7%;text-align:center}
 .hero h1{font-size:38px;margin:0 0 12px}
 .gold{color:var(--gold)}
-.container{max-width:1150px;margin:auto;padding:25px 16px}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-input,textarea,select{width:100%;padding:12px;border:1px solid #d6d9e1;border-radius:7px;font-size:15px;margin:6px 0 13px}
-.search{flex:1;min-width:200px}
-.btn{border:0;border-radius:7px;padding:11px 16px;background:var(--gold);color:#17213a;font-weight:bold;cursor:pointer}
+.container{max-width:1200px;margin:auto;padding:25px 16px}
+.btn{border:0;border-radius:7px;padding:11px 16px;background:var(--gold);color:#17213a;font-weight:bold;cursor:pointer;margin:3px}
 .btn-dark{background:var(--navy);color:white}
 .btn-red{background:#b83232;color:white}
 .btn-google{background:white;border:1px solid #ccc;color:#333;width:100%;margin-top:12px}
-.btn-small{padding:7px 10px;font-size:13px;margin:3px}
+.btn-small{padding:7px 10px;font-size:13px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
+input,textarea,select{width:100%;padding:12px;border:1px solid #d6d9e1;border-radius:7px;font-size:15px;margin:6px 0 13px}
+.toolbar input,.toolbar select{flex:1;min-width:140px;margin:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
-.card{background:white;border-radius:12px;overflow:hidden;box-shadow:0 3px 12px #17213a12}
+.card{background:white;border-radius:12px;overflow:hidden;box-shadow:0 3px 12px #17213a12;position:relative}
 .card img{width:100%;height:200px;object-fit:cover;background:#eee}
 .card-body{padding:14px}
 .card h3{margin:5px 0}
 .price{font-size:20px;font-weight:bold;color:#b17d18;margin:10px 0}
+.old-price{text-decoration:line-through;color:#888;font-size:14px}
 .muted{color:#697386;font-size:13px}
 .panel{background:white;border-radius:12px;padding:20px;margin:20px 0;box-shadow:0 3px 12px #17213a10}
 .hidden{display:none!important}
@@ -44,146 +44,151 @@ input,textarea,select{width:100%;padding:12px;border:1px solid #d6d9e1;border-ra
 .product-admin{border-bottom:1px solid #e5e7eb;padding:13px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .status{font-size:12px;padding:5px 8px;border-radius:20px;background:#e5f5e9;color:#176b34}
 .status.off{background:#ffe9e9;color:#a22}
+.badge{position:absolute;top:10px;left:10px;background:#b83232;color:white;padding:6px 9px;border-radius:5px;font-size:12px;font-weight:bold}
+.heart{position:absolute;top:8px;right:8px;background:white;border:0;border-radius:50%;width:38px;height:38px;font-size:21px;cursor:pointer}
 footer{background:var(--navy);color:white;text-align:center;padding:25px;margin-top:40px}
 .message{padding:10px;border-radius:7px;margin:10px 0;background:#f1f3f7}
 .auth-card{max-width:480px;margin:auto}
 .divider{text-align:center;color:#888;margin:15px}
 a{color:inherit}
-@media(max-width:600px){
-.hero h1{font-size:28px}
-.form-grid{grid-template-columns:1fr}
-.form-grid .full{grid-column:auto}
-}
+.detail-image{width:100%;max-height:380px;object-fit:contain;background:#f3f3f3;border-radius:10px}
+footer a{color:var(--gold)}
+@media(max-width:600px){.hero h1{font-size:28px}.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}}
 </style>
 </head>
-
 <body>
 
 <header>
-  <div class="logo">RIANDERBLOG</div>
-  <div class="menu-container">
-    <button class="menu-toggle" onclick="toggleMenu()" aria-label="Open menu">⋮</button>
-    <div id="dropdownMenu" class="dropdown-menu hidden">
-      <button onclick="menuGo('shop')">Shop</button>
-      <button onclick="menuGo('cart')">Cart (<span id="cartCount">0</span>)</button>
-      <button onclick="menuGo('account')">Account</button>
-      <button id="adminNav" class="hidden" onclick="menuGo('admin')">Admin Panel</button>
-    </div>
+ <div class="logo">RIANDERBLOG</div>
+ <div class="menu-container">
+  <button class="menu-toggle" onclick="toggleMenu()">⋮</button>
+  <div id="dropdownMenu" class="dropdown-menu hidden">
+   <button onclick="menuGo('shop')">🛍 Shop</button>
+   <button onclick="menuGo('wishlist')">♡ Wishlist</button>
+   <button onclick="menuGo('cart')">🛒 Cart (<span id="cartCount">0</span>)</button>
+   <button onclick="menuGo('recent')">Recently Viewed</button>
+   <button onclick="menuGo('account')">My Account</button>
+   <button onclick="menuGo('help')">Help Centre</button>
+   <button id="adminNav" class="hidden" onclick="menuGo('admin')">Admin Panel</button>
   </div>
+ </div>
 </header>
 
 <section class="hero">
-  <h1>Discover. Shop. <span class="gold">Enjoy.</span></h1>
-  <p>Explore products from suppliers around the world.</p>
-  <button class="btn" onclick="showSection('shop')">Explore Products</button>
+ <h1>Discover. Shop. <span class="gold">Enjoy.</span></h1>
+ <p>Explore products from suppliers around the world.</p>
+ <button class="btn" onclick="showSection('shop')">Explore Products</button>
 </section>
 
 <main class="container">
 
 <section id="shop">
-  <h2>Explore Products</h2>
-  <div class="toolbar">
-    <input class="search" id="search" placeholder="Search products..." oninput="renderProducts()">
-    <select id="categoryFilter" onchange="renderProducts()" style="max-width:200px">
-      <option value="">All categories</option>
-    </select>
-  </div>
-  <div id="productGrid" class="grid">Loading products...</div>
+ <h2>Explore Products</h2>
+ <div class="toolbar">
+  <input id="search" placeholder="Search products..." oninput="renderProducts()">
+  <select id="categoryFilter" onchange="renderProducts()"><option value="">All categories</option></select>
+  <input id="minPrice" type="number" min="0" placeholder="Min price" oninput="renderProducts()">
+  <input id="maxPrice" type="number" min="0" placeholder="Max price" oninput="renderProducts()">
+  <select id="sortBy" onchange="renderProducts()">
+   <option value="newest">Newest first</option>
+   <option value="low">Price: low to high</option>
+   <option value="high">Price: high to low</option>
+   <option value="az">Name: A to Z</option>
+  </select>
+ </div>
+ <div id="productGrid" class="grid">Loading products...</div>
+</section>
+
+<section id="details" class="hidden">
+ <button class="btn btn-dark" onclick="showSection('shop')">← Back to Shop</button>
+ <div id="productDetails" class="panel"></div>
+</section>
+
+<section id="wishlist" class="hidden">
+ <h2>My Wishlist ♡</h2>
+ <div id="wishlistGrid" class="grid"></div>
+</section>
+
+<section id="recent" class="hidden">
+ <h2>Recently Viewed</h2>
+ <div id="recentGrid" class="grid"></div>
 </section>
 
 <section id="cart" class="hidden">
-  <h2>Your Shopping Cart</h2>
-  <div id="cartItems"></div>
+ <h2>Your Shopping Cart</h2>
+ <div id="cartItems"></div>
+</section>
+
+<section id="help" class="hidden">
+ <h2>Help Centre</h2>
+ <div class="panel">
+  <h3>How does RIANDERBLOG work?</h3>
+  <p>Browse products, add favourites to your wishlist, and add items to your cart. When you're ready to buy, visit the supplier's website using the product link.</p>
+  <h3>Are payments made on RIANDERBLOG?</h3>
+  <p>No. At present, purchases and payments are handled by the external supplier.</p>
+  <h3>Need assistance?</h3>
+  <p>Contact the marketplace team using the email address below.</p>
+  <a href="mailto:rianderblog@gmail.com">Contact RIANDERBLOG</a>
+ </div>
 </section>
 
 <section id="account" class="hidden">
-  <div class="panel auth-card">
-    <h2>Your Account</h2>
-    <div id="accountStatus" class="message">You are not signed in.</div>
-
-    <div id="authForms">
-      <h3>Sign in with Google</h3>
-      <button class="btn btn-google" onclick="signInWithGoogle()">Continue with Google</button>
-      <div class="divider">OR</div>
-      <h3>Sign in with Email</h3>
-      <input id="email" type="email" placeholder="Email address">
-      <input id="password" type="password" placeholder="Password">
-      <button class="btn btn-dark" onclick="signIn()">Sign In</button>
-      <button class="btn" onclick="signUp()">Create Account</button>
-    </div>
-
-    <button id="signOutBtn" class="btn btn-red hidden" onclick="signOut()">Sign Out</button>
-    <p class="muted">Your account lets you access marketplace features.</p>
+ <div class="panel auth-card">
+  <h2>Your Account</h2>
+  <div id="accountStatus" class="message">You are not signed in.</div>
+  <div id="authForms">
+   <h3>Sign in with Google</h3>
+   <button class="btn btn-google" onclick="signInWithGoogle()">Continue with Google</button>
+   <div class="divider">OR</div>
+   <h3>Sign in with Email</h3>
+   <input id="email" type="email" placeholder="Email address">
+   <input id="password" type="password" placeholder="Password">
+   <button class="btn btn-dark" onclick="signIn()">Sign In</button>
+   <button class="btn" onclick="signUp()">Create Account</button>
   </div>
+  <button id="signOutBtn" class="btn btn-red hidden" onclick="signOut()">Sign Out</button>
+ </div>
 </section>
 
 <section id="admin" class="hidden">
-  <h2>RIANDERBLOG Admin Panel</h2>
-  <p>Welcome to your marketplace management centre.</p>
-
-  <div class="panel">
-    <h3>Add a New Product</h3>
-    <form id="productForm">
-      <input type="hidden" id="editId">
-
-      <div class="form-grid">
-        <div>
-          <label>Product name</label>
-          <input id="pName" required placeholder="Product name">
-        </div>
-        <div>
-          <label>Price</label>
-          <input id="pPrice" type="number" min="0" step="0.01" required placeholder="Price">
-        </div>
-        <div>
-          <label>Currency</label>
-          <select id="pCurrency">
-            <option value="USD">USD</option>
-            <option value="MWK">MWK</option>
-            <option value="GBP">GBP</option>
-            <option value="EUR">EUR</option>
-            <option value="ZAR">ZAR</option>
-          </select>
-        </div>
-        <div>
-          <label>Category</label>
-          <input id="pCategory" placeholder="e.g. Electronics">
-        </div>
-        <div class="full">
-          <label>Product image URL</label>
-          <input id="pImage" type="url" placeholder="https://example.com/image.jpg">
-          <div id="imagePreview" class="hidden">
-            <img id="previewImg" style="width:150px;height:120px;object-fit:cover;border-radius:8px" alt="Product preview">
-          </div>
-        </div>
-        <div class="full">
-          <label>Description</label>
-          <textarea id="pDescription" rows="3" placeholder="Describe your product"></textarea>
-        </div>
-        <div class="full">
-          <label>Supplier / Affiliate link</label>
-          <input id="pLink" type="url" placeholder="https://supplier-website.com/product">
-        </div>
-      </div>
-
-      <button class="btn" type="submit" id="saveProductBtn">Add Product</button>
-      <button class="btn btn-dark hidden" type="button" id="cancelEdit" onclick="resetProductForm()">Cancel Edit</button>
-    </form>
-    <div id="adminMessage" class="message hidden"></div>
-  </div>
-
-  <div class="panel">
-    <h3>Manage Products</h3>
-    <div id="adminProducts">Loading products...</div>
-  </div>
+ <h2>RIANDERBLOG Admin Panel</h2>
+ <div class="panel">
+  <h3>Add or Edit a Product</h3>
+  <form id="productForm">
+   <input type="hidden" id="editId">
+   <div class="form-grid">
+    <div><label>Product name</label><input id="pName" required></div>
+    <div><label>Price</label><input id="pPrice" type="number" min="0" step="0.01" required></div>
+    <div><label>Currency</label>
+     <select id="pCurrency">
+      <option>USD</option><option>MWK</option><option>GBP</option><option>EUR</option><option>ZAR</option>
+     </select>
+    </div>
+    <div><label>Category</label><input id="pCategory" placeholder="e.g. Electronics"></div>
+    <div class="full"><label>Product image URL</label><input id="pImage" type="url">
+     <div id="imagePreview" class="hidden"><img id="previewImg" style="width:150px;height:120px;object-fit:cover" alt="Preview"></div>
+    </div>
+    <div class="full"><label>Description</label><textarea id="pDescription" rows="3"></textarea></div>
+    <div class="full"><label>Supplier / Affiliate link</label><input id="pLink" type="url"></div>
+   </div>
+   <button class="btn" type="submit" id="saveProductBtn">Add Product</button>
+   <button class="btn btn-dark hidden" type="button" id="cancelEdit" onclick="resetProductForm()">Cancel Edit</button>
+  </form>
+  <div id="adminMessage" class="message hidden"></div>
+ </div>
+ <div class="panel">
+  <h3>Manage Products</h3>
+  <div id="adminProducts">Loading products...</div>
+ </div>
 </section>
 
 </main>
 
 <footer>
-  <div class="logo">RIANDERBLOG</div>
-  <p>Your gateway to global shopping.</p>
-  <p class="muted">Products are supplied by external sellers. Prices and availability may change.</p>
+ <div class="logo">RIANDERBLOG</div>
+ <p>Your gateway to global shopping.</p>
+ <p><a href="mailto:rianderblog@gmail.com">Contact Us</a> · <a href="#" onclick="showSection('help');return false">Help Centre</a></p>
+ <p class="muted">Products are supplied by external sellers. Prices and availability may change.</p>
 </footer>
 
 <script>
@@ -191,233 +196,184 @@ const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
 const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
 const ADMIN_ID="a32248b7-5745-4dd4-8af0-bce4eb465f66";
 const REDIRECT_URL="https://digdow125-ux.github.io/Rianderblog/";
-
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-let products=[];
-let currentUser=null;
+let products=[],currentUser=null;
 let cart=JSON.parse(localStorage.getItem("rianderCart")||"[]");
+let wishlist=JSON.parse(localStorage.getItem("rianderWishlist")||"[]");
+let recent=JSON.parse(localStorage.getItem("rianderRecent")||"[]");
 
-function toggleMenu(){
- document.getElementById("dropdownMenu").classList.toggle("hidden");
-}
-
-function menuGo(section){
- document.getElementById("dropdownMenu").classList.add("hidden");
- showSection(section);
-}
-
-document.addEventListener("click",function(event){
- const menu=document.getElementById("dropdownMenu");
- const container=document.querySelector(".menu-container");
- if(container&&!container.contains(event.target)){
-  menu.classList.add("hidden");
- }
+function toggleMenu(){document.getElementById("dropdownMenu").classList.toggle("hidden")}
+function menuGo(section){document.getElementById("dropdownMenu").classList.add("hidden");showSection(section)}
+document.addEventListener("click",e=>{
+ const c=document.querySelector(".menu-container");
+ if(c&&!c.contains(e.target))document.getElementById("dropdownMenu").classList.add("hidden");
 });
 
-function escapeHTML(value){
- return String(value??"").replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
- })[c]);
+function escapeHTML(v){
+ return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-
-function safeURL(value){
- try{
-  const u=new URL(value);
-  return ["https:","http:"].includes(u.protocol)?u.href:"";
- }catch(e){return "";}
+function safeURL(v){
+ try{let u=new URL(v);return ["https:","http:"].includes(u.protocol)?u.href:""}catch(e){return ""}
 }
-
+function money(p){return escapeHTML(p.currency||"USD")+" "+Number(p.price||0).toFixed(2)}
 function showSection(name){
- if(name==="admin"&&(!currentUser||currentUser.id!==ADMIN_ID)){
-  alert("Administrator access only.");
-  showSection("account");
-  return;
- }
-
- ["shop","cart","account","admin"].forEach(id=>{
+ if(name==="admin"&&(!currentUser||currentUser.id!==ADMIN_ID)){alert("Administrator access only.");return showSection("account")}
+ ["shop","details","wishlist","recent","cart","help","account","admin"].forEach(id=>{
   document.getElementById(id).classList.toggle("hidden",id!==name);
  });
-
  if(name==="cart")renderCart();
+ if(name==="wishlist")renderWishlist();
+ if(name==="recent")renderRecent();
  if(name==="admin")loadAdminProducts();
  window.scrollTo(0,0);
 }
 
 async function loadProducts(){
- const {data,error}=await db.from("products")
-  .select("*").eq("is_active",true).order("created_at",{ascending:false});
-
- if(error){
-  document.getElementById("productGrid").textContent="Could not load products. Refresh the page.";
-  console.error(error);
-  return;
- }
-
+ const {data,error}=await db.from("products").select("*").eq("is_active",true).order("created_at",{ascending:false});
+ if(error){document.getElementById("productGrid").textContent="Could not load products. Refresh the page.";console.error(error);return}
  products=data||[];
- renderProducts();
- renderCategories();
+ renderCategories();renderProducts();
 }
-
 function renderCategories(){
- const select=document.getElementById("categoryFilter");
- const current=select.value;
- const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];
-
- select.innerHTML='<option value="">All categories</option>'+
- categories.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
-
- select.value=current;
+ let s=document.getElementById("categoryFilter"),old=s.value;
+ let cats=[...new Set(products.map(p=>p.category).filter(Boolean))];
+ s.innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
+ s.value=old;
 }
-
+function productCard(p){
+ let image=safeURL(p.image_url),liked=wishlist.includes(String(p.id));
+ return `<article class="card">
+  <button class="heart" onclick="toggleWishlist('${p.id}')" aria-label="Wishlist">${liked?"♥":"♡"}</button>
+  <img src="${escapeHTML(image||"https://placehold.co/600x400?text=Product")}" alt="${escapeHTML(p.name)}" onclick="openProduct('${p.id}')" style="cursor:pointer">
+  <div class="card-body">
+   <div class="muted">${escapeHTML(p.category||"General")}</div>
+   <h3>${escapeHTML(p.name)}</h3>
+   <div class="price">${money(p)}</div>
+   <button class="btn btn-dark" onclick="openProduct('${p.id}')">View Details</button>
+   <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
+  </div>
+ </article>`;
+}
 function renderProducts(){
- const search=document.getElementById("search").value.toLowerCase();
- const category=document.getElementById("categoryFilter").value;
-
- const filtered=products.filter(p=>
-  (p.name||"").toLowerCase().includes(search)&&
-  (!category||p.category===category)
+ let q=document.getElementById("search").value.toLowerCase();
+ let cat=document.getElementById("categoryFilter").value;
+ let min=document.getElementById("minPrice").value;
+ let max=document.getElementById("maxPrice").value;
+ let sort=document.getElementById("sortBy").value;
+ let list=products.filter(p=>(p.name||"").toLowerCase().includes(q)&&
+  (p.description||"").toLowerCase().includes(q)||false);
+ list=products.filter(p=>
+  ((p.name||"").toLowerCase().includes(q)||(p.description||"").toLowerCase().includes(q))&&
+  (!cat||p.category===cat)&&
+  (min===""||Number(p.price)>=Number(min))&&
+  (max===""||Number(p.price)<=Number(max))
  );
-
- const grid=document.getElementById("productGrid");
-
- if(!filtered.length){
-  grid.textContent="No products found yet.";
-  return;
- }
-
- grid.innerHTML=filtered.map(p=>{
-  const image=safeURL(p.image_url);
-  const link=safeURL(p.affiliate_url);
-
-  return `<article class="card">
-   <img src="${escapeHTML(image||"https://placehold.co/600x400?text=Product")}" alt="${escapeHTML(p.name)}">
-   <div class="card-body">
-    <div class="muted">${escapeHTML(p.category||"General")}</div>
-    <h3>${escapeHTML(p.name)}</h3>
-    <p class="muted">${escapeHTML(p.description||"")}</p>
-    <div class="price">${escapeHTML(p.currency||"USD")} ${Number(p.price||0).toFixed(2)}</div>
-    <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
-    ${link?`<a href="${escapeHTML(link)}" target="_blank" rel="noopener"><button class="btn btn-dark">Visit Supplier</button></a>`:""}
-   </div>
-  </article>`;
- }).join("");
+ if(sort==="low")list.sort((a,b)=>Number(a.price)-Number(b.price));
+ if(sort==="high")list.sort((a,b)=>Number(b.price)-Number(a.price));
+ if(sort==="az")list.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+ if(sort==="newest")list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+ document.getElementById("productGrid").innerHTML=list.length?list.map(productCard).join():"<p>No products match your search.</p>";
 }
-
+function openProduct(id){
+ let p=products.find(x=>String(x.id)===String(id));if(!p)return;
+ recent=[String(id),...recent.filter(x=>x!==String(id))].slice(0,12);
+ localStorage.setItem("rianderRecent",JSON.stringify(recent));
+ let link=safeURL(p.affiliate_url),image=safeURL(p.image_url);
+ let related=products.filter(x=>x.category&&x.category===p.category&&String(x.id)!==String(p.id)).slice(0,4);
+ document.getElementById("productDetails").innerHTML=`
+  <img class="detail-image" src="${escapeHTML(image||"https://placehold.co/600x400?text=Product")}" alt="${escapeHTML(p.name)}">
+  <p class="muted">${escapeHTML(p.category||"General")}</p>
+  <h2>${escapeHTML(p.name)}</h2>
+  <div class="price">${money(p)}</div>
+  <p>${escapeHTML(p.description||"No description available.")}</p>
+  <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
+  <button class="btn btn-dark" onclick="toggleWishlist('${p.id}')">♡ Save to Wishlist</button>
+  ${link?`<p><a class="btn btn-dark" href="${escapeHTML(link)}" target="_blank" rel="noopener">Visit Supplier</a></p>`:"<p class='muted'>Supplier link not available yet.</p>"}
+  ${related.length?'<h3>You may also like</h3><div class="grid">'+related.map(productCard).join("")+'</div>':""}`;
+ showSection("details");
+}
+function toggleWishlist(id){
+ id=String(id);
+ wishlist.includes(id)?wishlist=wishlist.filter(x=>x!==id):wishlist.push(id);
+ localStorage.setItem("rianderWishlist",JSON.stringify(wishlist));
+ renderProducts();renderWishlist();
+}
+function renderWishlist(){
+ let list=products.filter(p=>wishlist.includes(String(p.id)));
+ document.getElementById("wishlistGrid").innerHTML=list.length?list.map(productCard).join(""):"<p>Your wishlist is empty. Save products you like using ♡.</p>";
+}
+function renderRecent(){
+ let list=recent.map(id=>products.find(p=>String(p.id)===id)).filter(Boolean);
+ document.getElementById("recentGrid").innerHTML=list.length?list.map(productCard).join(""):"<p>You haven't viewed any products yet.</p>";
+}
 function addToCart(id){
- const item=cart.find(x=>String(x.id)===String(id));
- if(item)item.quantity++;
- else cart.push({id,quantity:1});
- saveCart();
- alert("Product added to your cart!");
+ let item=cart.find(x=>String(x.id)===String(id));
+ if(item)item.quantity++;else cart.push({id,quantity:1});
+ saveCart();alert("Product added to your cart!");
 }
-
 function saveCart(){
  localStorage.setItem("rianderCart",JSON.stringify(cart));
  document.getElementById("cartCount").textContent=cart.reduce((s,x)=>s+x.quantity,0);
 }
-
 function renderCart(){
- const box=document.getElementById("cartItems");
- if(!cart.length){box.innerHTML="<p>Your cart is empty.</p>";return;}
-
- box.innerHTML=cart.map(item=>{
-  const p=products.find(x=>String(x.id)===String(item.id));
-  if(!p)return "";
-
-  return `<div class="product-admin">
-   <div><b>${escapeHTML(p.name)}</b><br>${escapeHTML(p.currency||"USD")} ${Number(p.price).toFixed(2)} × ${item.quantity}</div>
+ let box=document.getElementById("cartItems");
+ let items=cart.map(item=>({item,p:products.find(p=>String(p.id)===String(item.id))})).filter(x=>x.p);
+ if(!items.length){box.innerHTML="<p>Your cart is empty.</p>";return}
+ let total=items.reduce((s,x)=>s+Number(x.p.price||0)*x.item.quantity,0);
+ box.innerHTML=items.map(({item,p})=>`
+  <div class="product-admin">
+   <div><b>${escapeHTML(p.name)}</b><br>${money(p)} × ${item.quantity}</div>
    <div>
     <button class="btn btn-small" onclick="changeQuantity('${p.id}',-1)">−</button>
     <button class="btn btn-small" onclick="changeQuantity('${p.id}',1)">+</button>
     <button class="btn btn-red btn-small" onclick="removeFromCart('${p.id}')">Remove</button>
    </div>
-  </div>`;
- }).join("")+
- '<p class="muted">Your cart is saved in this browser. Purchases take place through supplier websites. This cart does not process payments or place orders.</p>';
+  </div>`).join("")+
+  `<h3>Cart total: ${escapeHTML(items[0].p.currency||"USD")} ${total.toFixed(2)}</h3>
+  <p class="muted">This is an estimate if products use different currencies. Purchases take place through supplier websites. This cart does not process payments or place orders.</p>
+  ${items.map(({p})=>safeURL(p.affiliate_url)?`<p><a class="btn btn-dark" href="${escapeHTML(safeURL(p.affiliate_url))}" target="_blank" rel="noopener">Visit supplier: ${escapeHTML(p.name)}</a></p>`:"").join("")}`;
 }
-
-function changeQuantity(id,amount){
- const item=cart.find(x=>String(x.id)===String(id));
- if(item)item.quantity+=amount;
- cart=cart.filter(x=>x.quantity>0);
- saveCart();
- renderCart();
+function changeQuantity(id,n){
+ let item=cart.find(x=>String(x.id)===String(id));if(item)item.quantity+=n;
+ cart=cart.filter(x=>x.quantity>0);saveCart();renderCart();
 }
-
-function removeFromCart(id){
- cart=cart.filter(x=>String(x.id)!==String(id));
- saveCart();
- renderCart();
-}
+function removeFromCart(id){cart=cart.filter(x=>String(x.id)!==String(id));saveCart();renderCart()}
 
 async function signInWithGoogle(){
- const {error}=await db.auth.signInWithOAuth({
-  provider:"google",
-  options:{redirectTo:REDIRECT_URL}
- });
- if(error)alert("Google sign-in error: "+error.message);
+ const {error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:REDIRECT_URL}});
+ if(error)alert(error.message);
 }
-
 async function signIn(){
- const email=document.getElementById("email").value.trim();
- const password=document.getElementById("password").value;
- const {error}=await db.auth.signInWithPassword({email,password});
- if(error)alert(error.message);
+ const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+ const {error}=await db.auth.signInWithPassword({email,password});if(error)alert(error.message);
 }
-
 async function signUp(){
- const email=document.getElementById("email").value.trim();
- const password=document.getElementById("password").value;
-
- if(password.length<6){
-  alert("Password must contain at least 6 characters.");
-  return;
- }
-
- const {error}=await db.auth.signUp({
-  email,password,
-  options:{emailRedirectTo:REDIRECT_URL}
- });
-
- if(error)alert(error.message);
- else alert("Account created. Check your email if confirmation is required.");
+ const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+ if(password.length<6)return alert("Password must contain at least 6 characters.");
+ const {error}=await db.auth.signUp({email,password,options:{emailRedirectTo:REDIRECT_URL}});
+ if(error)alert(error.message);else alert("Account created. Check your email if confirmation is required.");
 }
-
-async function signOut(){
- const {error}=await db.auth.signOut();
- if(error)alert(error.message);
-}
-
+async function signOut(){const {error}=await db.auth.signOut();if(error)alert(error.message)}
 function updateAccount(user){
- currentUser=user;
- const isAdmin=!!user&&user.id===ADMIN_ID;
-
- document.getElementById("adminNav").classList.toggle("hidden",!isAdmin);
+ currentUser=user;let admin=!!user&&user.id===ADMIN_ID;
+ document.getElementById("adminNav").classList.toggle("hidden",!admin);
  document.getElementById("authForms").classList.toggle("hidden",!!user);
  document.getElementById("signOutBtn").classList.toggle("hidden",!user);
-
- document.getElementById("accountStatus").textContent=
-  user?"Signed in as "+(user.email||"Google account")+(isAdmin?" — Administrator":" — Customer"):
-  "You are not signed in.";
+ document.getElementById("accountStatus").textContent=user?
+ "Signed in as "+(user.email||"Google account")+(admin?" — Administrator":" — Customer"):
+ "You are not signed in.";
 }
-
 async function loadAdminProducts(){
  if(!currentUser||currentUser.id!==ADMIN_ID)return;
-
- const box=document.getElementById("adminProducts");
- box.textContent="Loading products...";
-
+ let box=document.getElementById("adminProducts");box.textContent="Loading products...";
  const {data,error}=await db.from("products").select("*").order("created_at",{ascending:false});
-
- if(error){box.textContent="Error: "+error.message;return;}
- if(!data.length){box.textContent="No products yet. Add your first product above.";return;}
-
+ if(error){box.textContent="Error: "+error.message;return}
+ if(!data.length){box.textContent="No products yet.";return}
  box.innerHTML=data.map(p=>`
   <div class="product-admin">
-   <div>
-    <b>${escapeHTML(p.name)}</b>
-    <div class="muted">${escapeHTML(p.currency||"USD")} ${Number(p.price||0).toFixed(2)} · ${escapeHTML(p.category||"General")}</div>
+   <div><b>${escapeHTML(p.name)}</b>
+    <div class="muted">${money(p)} · ${escapeHTML(p.category||"General")}</div>
     <span class="status ${p.is_active?"":"off"}">${p.is_active?"Active":"Inactive"}</span>
    </div>
    <div>
@@ -427,18 +383,11 @@ async function loadAdminProducts(){
    </div>
   </div>`).join("");
 }
-
 document.getElementById("productForm").addEventListener("submit",async e=>{
  e.preventDefault();
-
- if(!currentUser||currentUser.id!==ADMIN_ID){
-  alert("Administrator access only.");
-  return;
- }
-
- const id=document.getElementById("editId").value;
-
- const product={
+ if(!currentUser||currentUser.id!==ADMIN_ID)return alert("Administrator access only.");
+ let id=document.getElementById("editId").value;
+ let product={
   name:document.getElementById("pName").value.trim(),
   price:Number(document.getElementById("pPrice").value),
   currency:document.getElementById("pCurrency").value,
@@ -446,35 +395,17 @@ document.getElementById("productForm").addEventListener("submit",async e=>{
   image_url:document.getElementById("pImage").value.trim(),
   description:document.getElementById("pDescription").value.trim(),
   affiliate_url:document.getElementById("pLink").value.trim(),
-  is_active:true,
-  created_by:currentUser.id
+  is_active:true,created_by:currentUser.id
  };
-
- const message=document.getElementById("adminMessage");
-
- const result=id?
-  await db.from("products").update(product).eq("id",id):
-  await db.from("products").insert(product);
-
- if(result.error){
-  message.textContent="Error: "+result.error.message;
-  message.classList.remove("hidden");
-  return;
- }
-
- message.textContent=id?"Product updated successfully!":"Product added successfully!";
- message.classList.remove("hidden");
-
- resetProductForm();
- await loadAdminProducts();
- await loadProducts();
+ let result=id?await db.from("products").update(product).eq("id",id):await db.from("products").insert(product);
+ let msg=document.getElementById("adminMessage");
+ if(result.error){msg.textContent="Error: "+result.error.message;msg.classList.remove("hidden");return}
+ msg.textContent=id?"Product updated!":"Product added!";msg.classList.remove("hidden");
+ resetProductForm();await loadAdminProducts();await loadProducts();
 });
-
 async function editProduct(id){
  const {data,error}=await db.from("products").select("*").eq("id",id).single();
-
- if(error){alert(error.message);return;}
-
+ if(error)return alert(error.message);
  document.getElementById("editId").value=data.id;
  document.getElementById("pName").value=data.name||"";
  document.getElementById("pPrice").value=data.price||"";
@@ -483,13 +414,10 @@ async function editProduct(id){
  document.getElementById("pImage").value=data.image_url||"";
  document.getElementById("pDescription").value=data.description||"";
  document.getElementById("pLink").value=data.affiliate_url||"";
-
  document.getElementById("saveProductBtn").textContent="Save Changes";
  document.getElementById("cancelEdit").classList.remove("hidden");
- document.getElementById("imagePreview").classList.add("hidden");
  window.scrollTo(0,0);
 }
-
 function resetProductForm(){
  document.getElementById("productForm").reset();
  document.getElementById("editId").value="";
@@ -497,44 +425,27 @@ function resetProductForm(){
  document.getElementById("cancelEdit").classList.add("hidden");
  document.getElementById("imagePreview").classList.add("hidden");
 }
-
 document.getElementById("pImage").addEventListener("input",()=>{
- const url=safeURL(document.getElementById("pImage").value);
- const preview=document.getElementById("imagePreview");
-
- if(url){
-  document.getElementById("previewImg").src=url;
-  preview.classList.remove("hidden");
- }else{
-  preview.classList.add("hidden");
- }
+ let url=safeURL(document.getElementById("pImage").value),preview=document.getElementById("imagePreview");
+ if(url){document.getElementById("previewImg").src=url;preview.classList.remove("hidden")}
+ else preview.classList.add("hidden");
 });
-
 async function toggleProduct(id,active){
  const {error}=await db.from("products").update({is_active:active}).eq("id",id);
- if(error){alert(error.message);return;}
- await loadAdminProducts();
- await loadProducts();
+ if(error)return alert(error.message);
+ await loadAdminProducts();await loadProducts();
 }
-
 async function deleteProduct(id){
  if(!confirm("Are you sure you want to delete this product?"))return;
-
  const {error}=await db.from("products").delete().eq("id",id);
- if(error){alert(error.message);return;}
-
+ if(error)return alert(error.message);
  cart=cart.filter(x=>String(x.id)!==String(id));
+ wishlist=wishlist.filter(x=>x!==String(id));
  saveCart();
+ await loadAdminProducts();await loadProducts();
  alert("Product deleted.");
-
- await loadAdminProducts();
- await loadProducts();
 }
-
-db.auth.onAuthStateChange((_event,session)=>{
- updateAccount(session?.user||null);
-});
-
+db.auth.onAuthStateChange((_event,session)=>updateAccount(session?.user||null));
 async function start(){
  saveCart();
  const {data,error}=await db.auth.getSession();
@@ -542,9 +453,7 @@ async function start(){
  updateAccount(data.session?.user||null);
  await loadProducts();
 }
-
 start();
 </script>
-
 </body>
 </html>
