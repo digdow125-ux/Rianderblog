@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RIANDERBLOG | Global Marketplace</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root{--navy:#101b35;--gold:#d9a943;--light:#f5f6fa}
 *{box-sizing:border-box}
@@ -54,6 +54,7 @@ header{justify-content:center}
 }
 </style>
 </head>
+
 <body>
 
 <header>
@@ -115,6 +116,7 @@ header{justify-content:center}
   </div>
 </section>
 
+<!-- ADMIN PANEL -->
 <section id="admin" class="hidden">
   <h2>RIANDERBLOG Admin Panel</h2>
   <p>Welcome to your marketplace management centre.</p>
@@ -123,15 +125,18 @@ header{justify-content:center}
     <h3>Add a New Product</h3>
     <form id="productForm">
       <input type="hidden" id="editId">
+
       <div class="form-grid">
         <div>
           <label>Product name</label>
           <input id="pName" required placeholder="Product name">
         </div>
+
         <div>
           <label>Price</label>
           <input id="pPrice" type="number" min="0" step="0.01" required placeholder="Price">
         </div>
+
         <div>
           <label>Currency</label>
           <select id="pCurrency">
@@ -142,10 +147,12 @@ header{justify-content:center}
             <option value="ZAR">ZAR</option>
           </select>
         </div>
+
         <div>
           <label>Category</label>
           <input id="pCategory" placeholder="e.g. Electronics">
         </div>
+
         <div class="full">
           <label>Product image URL</label>
           <input id="pImage" type="url" placeholder="https://example.com/image.jpg">
@@ -153,18 +160,22 @@ header{justify-content:center}
             <img id="previewImg" style="width:150px;height:120px;object-fit:cover;border-radius:8px" alt="Product preview">
           </div>
         </div>
+
         <div class="full">
           <label>Description</label>
           <textarea id="pDescription" rows="3" placeholder="Describe your product"></textarea>
         </div>
+
         <div class="full">
           <label>Supplier / Affiliate link</label>
           <input id="pLink" type="url" placeholder="https://supplier-website.com/product">
         </div>
       </div>
+
       <button class="btn" type="submit" id="saveProductBtn">Add Product</button>
       <button class="btn btn-dark hidden" type="button" id="cancelEdit" onclick="resetProductForm()">Cancel Edit</button>
     </form>
+
     <div id="adminMessage" class="message hidden"></div>
   </div>
 
@@ -185,7 +196,10 @@ header{justify-content:center}
 <script>
 const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
 const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
-const ADMIN_ID="0000f474-bdec-4a46-884d-e07257f72746";
+
+// YOUR NEW GOOGLE ADMIN ACCOUNT
+const ADMIN_ID="a32248b7-5745-4dd4-8af0-bce4eb465f66";
+
 const REDIRECT_URL="https://digdow125-ux.github.io/Rianderblog/";
 
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -213,9 +227,11 @@ function showSection(name){
   showSection("account");
   return;
  }
+
  ["shop","cart","account","admin"].forEach(id=>{
   document.getElementById(id).classList.toggle("hidden",id!==name);
  });
+
  if(name==="cart")renderCart();
  if(name==="admin")loadAdminProducts();
  window.scrollTo(0,0);
@@ -224,11 +240,13 @@ function showSection(name){
 async function loadProducts(){
  const {data,error}=await db.from("products")
   .select("*").eq("is_active",true).order("created_at",{ascending:false});
+
  if(error){
   document.getElementById("productGrid").textContent="Could not load products. Refresh the page.";
   console.error(error);
   return;
  }
+
  products=data||[];
  renderProducts();
  renderCategories();
@@ -238,26 +256,33 @@ function renderCategories(){
  const select=document.getElementById("categoryFilter");
  const current=select.value;
  const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];
+
  select.innerHTML='<option value="">All categories</option>'+
  categories.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
+
  select.value=current;
 }
 
 function renderProducts(){
  const search=document.getElementById("search").value.toLowerCase();
  const category=document.getElementById("categoryFilter").value;
+
  const filtered=products.filter(p=>
   (p.name||"").toLowerCase().includes(search)&&
   (!category||p.category===category)
  );
+
  const grid=document.getElementById("productGrid");
+
  if(!filtered.length){
   grid.textContent="No products found yet.";
   return;
  }
+
  grid.innerHTML=filtered.map(p=>{
   const image=safeURL(p.image_url);
   const link=safeURL(p.affiliate_url);
+
   return `<article class="card">
    <img src="${escapeHTML(image||"https://placehold.co/600x400?text=Product")}" alt="${escapeHTML(p.name)}">
    <div class="card-body">
@@ -274,8 +299,10 @@ function renderProducts(){
 
 function addToCart(id){
  const item=cart.find(x=>String(x.id)===String(id));
+
  if(item)item.quantity++;
  else cart.push({id,quantity:1});
+
  saveCart();
  alert("Product added to your cart!");
 }
@@ -287,10 +314,16 @@ function saveCart(){
 
 function renderCart(){
  const box=document.getElementById("cartItems");
- if(!cart.length){box.innerHTML="<p>Your cart is empty.</p>";return;}
+
+ if(!cart.length){
+  box.innerHTML="<p>Your cart is empty.</p>";
+  return;
+ }
+
  box.innerHTML=cart.map(item=>{
   const p=products.find(x=>String(x.id)===String(item.id));
   if(!p)return "";
+
   return `<div class="product-admin">
    <div><b>${escapeHTML(p.name)}</b><br>${escapeHTML(p.currency||"USD")} ${Number(p.price).toFixed(2)} × ${item.quantity}</div>
    <div>
@@ -305,7 +338,9 @@ function renderCart(){
 
 function changeQuantity(id,amount){
  const item=cart.find(x=>String(x.id)===String(id));
+
  if(item)item.quantity+=amount;
+
  cart=cart.filter(x=>x.quantity>0);
  saveCart();
  renderCart();
@@ -322,51 +357,75 @@ async function signInWithGoogle(){
   provider:"google",
   options:{redirectTo:REDIRECT_URL}
  });
+
  if(error)alert("Google sign-in error: "+error.message);
 }
 
 async function signIn(){
  const email=document.getElementById("email").value.trim();
  const password=document.getElementById("password").value;
+
  const {error}=await db.auth.signInWithPassword({email,password});
+
  if(error)alert(error.message);
 }
 
 async function signUp(){
  const email=document.getElementById("email").value.trim();
  const password=document.getElementById("password").value;
- if(password.length<6){alert("Password must contain at least 6 characters.");return;}
+
+ if(password.length<6){
+  alert("Password must contain at least 6 characters.");
+  return;
+ }
+
  const {error}=await db.auth.signUp({
   email,password,
   options:{emailRedirectTo:REDIRECT_URL}
  });
+
  if(error)alert(error.message);
  else alert("Account created. Check your email if confirmation is required.");
 }
 
 async function signOut(){
  const {error}=await db.auth.signOut();
+
  if(error)alert(error.message);
 }
 
 function updateAccount(user){
  currentUser=user;
+
  const isAdmin=!!user&&user.id===ADMIN_ID;
+
  document.getElementById("adminNav").classList.toggle("hidden",!isAdmin);
  document.getElementById("authForms").classList.toggle("hidden",!!user);
  document.getElementById("signOutBtn").classList.toggle("hidden",!user);
+
  document.getElementById("accountStatus").textContent=
-  user?"Signed in as "+user.email+(isAdmin?" — Administrator":" — Customer"):
+  user?"Signed in as "+(user.email||"Google account")+(isAdmin?" — Administrator":" — Customer"):
   "You are not signed in.";
 }
 
 async function loadAdminProducts(){
  if(!currentUser||currentUser.id!==ADMIN_ID)return;
+
  const box=document.getElementById("adminProducts");
  box.textContent="Loading products...";
+
  const {data,error}=await db.from("products").select("*").order("created_at",{ascending:false});
- if(error){box.textContent="Error: "+error.message;return;}
- if(!data.length){box.textContent="No products yet. Add your first product above.";return;}
+
+ if(error){
+  box.textContent="Error: "+error.message;
+  return;
+ }
+
+ if(!data.length){
+  box.textContent="No products yet. Add your first product above.";
+  return;
+ }
+
  box.innerHTML=data.map(p=>`
   <div class="product-admin">
    <div>
@@ -384,11 +443,14 @@ async function loadAdminProducts(){
 
 document.getElementById("productForm").addEventListener("submit",async e=>{
  e.preventDefault();
+
  if(!currentUser||currentUser.id!==ADMIN_ID){
   alert("Administrator access only.");
   return;
  }
+
  const id=document.getElementById("editId").value;
+
  const product={
   name:document.getElementById("pName").value.trim(),
   price:Number(document.getElementById("pPrice").value),
@@ -400,17 +462,22 @@ document.getElementById("productForm").addEventListener("submit",async e=>{
   is_active:true,
   created_by:currentUser.id
  };
+
  const message=document.getElementById("adminMessage");
+
  const result=id?
   await db.from("products").update(product).eq("id",id):
   await db.from("products").insert(product);
+
  if(result.error){
   message.textContent="Error: "+result.error.message;
   message.classList.remove("hidden");
   return;
  }
+
  message.textContent=id?"Product updated successfully!":"Product added successfully!";
  message.classList.remove("hidden");
+
  resetProductForm();
  await loadAdminProducts();
  await loadProducts();
@@ -418,7 +485,12 @@ document.getElementById("productForm").addEventListener("submit",async e=>{
 
 async function editProduct(id){
  const {data,error}=await db.from("products").select("*").eq("id",id).single();
- if(error){alert(error.message);return;}
+
+ if(error){
+  alert(error.message);
+  return;
+ }
+
  document.getElementById("editId").value=data.id;
  document.getElementById("pName").value=data.name||"";
  document.getElementById("pPrice").value=data.price||"";
@@ -427,8 +499,10 @@ async function editProduct(id){
  document.getElementById("pImage").value=data.image_url||"";
  document.getElementById("pDescription").value=data.description||"";
  document.getElementById("pLink").value=data.affiliate_url||"";
+
  document.getElementById("saveProductBtn").textContent="Save Changes";
  document.getElementById("cancelEdit").classList.remove("hidden");
+
  document.getElementById("imagePreview").classList.add("hidden");
  window.scrollTo(0,0);
 }
@@ -444,6 +518,7 @@ function resetProductForm(){
 document.getElementById("pImage").addEventListener("input",()=>{
  const url=safeURL(document.getElementById("pImage").value);
  const preview=document.getElementById("imagePreview");
+
  if(url){
   document.getElementById("previewImg").src=url;
   preview.classList.remove("hidden");
@@ -454,18 +529,31 @@ document.getElementById("pImage").addEventListener("input",()=>{
 
 async function toggleProduct(id,active){
  const {error}=await db.from("products").update({is_active:active}).eq("id",id);
- if(error){alert(error.message);return;}
+
+ if(error){
+  alert(error.message);
+  return;
+ }
+
  await loadAdminProducts();
  await loadProducts();
 }
 
 async function deleteProduct(id){
  if(!confirm("Are you sure you want to delete this product?"))return;
+
  const {error}=await db.from("products").delete().eq("id",id);
- if(error){alert(error.message);return;}
+
+ if(error){
+  alert(error.message);
+  return;
+ }
+
  cart=cart.filter(x=>String(x.id)!==String(id));
  saveCart();
+
  alert("Product deleted.");
+
  await loadAdminProducts();
  await loadProducts();
 }
@@ -476,11 +564,17 @@ db.auth.onAuthStateChange((_event,session)=>{
 
 async function start(){
  saveCart();
- const {data}=await db.auth.getSession();
+
+ const {data,error}=await db.auth.getSession();
+
+ if(error)console.error(error);
+
  updateAccount(data.session?.user||null);
  await loadProducts();
 }
+
 start();
 </script>
+
 </body>
-</html>
+      </html>
