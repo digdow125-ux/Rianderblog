@@ -1,459 +1,728 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RIANDERBLOG | Global Marketplace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RIANDERBLOG | Premium Global Shopping</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--navy:#101b35;--gold:#d9a943;--light:#f5f6fa}
+:root{
+  --navy:#10213e;--navy2:#1a3154;--gold:#d6ad55;--gold-dark:#ad812e;
+  --ink:#263244;--muted:#687589;--paper:#f5f6f9;--line:#e5e8ee;--white:#fff;
+  --shadow:0 10px 28px rgba(16,33,62,.09)
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:var(--light);color:#20283a}
-header{background:var(--navy);color:white;padding:15px 5%;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
-.logo{font-size:24px;font-weight:bold;color:var(--gold);letter-spacing:1px}
-.menu-container{position:relative}
-.menu-toggle{background:transparent;color:white;border:0;font-size:32px;cursor:pointer}
-.dropdown-menu{position:absolute;right:0;top:45px;min-width:200px;background:white;border-radius:10px;box-shadow:0 5px 20px #0003;z-index:1000;overflow:hidden}
-.dropdown-menu button{display:block;width:100%;padding:14px;border:0;background:white;color:var(--navy);text-align:left;cursor:pointer;font-weight:bold}
-.dropdown-menu button:hover{background:#f0f2f7}
-.hero{background:linear-gradient(120deg,#101b35,#263e68);color:white;padding:55px 7%;text-align:center}
-.hero h1{font-size:38px;margin:0 0 12px}
-.gold{color:var(--gold)}
-.container{max-width:1200px;margin:auto;padding:25px 16px}
-.btn{border:0;border-radius:7px;padding:11px 16px;background:var(--gold);color:#17213a;font-weight:bold;cursor:pointer;margin:3px}
-.btn-dark{background:var(--navy);color:white}
-.btn-red{background:#b83232;color:white}
-.btn-google{background:white;border:1px solid #ccc;color:#333;width:100%;margin-top:12px}
-.btn-small{padding:7px 10px;font-size:13px}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
-input,textarea,select{width:100%;padding:12px;border:1px solid #d6d9e1;border-radius:7px;font-size:15px;margin:6px 0 13px}
-.toolbar input,.toolbar select{flex:1;min-width:140px;margin:0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
-.card{background:white;border-radius:12px;overflow:hidden;box-shadow:0 3px 12px #17213a12;position:relative}
-.card img{width:100%;height:200px;object-fit:cover;background:#eee}
-.card-body{padding:14px}
-.card h3{margin:5px 0}
-.price{font-size:20px;font-weight:bold;color:#b17d18;margin:10px 0}
-.old-price{text-decoration:line-through;color:#888;font-size:14px}
-.muted{color:#697386;font-size:13px}
-.panel{background:white;border-radius:12px;padding:20px;margin:20px 0;box-shadow:0 3px 12px #17213a10}
-.hidden{display:none!important}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-grid .full{grid-column:1/-1}
-.product-admin{border-bottom:1px solid #e5e7eb;padding:13px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.status{font-size:12px;padding:5px 8px;border-radius:20px;background:#e5f5e9;color:#176b34}
-.status.off{background:#ffe9e9;color:#a22}
-.badge{position:absolute;top:10px;left:10px;background:#b83232;color:white;padding:6px 9px;border-radius:5px;font-size:12px;font-weight:bold}
-.heart{position:absolute;top:8px;right:8px;background:white;border:0;border-radius:50%;width:38px;height:38px;font-size:21px;cursor:pointer}
-footer{background:var(--navy);color:white;text-align:center;padding:25px;margin-top:40px}
-.message{padding:10px;border-radius:7px;margin:10px 0;background:#f1f3f7}
-.auth-card{max-width:480px;margin:auto}
-.divider{text-align:center;color:#888;margin:15px}
-a{color:inherit}
-.detail-image{width:100%;max-height:380px;object-fit:contain;background:#f3f3f3;border-radius:10px}
-footer a{color:var(--gold)}
-@media(max-width:600px){.hero h1{font-size:28px}.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--paper);color:var(--ink)}
+.topbar{background:#0a1528;color:#e1e6ef;text-align:center;padding:8px 12px;font-size:12px;letter-spacing:.5px}
+header{background:var(--navy);color:white;padding:20px max(18px,calc((100% - 1150px)/2));display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand-mark{width:45px;height:45px;border:2px solid var(--gold);border-radius:12px;display:grid;place-items:center;color:var(--gold);font-size:24px;font-weight:900}
+.brand-name{font-size:25px;font-weight:800;letter-spacing:1px;color:white}
+.brand-name span{color:var(--gold)}
+.brand-tag{font-size:10px;color:#cbd4e2;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+.header-note{font-size:13px;color:#d5dce7}
+nav{background:var(--navy2);padding:0 max(18px,calc((100% - 1150px)/2));display:flex;gap:23px;align-items:center;flex-wrap:wrap}
+nav a{color:white;text-decoration:none;font-size:13px;font-weight:bold;padding:15px 0}
+nav a:hover{color:var(--gold)}
+main{max-width:1150px;margin:auto;padding:24px 18px}
+.hero{background:linear-gradient(115deg,rgba(10,23,44,.98),rgba(27,52,86,.9));border-radius:17px;padding:42px 35px;color:white;display:flex;align-items:center;justify-content:space-between;gap:22px}
+.hero-copy{max-width:650px}
+.eyebrow{color:var(--gold);font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase}
+.hero h1{font-size:clamp(29px,5vw,45px);line-height:1.12;margin:12px 0}
+.hero p{color:#d9e0ea;line-height:1.65;max-width:570px}
+.hero-link{display:inline-block;background:var(--gold);color:#172238;text-decoration:none;padding:13px 19px;border-radius:7px;font-weight:bold;margin-top:8px}
+.hero-stamp{width:135px;height:135px;border:1px solid rgba(214,173,85,.7);border-radius:50%;display:grid;place-items:center;text-align:center;color:var(--gold);font-size:13px;line-height:1.5;flex:none}
+.benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:17px 0 28px}
+.benefit{background:white;border:1px solid var(--line);border-radius:9px;padding:15px;text-align:center;font-size:13px;font-weight:bold;color:#39465a}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin:27px 0 14px}
+.section-head h2{margin:0;color:var(--navy);font-size:23px}
+.section-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.search{width:100%;padding:14px;border:1px solid #d8dee8;border-radius:8px;font-size:15px;background:white;outline:none}
+.search:focus,input:focus{border-color:var(--gold-dark);box-shadow:0 0 0 3px rgba(214,173,85,.15)}
+.categories{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0 20px}
+button{cursor:pointer;border:0;border-radius:7px;padding:11px;font-weight:bold}
+.categories button{background:white;border:1px solid #dfe4ec;color:#344054;border-radius:22px;padding:10px 15px}
+.categories button.active,.categories button:hover{background:var(--navy);border-color:var(--navy);color:white}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px}
+.product{background:white;border:1px solid var(--line);border-radius:12px;padding:13px;box-shadow:0 3px 13px rgba(16,33,62,.045);transition:.18s}
+.product:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.product img{width:100%;height:175px;object-fit:contain;background:#fafbfc;border-radius:8px}
+.product h3{font-size:16px;line-height:1.4;color:var(--navy);margin:11px 0 5px}
+.product-desc{font-size:13px;line-height:1.5;color:var(--muted);min-height:36px}
+.price{font-size:19px;font-weight:800;color:var(--navy);margin:10px 0}
+.product-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.details-btn{background:#f3ead7;color:#5d4519}
+.add,.primary{background:var(--navy);color:white}
+.add:hover,.primary:hover{background:#29456f}
+.buy{display:block;text-align:center;background:var(--gold);color:#172238;padding:12px;border-radius:7px;text-decoration:none;margin-top:8px;font-weight:bold;font-size:13px}
+.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:24px;box-shadow:0 3px 13px rgba(16,33,62,.04)}
+.panel h2{color:var(--navy);margin-top:0}
+input{width:100%;padding:12px;margin:7px 0;border:1px solid #d8dee8;border-radius:7px;font-size:15px}
+.secondary{background:#e9edf3;color:#29384e;margin:5px}
+.primary{margin:5px}
+.cart-item{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:12px 0}
+.cart-item img{width:65px;height:65px;object-fit:contain;background:#fafbfc;border-radius:7px}
+.cart-info{flex:1;min-width:130px}
+.remove{background:#fee8e8;color:#9b2525}
+.notice{padding:10px;background:#f5f0e5;border-radius:7px;margin-top:10px;color:#59471f;font-size:13px}
+footer{text-align:center;background:var(--navy);color:#dce3ed;padding:25px 18px;margin-top:30px;font-size:13px}
+footer strong{color:var(--gold)}
+.detail-backdrop{display:none;position:fixed;inset:0;background:rgba(4,12,25,.76);z-index:9999;padding:15px;align-items:center;justify-content:center}
+.detail-backdrop.open{display:flex}
+.detail-box{background:white;width:100%;max-width:780px;max-height:90vh;overflow-y:auto;padding:27px;border-radius:15px;position:relative;box-shadow:0 20px 65px rgba(0,0,0,.3)}
+.detail-close{position:absolute;right:12px;top:12px;background:#edf0f4;color:#24334a;font-size:19px;width:38px;height:38px;border-radius:50%}
+.detail-content{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding-top:10px}
+.detail-image{width:100%;height:300px;object-fit:contain;background:#f7f8fa;border-radius:10px}
+.detail-category{color:var(--gold-dark);font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1.3px}
+.detail-content h2{color:var(--navy);font-size:25px;line-height:1.3;margin:10px 0}
+.detail-description{color:#586579;line-height:1.7;white-space:pre-wrap}
+.detail-price{color:var(--gold-dark);font-size:25px;font-weight:800;margin:17px 0}
+.detail-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.detail-actions button,.detail-actions a{flex:1;min-width:125px;text-align:center;padding:13px;border-radius:7px;text-decoration:none;font-weight:bold}
+.detail-add{background:var(--navy);color:white}
+.detail-buy{background:var(--gold);color:#172238}
+@media(max-width:650px){
+ header{padding:16px 18px}.header-note{display:none}nav{gap:15px}nav a{font-size:12px}
+ .hero{padding:29px 21px}.hero-stamp{width:90px;height:90px;font-size:10px}
+ .benefits{grid-template-columns:1fr}.detail-content{grid-template-columns:1fr}
+ .detail-image{height:220px}.detail-box{padding:20px}
+}
+.currency-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);padding:12px 15px;border-radius:10px;margin:18px 0}
+.currency-bar select,.form-grid select{padding:11px;border:1px solid #d8dee8;border-radius:7px;background:#fff}
+.market-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.market-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px}
+.market-card h3{margin:0 0 8px;color:var(--navy)}
+.market-card p{font-size:13px;color:var(--muted);line-height:1.55}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.form-grid input,.form-grid select,.form-grid textarea{width:100%;padding:12px;margin:5px 0;border:1px solid #d8dee8;border-radius:7px;font:inherit}
+.form-grid textarea{min-height:90px;grid-column:1/-1}
+.method-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:14px 0}
+.method-option{border:1px solid var(--line);border-radius:9px;padding:13px;background:#fff;text-align:left;color:var(--ink)}
+.method-option.selected{border:2px solid var(--gold-dark);background:#fffaf0}
+.method-info{background:#f6f8fb;padding:15px;border-radius:9px;line-height:1.6;font-size:14px}
+.pill{display:inline-block;background:#f1f3f6;border-radius:20px;padding:5px 9px;font-size:11px;color:#596579}
+.listing{border:1px solid var(--line);border-radius:9px;padding:13px;margin:9px 0;background:#fff}
+.listing h4{margin:0 0 5px;color:var(--navy)}
+.small-note{font-size:12px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>
-
+<div class="topbar">A WORLD OF DISCOVERY • SHOP PRODUCTS FROM INTERNATIONAL SELLERS</div>
 <header>
- <div class="logo">RIANDERBLOG</div>
- <div class="menu-container">
-  <button class="menu-toggle" onclick="toggleMenu()">⋮</button>
-  <div id="dropdownMenu" class="dropdown-menu hidden">
-   <button onclick="menuGo('shop')">🛍 Shop</button>
-   <button onclick="menuGo('wishlist')">♡ Wishlist</button>
-   <button onclick="menuGo('cart')">🛒 Cart (<span id="cartCount">0</span>)</button>
-   <button onclick="menuGo('recent')">Recently Viewed</button>
-   <button onclick="menuGo('account')">My Account</button>
-   <button onclick="menuGo('help')">Help Centre</button>
-   <button id="adminNav" class="hidden" onclick="menuGo('admin')">Admin Panel</button>
-  </div>
- </div>
+  <a class="brand" href="#">
+    <div class="brand-mark">R</div>
+    <div><div class="brand-name">RIANDER<span>BLOG</span></div><div class="brand-tag">Global marketplace</div></div>
+  </a>
+  <div class="header-note">Discover more. Shop beyond borders.</div>
 </header>
-
-<section class="hero">
- <h1>Discover. Shop. <span class="gold">Enjoy.</span></h1>
- <p>Explore products from suppliers around the world.</p>
- <button class="btn" onclick="showSection('shop')">Explore Products</button>
-</section>
-
-<main class="container">
-
-<section id="shop">
- <h2>Explore Products</h2>
- <div class="toolbar">
-  <input id="search" placeholder="Search products..." oninput="renderProducts()">
-  <select id="categoryFilter" onchange="renderProducts()"><option value="">All categories</option></select>
-  <input id="minPrice" type="number" min="0" placeholder="Min price" oninput="renderProducts()">
-  <input id="maxPrice" type="number" min="0" placeholder="Max price" oninput="renderProducts()">
-  <select id="sortBy" onchange="renderProducts()">
-   <option value="newest">Newest first</option>
-   <option value="low">Price: low to high</option>
-   <option value="high">Price: high to low</option>
-   <option value="az">Name: A to Z</option>
-  </select>
- </div>
- <div id="productGrid" class="grid">Loading products...</div>
-</section>
-
-<section id="details" class="hidden">
- <button class="btn btn-dark" onclick="showSection('shop')">← Back to Shop</button>
- <div id="productDetails" class="panel"></div>
-</section>
-
-<section id="wishlist" class="hidden">
- <h2>My Wishlist ♡</h2>
- <div id="wishlistGrid" class="grid"></div>
-</section>
-
-<section id="recent" class="hidden">
- <h2>Recently Viewed</h2>
- <div id="recentGrid" class="grid"></div>
-</section>
-
-<section id="cart" class="hidden">
- <h2>Your Shopping Cart</h2>
- <div id="cartItems"></div>
-</section>
-
-<section id="help" class="hidden">
- <h2>Help Centre</h2>
- <div class="panel">
-  <h3>How does RIANDERBLOG work?</h3>
-  <p>Browse products, add favourites to your wishlist, and add items to your cart. When you're ready to buy, visit the supplier's website using the product link.</p>
-  <h3>Are payments made on RIANDERBLOG?</h3>
-  <p>No. At present, purchases and payments are handled by the external supplier.</p>
-  <h3>Need assistance?</h3>
-  <p>Contact the marketplace team using the email address below.</p>
-  <a href="mailto:rianderblog@gmail.com">Contact RIANDERBLOG</a>
- </div>
-</section>
-
-<section id="account" class="hidden">
- <div class="panel auth-card">
-  <h2>Your Account</h2>
-  <div id="accountStatus" class="message">You are not signed in.</div>
-  <div id="authForms">
-   <h3>Sign in with Google</h3>
-   <button class="btn btn-google" onclick="signInWithGoogle()">Continue with Google</button>
-   <div class="divider">OR</div>
-   <h3>Sign in with Email</h3>
-   <input id="email" type="email" placeholder="Email address">
-   <input id="password" type="password" placeholder="Password">
-   <button class="btn btn-dark" onclick="signIn()">Sign In</button>
-   <button class="btn" onclick="signUp()">Create Account</button>
-  </div>
-  <button id="signOutBtn" class="btn btn-red hidden" onclick="signOut()">Sign Out</button>
- </div>
-</section>
-
-<section id="admin" class="hidden">
- <h2>RIANDERBLOG Admin Panel</h2>
- <div class="panel">
-  <h3>Add or Edit a Product</h3>
-  <form id="productForm">
-   <input type="hidden" id="editId">
-   <div class="form-grid">
-    <div><label>Product name</label><input id="pName" required></div>
-    <div><label>Price</label><input id="pPrice" type="number" min="0" step="0.01" required></div>
-    <div><label>Currency</label>
-     <select id="pCurrency">
-      <option>USD</option><option>MWK</option><option>GBP</option><option>EUR</option><option>ZAR</option>
-     </select>
+<nav>
+  <a href="#">Home</a>
+  <a href="#products">Products</a>
+  <a href="#cart">My Cart (<span id="cartCount">0</span>)</a>
+  <a href="#account">My Account</a>
+  <a href="#dashboard">Dashboard</a>
+  <a href="#suppliers">Suppliers</a>
+  <a href="#affiliates">Affiliates</a>
+  <a href="#payments">Payments</a>
+</nav>
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">The world, within reach</div>
+      <h1>Discover something extraordinary.</h1>
+      <p>Explore products from international sellers, compare your finds and continue to the supplier's store when you're ready to buy.</p>
+      <a class="hero-link" href="#products">Explore products</a>
     </div>
-    <div><label>Category</label><input id="pCategory" placeholder="e.g. Electronics"></div>
-    <div class="full"><label>Product image URL</label><input id="pImage" type="url">
-     <div id="imagePreview" class="hidden"><img id="previewImg" style="width:150px;height:120px;object-fit:cover" alt="Preview"></div>
-    </div>
-    <div class="full"><label>Description</label><textarea id="pDescription" rows="3"></textarea></div>
-    <div class="full"><label>Supplier / Affiliate link</label><input id="pLink" type="url"></div>
-   </div>
-   <button class="btn" type="submit" id="saveProductBtn">Add Product</button>
-   <button class="btn btn-dark hidden" type="button" id="cancelEdit" onclick="resetProductForm()">Cancel Edit</button>
-  </form>
-  <div id="adminMessage" class="message hidden"></div>
- </div>
- <div class="panel">
-  <h3>Manage Products</h3>
-  <div id="adminProducts">Loading products...</div>
- </div>
-</section>
+    <div class="hero-stamp">GLOBAL<br>FINDS<br><strong>RIANDERBLOG</strong></div>
+  </section>
+  <section class="benefits">
+    <div class="benefit">✦ Discover products worldwide</div>
+    <div class="benefit">✦ Save items in your shopping cart</div>
+    <div class="benefit">✦ Buy securely through the supplier</div>
+  </section>
 
+  <section id="products">
+    <div class="section-head"><div><h2>Explore our products</h2><p>Choose a product to view its full details.</p></div></div>
+    <input class="search" id="search" placeholder="Search products by name or description..." aria-label="Search products">
+    <div class="categories">
+      <button class="active" onclick="filterCategory('All',this)">All</button>
+      <button onclick="filterCategory('Electronics',this)">Electronics</button>
+      <button onclick="filterCategory('Accessories',this)">Accessories</button>
+      <button onclick="filterCategory('Home',this)">Home</button>
+    </div>
+    <div id="productList" class="products">Loading products...</div>
+  </section>
+
+  <section id="cart" class="panel">
+    <h2>🛒 My Shopping Cart</h2>
+    <div id="cartItems">Your cart is empty.</div>
+    <h3 id="cartTotal"></h3>
+    <p id="cartNote"></p>
+  </section>
+
+  <section class="currency-bar" aria-label="Currency settings">
+    <strong>🌍 Your shopping currency</strong>
+    <span id="currencyStatus" class="small-note">Detecting country and currency…</span>
+    <label for="currencySelect" class="small-note">Change currency:</label>
+    <select id="currencySelect" onchange="setCurrency(this.value)">
+      <option value="MWK">MWK – Malawi Kwacha</option><option value="USD">USD – US Dollar</option><option value="GBP">GBP – British Pound</option><option value="EUR">EUR – Euro</option><option value="ZAR">ZAR – South African Rand</option><option value="KES">KES – Kenyan Shilling</option><option value="NGN">NGN – Nigerian Naira</option><option value="GHS">GHS – Ghanaian Cedi</option><option value="INR">INR – Indian Rupee</option><option value="CAD">CAD – Canadian Dollar</option><option value="AUD">AUD – Australian Dollar</option><option value="JPY">JPY – Japanese Yen</option>
+    </select>
+  </section>
+
+  <section id="payments" class="panel">
+    <h2>💳 Payment Centre</h2><p>Select a payment method to see how it is intended to work.</p>
+    <div class="method-list">
+      <button class="method-option" onclick="selectPayment('PayPal',this)">🅿️ PayPal</button>
+      <button class="method-option" onclick="selectPayment('Visa / Mastercard',this)">💳 Visa / Mastercard</button>
+      <button class="method-option" onclick="selectPayment('Airtel Money',this)">📱 Airtel Money</button>
+      <button class="method-option" onclick="selectPayment('TNM Mpamba',this)">📱 TNM Mpamba</button>
+      <button class="method-option" onclick="selectPayment('Bank transfer',this)">🏦 Bank transfer</button>
+      <button class="method-option" onclick="selectPayment('Other international methods',this)">🌐 Other international methods</button>
+    </div>
+    <div id="paymentInfo" class="method-info">Choose a method above to view its information. Live checkout is not enabled until RIANDERBLOG has approved merchant accounts and secure gateway integration.</div>
+    <p class="small-note">Never enter card details, PINs or mobile-money passwords into this website. Payments will be redirected to verified payment-provider checkout pages once connected.</p>
+  </section>
+
+  <section id="suppliers" class="panel">
+    <h2>🏭 Discover Suppliers</h2><p>Find businesses and manufacturers offering products to customers worldwide.</p>
+    <input id="supplierSearch" class="search" placeholder="Search suppliers by company, country or products…" oninput="renderSuppliers()">
+    <div id="supplierList"><p class="small-note">Supplier directory will display approved supplier profiles here.</p></div>
+    <h3>Become a supplier</h3><p class="small-note">Create a supplier application. RIANDERBLOG admin approval is required before public listing.</p>
+    <div class="form-grid"><input id="supplierCompany" placeholder="Company / business name"><input id="supplierCountry" placeholder="Country"><input id="supplierEmail" type="email" placeholder="Business email"><input id="supplierWebsite" placeholder="Website URL (optional)"><textarea id="supplierDescription" placeholder="Describe your products, shipping destinations and business"></textarea></div>
+    <button class="primary" onclick="applySupplier()">Submit supplier application</button><p id="supplierMessage" class="small-note"></p>
+  </section>
+
+  <section id="affiliates" class="panel">
+    <h2>🤝 Affiliate Marketing Centre</h2><p>Discover company affiliate programmes and apply to promote products for commission.</p>
+    <div id="programmeList"><p class="small-note">Approved affiliate programmes will appear here.</p></div>
+    <h3>Companies: publish an affiliate programme</h3>
+    <div class="form-grid"><input id="affiliateCompany" placeholder="Company name"><input id="affiliateEmail" type="email" placeholder="Contact email"><input id="affiliateCommission" type="number" min="0" max="100" step="0.1" placeholder="Commission rate (%)"><input id="affiliateWebsite" placeholder="Company website"><textarea id="affiliateTerms" placeholder="Programme terms, eligible countries, cookie duration and payout conditions"></textarea></div>
+    <button class="primary" onclick="submitAffiliateProgramme()">Submit programme for review</button><p id="affiliateMessage" class="small-note"></p>
+    <h3>Join as an affiliate</h3>
+    <div class="form-grid"><input id="affiliateApplicantName" placeholder="Your name"><input id="affiliateApplicantEmail" type="email" placeholder="Your email"><input id="affiliatePlatform" placeholder="Website / social media profile"><input id="affiliateProgrammeId" placeholder="Programme ID to apply for"></div>
+    <button class="primary" onclick="applyAffiliate()">Apply to programme</button><p id="affiliateApplyMessage" class="small-note"></p>
+  </section>
+
+  <section id="account" class="panel">
+    <h2>Customer Account</h2>
+    <p>Create an account or sign in.</p>
+    <input id="email" type="email" placeholder="Email address" autocomplete="email">
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="primary" onclick="signUp()">Create Account</button>
+    <button class="primary" onclick="signIn()">Sign In</button>
+    <button class="secondary" onclick="signOut()">Sign Out</button>
+    <p id="message" class="notice">Not signed in yet.</p>
+  </section>
+
+  <section id="dashboard" class="panel">
+    <h2>👤 My Customer Dashboard</h2>
+    <p id="dashboardStatus">Checking your account...</p>
+    <div id="dashboardDetails"></div>
+    <button class="primary" onclick="showDashboard()">Refresh Dashboard</button>
+    <p><a href="#cart">Go to My Shopping Cart</a></p>
+  </section>
 </main>
 
 <footer>
- <div class="logo">RIANDERBLOG</div>
- <p>Your gateway to global shopping.</p>
- <p><a href="mailto:rianderblog@gmail.com">Contact Us</a> · <a href="#" onclick="showSection('help');return false">Help Centre</a></p>
- <p class="muted">Products are supplied by external sellers. Prices and availability may change.</p>
+  <p><strong>RIANDERBLOG</strong> © 2026</p>
+  <p>Shop globally. Discover more.</p>
+  <p>Payments and order fulfilment are handled by the supplier's website.</p>
 </footer>
 
-<script>
-const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
-const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
-const ADMIN_ID="a32248b7-5745-4dd4-8af0-bce4eb465f66";
-const REDIRECT_URL="https://digdow125-ux.github.io/Rianderblog/";
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
-let products=[],currentUser=null;
-let cart=JSON.parse(localStorage.getItem("rianderCart")||"[]");
-let wishlist=JSON.parse(localStorage.getItem("rianderWishlist")||"[]");
-let recent=JSON.parse(localStorage.getItem("rianderRecent")||"[]");
-
-function toggleMenu(){document.getElementById("dropdownMenu").classList.toggle("hidden")}
-function menuGo(section){document.getElementById("dropdownMenu").classList.add("hidden");showSection(section)}
-document.addEventListener("click",e=>{
- const c=document.querySelector(".menu-container");
- if(c&&!c.contains(e.target))document.getElementById("dropdownMenu").classList.add("hidden");
-});
-
-function escapeHTML(v){
- return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function safeURL(v){
- try{let u=new URL(v);return ["https:","http:"].includes(u.protocol)?u.href:""}catch(e){return ""}
-}
-function money(p){return escapeHTML(p.currency||"USD")+" "+Number(p.price||0).toFixed(2)}
-function showSection(name){
- if(name==="admin"&&(!currentUser||currentUser.id!==ADMIN_ID)){alert("Administrator access only.");return showSection("account")}
- ["shop","details","wishlist","recent","cart","help","account","admin"].forEach(id=>{
-  document.getElementById(id).classList.toggle("hidden",id!==name);
- });
- if(name==="cart")renderCart();
- if(name==="wishlist")renderWishlist();
- if(name==="recent")renderRecent();
- if(name==="admin")loadAdminProducts();
- window.scrollTo(0,0);
-}
-
-async function loadProducts(){
- const {data,error}=await db.from("products").select("*").eq("is_active",true).order("created_at",{ascending:false});
- if(error){document.getElementById("productGrid").textContent="Could not load products. Refresh the page.";console.error(error);return}
- products=data||[];
- renderCategories();renderProducts();
-}
-function renderCategories(){
- let s=document.getElementById("categoryFilter"),old=s.value;
- let cats=[...new Set(products.map(p=>p.category).filter(Boolean))];
- s.innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
- s.value=old;
-}
-function productCard(p){
- let image=safeURL(p.image_url),liked=wishlist.includes(String(p.id));
- return `<article class="card">
-  <button class="heart" onclick="toggleWishlist('${p.id}')" aria-label="Wishlist">${liked?"♥":"♡"}</button>
-  <img src="${escapeHTML(image||"https://placehold.co/600x400?text=Product")}" alt="${escapeHTML(p.name)}" onclick="openProduct('${p.id}')" style="cursor:pointer">
-  <div class="card-body">
-   <div class="muted">${escapeHTML(p.category||"General")}</div>
-   <h3>${escapeHTML(p.name)}</h3>
-   <div class="price">${money(p)}</div>
-   <button class="btn btn-dark" onclick="openProduct('${p.id}')">View Details</button>
-   <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
+<div id="productDetails" class="detail-backdrop" role="dialog" aria-modal="true" aria-label="Product details" onclick="closeDetailsFromBackdrop(event)">
+  <div class="detail-box">
+    <button class="detail-close" onclick="closeDetails()" aria-label="Close details">×</button>
+    <div id="detailContent"></div>
   </div>
- </article>`;
-}
-function renderProducts(){
- let q=document.getElementById("search").value.toLowerCase();
- let cat=document.getElementById("categoryFilter").value;
- let min=document.getElementById("minPrice").value;
- let max=document.getElementById("maxPrice").value;
- let sort=document.getElementById("sortBy").value;
- let list=products.filter(p=>(p.name||"").toLowerCase().includes(q)&&
-  (p.description||"").toLowerCase().includes(q)||false);
- list=products.filter(p=>
-  ((p.name||"").toLowerCase().includes(q)||(p.description||"").toLowerCase().includes(q))&&
-  (!cat||p.category===cat)&&
-  (min===""||Number(p.price)>=Number(min))&&
-  (max===""||Number(p.price)<=Number(max))
- );
- if(sort==="low")list.sort((a,b)=>Number(a.price)-Number(b.price));
- if(sort==="high")list.sort((a,b)=>Number(b.price)-Number(a.price));
- if(sort==="az")list.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
- if(sort==="newest")list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
- document.getElementById("productGrid").innerHTML=list.length?list.map(productCard).join():"<p>No products match your search.</p>";
-}
-function openProduct(id){
- let p=products.find(x=>String(x.id)===String(id));if(!p)return;
- recent=[String(id),...recent.filter(x=>x!==String(id))].slice(0,12);
- localStorage.setItem("rianderRecent",JSON.stringify(recent));
- let link=safeURL(p.affiliate_url),image=safeURL(p.image_url);
- let related=products.filter(x=>x.category&&x.category===p.category&&String(x.id)!==String(p.id)).slice(0,4);
- document.getElementById("productDetails").innerHTML=`
-  <img class="detail-image" src="${escapeHTML(image||"https://placehold.co/600x400?text=Product")}" alt="${escapeHTML(p.name)}">
-  <p class="muted">${escapeHTML(p.category||"General")}</p>
-  <h2>${escapeHTML(p.name)}</h2>
-  <div class="price">${money(p)}</div>
-  <p>${escapeHTML(p.description||"No description available.")}</p>
-  <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
-  <button class="btn btn-dark" onclick="toggleWishlist('${p.id}')">♡ Save to Wishlist</button>
-  ${link?`<p><a class="btn btn-dark" href="${escapeHTML(link)}" target="_blank" rel="noopener">Visit Supplier</a></p>`:"<p class='muted'>Supplier link not available yet.</p>"}
-  ${related.length?'<h3>You may also like</h3><div class="grid">'+related.map(productCard).join("")+'</div>':""}`;
- showSection("details");
-}
-function toggleWishlist(id){
- id=String(id);
- wishlist.includes(id)?wishlist=wishlist.filter(x=>x!==id):wishlist.push(id);
- localStorage.setItem("rianderWishlist",JSON.stringify(wishlist));
- renderProducts();renderWishlist();
-}
-function renderWishlist(){
- let list=products.filter(p=>wishlist.includes(String(p.id)));
- document.getElementById("wishlistGrid").innerHTML=list.length?list.map(productCard).join(""):"<p>Your wishlist is empty. Save products you like using ♡.</p>";
-}
-function renderRecent(){
- let list=recent.map(id=>products.find(p=>String(p.id)===id)).filter(Boolean);
- document.getElementById("recentGrid").innerHTML=list.length?list.map(productCard).join(""):"<p>You haven't viewed any products yet.</p>";
-}
-function addToCart(id){
- let item=cart.find(x=>String(x.id)===String(id));
- if(item)item.quantity++;else cart.push({id,quantity:1});
- saveCart();alert("Product added to your cart!");
-}
-function saveCart(){
- localStorage.setItem("rianderCart",JSON.stringify(cart));
- document.getElementById("cartCount").textContent=cart.reduce((s,x)=>s+x.quantity,0);
-}
-function renderCart(){
- let box=document.getElementById("cartItems");
- let items=cart.map(item=>({item,p:products.find(p=>String(p.id)===String(item.id))})).filter(x=>x.p);
- if(!items.length){box.innerHTML="<p>Your cart is empty.</p>";return}
- let total=items.reduce((s,x)=>s+Number(x.p.price||0)*x.item.quantity,0);
- box.innerHTML=items.map(({item,p})=>`
-  <div class="product-admin">
-   <div><b>${escapeHTML(p.name)}</b><br>${money(p)} × ${item.quantity}</div>
-   <div>
-    <button class="btn btn-small" onclick="changeQuantity('${p.id}',-1)">−</button>
-    <button class="btn btn-small" onclick="changeQuantity('${p.id}',1)">+</button>
-    <button class="btn btn-red btn-small" onclick="removeFromCart('${p.id}')">Remove</button>
-   </div>
-  </div>`).join("")+
-  `<h3>Cart total: ${escapeHTML(items[0].p.currency||"USD")} ${total.toFixed(2)}</h3>
-  <p class="muted">This is an estimate if products use different currencies. Purchases take place through supplier websites. This cart does not process payments or place orders.</p>
-  ${items.map(({p})=>safeURL(p.affiliate_url)?`<p><a class="btn btn-dark" href="${escapeHTML(safeURL(p.affiliate_url))}" target="_blank" rel="noopener">Visit supplier: ${escapeHTML(p.name)}</a></p>`:"").join("")}`;
-}
-function changeQuantity(id,n){
- let item=cart.find(x=>String(x.id)===String(id));if(item)item.quantity+=n;
- cart=cart.filter(x=>x.quantity>0);saveCart();renderCart();
-}
-function removeFromCart(id){cart=cart.filter(x=>String(x.id)!==String(id));saveCart();renderCart()}
+</div>
 
-async function signInWithGoogle(){
- const {error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:REDIRECT_URL}});
- if(error)alert(error.message);
+<script>
+const SUPABASE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let allProducts = [];
+let currentCategory = "All";
+let cart = [];
+
+try {
+  cart = JSON.parse(localStorage.getItem("rianderblog_cart") || "[]");
+  if (!Array.isArray(cart)) cart = [];
+} catch (e) {
+  cart = [];
 }
-async function signIn(){
- const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
- const {error}=await db.auth.signInWithPassword({email,password});if(error)alert(error.message);
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
 }
-async function signUp(){
- const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
- if(password.length<6)return alert("Password must contain at least 6 characters.");
- const {error}=await db.auth.signUp({email,password,options:{emailRedirectTo:REDIRECT_URL}});
- if(error)alert(error.message);else alert("Account created. Check your email if confirmation is required.");
+
+function safeUrl(value) {
+  try {
+    const u = new URL(value);
+    return ["https:","http:"].includes(u.protocol) ? u.href : "";
+  } catch (e) {
+    return "";
+  }
 }
-async function signOut(){const {error}=await db.auth.signOut();if(error)alert(error.message)}
-function updateAccount(user){
- currentUser=user;let admin=!!user&&user.id===ADMIN_ID;
- document.getElementById("adminNav").classList.toggle("hidden",!admin);
- document.getElementById("authForms").classList.toggle("hidden",!!user);
- document.getElementById("signOutBtn").classList.toggle("hidden",!user);
- document.getElementById("accountStatus").textContent=user?
- "Signed in as "+(user.email||"Google account")+(admin?" — Administrator":" — Customer"):
- "You are not signed in.";
+
+function saveCart() {
+  localStorage.setItem("rianderblog_cart",JSON.stringify(cart));
+  updateCart();
 }
-async function loadAdminProducts(){
- if(!currentUser||currentUser.id!==ADMIN_ID)return;
- let box=document.getElementById("adminProducts");box.textContent="Loading products...";
- const {data,error}=await db.from("products").select("*").order("created_at",{ascending:false});
- if(error){box.textContent="Error: "+error.message;return}
- if(!data.length){box.textContent="No products yet.";return}
- box.innerHTML=data.map(p=>`
-  <div class="product-admin">
-   <div><b>${escapeHTML(p.name)}</b>
-    <div class="muted">${money(p)} · ${escapeHTML(p.category||"General")}</div>
-    <span class="status ${p.is_active?"":"off"}">${p.is_active?"Active":"Inactive"}</span>
-   </div>
-   <div>
-    <button class="btn btn-small" onclick="editProduct('${p.id}')">Edit</button>
-    <button class="btn btn-dark btn-small" onclick="toggleProduct('${p.id}',${!p.is_active})">${p.is_active?"Deactivate":"Activate"}</button>
-    <button class="btn btn-red btn-small" onclick="deleteProduct('${p.id}')">Delete</button>
-   </div>
-  </div>`).join("");
+
+async function loadProducts() {
+  const list = document.getElementById("productList");
+  const {data,error} = await db.from("products").select("*").eq("is_active",true);
+
+  if (error) {
+    list.textContent = "Could not load products: " + error.message;
+    return;
+  }
+
+  allProducts = data || [];
+  displayProducts();
+  updateCart();
 }
-document.getElementById("productForm").addEventListener("submit",async e=>{
- e.preventDefault();
- if(!currentUser||currentUser.id!==ADMIN_ID)return alert("Administrator access only.");
- let id=document.getElementById("editId").value;
- let product={
-  name:document.getElementById("pName").value.trim(),
-  price:Number(document.getElementById("pPrice").value),
-  currency:document.getElementById("pCurrency").value,
-  category:document.getElementById("pCategory").value.trim(),
-  image_url:document.getElementById("pImage").value.trim(),
-  description:document.getElementById("pDescription").value.trim(),
-  affiliate_url:document.getElementById("pLink").value.trim(),
-  is_active:true,created_by:currentUser.id
+
+function displayProducts() {
+  const search = document.getElementById("search").value.toLowerCase().trim();
+
+  const filtered = allProducts.filter(p =>
+    (currentCategory === "All" || p.category === currentCategory) &&
+    (
+      String(p.name || "").toLowerCase().includes(search) ||
+      String(p.description || "").toLowerCase().includes(search)
+    )
+  );
+
+  const list = document.getElementById("productList");
+
+  if (!filtered.length) {
+    list.textContent = "No products found.";
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => `
+    <article class="product">
+      ${safeUrl(p.image_url) ? `<img src="${safeUrl(p.image_url)}" alt="${escapeHTML(p.name)}" loading="lazy">` : ""}
+      <h3>${escapeHTML(p.name)}</h3>
+      <p class="product-desc">${escapeHTML(p.description || "Explore this product for more information.")}</p>
+      <p class="price">${formatPrice(p.price,p.currency || "USD")}</p>
+      <div class="product-actions">
+        <button class="details-btn" onclick="openDetails('${escapeHTML(p.id)}')">View Details</button>
+        <button class="add" onclick="addToCart('${escapeHTML(p.id)}')">Add to Cart</button>
+      </div>
+      ${safeUrl(p.affiliate_url) ? `<a class="buy" href="${safeUrl(p.affiliate_url)}" target="_blank" rel="noopener noreferrer">Visit Supplier</a>` : ""}
+    </article>
+  `).join("");
+}
+
+function filterCategory(category,button) {
+  currentCategory = category;
+  document.querySelectorAll(".categories button").forEach(b => b.classList.remove("active"));
+  if (button) button.classList.add("active");
+  displayProducts();
+}
+
+document.getElementById("search").addEventListener("input",displayProducts);
+
+function openDetails(id) {
+  const p = allProducts.find(x => String(x.id) === String(id));
+  if (!p) return;
+
+  const image = safeUrl(p.image_url);
+  const supplier = safeUrl(p.affiliate_url);
+
+  document.getElementById("detailContent").innerHTML = `
+    <div class="detail-content">
+      <div>
+        ${image ? `<img class="detail-image" src="${image}" alt="${escapeHTML(p.name)}">` : `<div class="detail-image" style="display:grid;place-items:center;color:#8993a3">Image unavailable</div>`}
+      </div>
+      <div>
+        <div class="detail-category">${escapeHTML(p.category || "Featured product")}</div>
+        <h2>${escapeHTML(p.name)}</h2>
+        <div class="detail-price">${formatPrice(p.price,p.currency || "USD")}</div>
+        <p class="detail-description">${escapeHTML(p.description || "More product information will be added soon.")}</p>
+        <p style="font-size:12px;color:#778195;line-height:1.5">Check the supplier's listing for shipping costs, availability and final price.</p>
+        <div class="detail-actions">
+          <button class="detail-add" onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">Add to Cart</button>
+          ${supplier ? `<a class="detail-buy" href="${supplier}" target="_blank" rel="noopener noreferrer">Visit Supplier</a>` : ""}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("productDetails").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeDetails() {
+  document.getElementById("productDetails").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function closeDetailsFromBackdrop(event) {
+  if (event.target.id === "productDetails") closeDetails();
+}
+
+document.addEventListener("keydown",event => {
+  if (event.key === "Escape") closeDetails();
+});
+
+function addToCart(id) {
+  const p = allProducts.find(x => String(x.id) === String(id));
+  if (!p) return;
+
+  const existing = cart.find(x => String(x.id) === String(id));
+
+  if (existing) {
+    existing.quantity++;
+  } else {
+    cart.push({
+      id:p.id,
+      name:p.name,
+      price:Number(p.price || 0),
+      currency:p.currency || "USD",
+      image_url:p.image_url || "",
+      affiliate_url:p.affiliate_url || "",
+      quantity:1
+    });
+  }
+
+  saveCart();
+  alert("Product added to your cart!");
+}
+
+function changeQuantity(id,amount) {
+  const item = cart.find(x => String(x.id) === String(id));
+  if (!item) return;
+
+  item.quantity += amount;
+  if (item.quantity <= 0) {
+    cart = cart.filter(x => String(x.id) !== String(id));
+  }
+  saveCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(x => String(x.id) !== String(id));
+  saveCart();
+}
+
+function updateCart() {
+  document.getElementById("cartCount").textContent =
+    cart.reduce((sum,x) => sum + x.quantity,0);
+
+  const container = document.getElementById("cartItems");
+  const totalElement = document.getElementById("cartTotal");
+  const note = document.getElementById("cartNote");
+
+  if (!cart.length) {
+    container.textContent = "Your cart is empty. Start shopping!";
+    totalElement.textContent = "";
+    note.textContent = "";
+    return;
+  }
+
+  container.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      ${safeUrl(item.image_url) ? `<img src="${safeUrl(item.image_url)}" alt="">` : ""}
+      <div class="cart-info">
+        <strong>${escapeHTML(item.name)}</strong>
+        <p>${escapeHTML(item.currency)} ${Number(item.price).toFixed(2)}</p>
+        <p>Subtotal: ${escapeHTML(item.currency)} ${(item.price * item.quantity).toFixed(2)}</p>
+      </div>
+      <button onclick="changeQuantity('${escapeHTML(item.id)}',-1)">−</button>
+      <strong>${item.quantity}</strong>
+      <button onclick="changeQuantity('${escapeHTML(item.id)}',1)">+</button>
+      <button class="remove" onclick="removeFromCart('${escapeHTML(item.id)}')">Remove</button>
+      ${safeUrl(item.affiliate_url) ? `<a class="buy" href="${safeUrl(item.affiliate_url)}" target="_blank" rel="noopener noreferrer">Buy this item</a>` : ""}
+    </div>
+  `).join("");
+
+  const totals = {};
+  cart.forEach(item => {
+    const c = item.currency || "USD";
+    totals[c] = (totals[c] || 0) + item.price * item.quantity;
+  });
+
+  totalElement.textContent = "Cart total: " +
+    Object.entries(totals).map(([c,v]) => c + " " + v.toFixed(2)).join(" + ");
+
+  note.textContent = "Purchases and final payments are completed on the supplier's website.";
+}
+
+async function signUp() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!email || !password) {
+    document.getElementById("message").textContent = "Enter your email and password.";
+    return;
+  }
+
+  const {error} = await db.auth.signUp({
+    email,password,
+    options:{emailRedirectTo:window.location.origin + window.location.pathname}
+  });
+
+  document.getElementById("message").textContent =
+    error ? error.message : "Account created. Check your email to confirm your account.";
+}
+
+async function signIn() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const {error} = await db.auth.signInWithPassword({email,password});
+
+  document.getElementById("message").textContent =
+    error ? error.message : "You are signed in successfully!";
+
+  await showDashboard();
+}
+
+async function signOut() {
+  const {error} = await db.auth.signOut();
+
+  document.getElementById("message").textContent =
+    error ? error.message : "You are signed out.";
+
+  await showDashboard();
+}
+
+async function showDashboard() {
+  const status = document.getElementById("dashboardStatus");
+  const details = document.getElementById("dashboardDetails");
+
+  status.textContent = "Checking your account...";
+  details.textContent = "";
+
+  try {
+    const {data,error} = await db.auth.getSession();
+    if (error) throw error;
+
+    const user = data.session?.user;
+
+    if (!user) {
+      status.textContent = "You are not signed in.";
+      details.textContent = "Please sign in using the My Account section.";
+      return;
+    }
+
+    const itemCount = cart.reduce((sum,item) => sum + item.quantity,0);
+
+    status.textContent = "Welcome to RIANDERBLOG!";
+    details.innerHTML = `
+      <p><strong>Email:</strong> ${escapeHTML(user.email)}</p>
+      <p><strong>Account status:</strong> ${user.email_confirmed_at ? "Verified" : "Not verified"}</p>
+      <p><strong>Products in your cart:</strong> ${itemCount}</p>
+      <p><strong>Member since:</strong> ${new Date(user.created_at).toLocaleDateString()}</p>
+    `;
+  } catch (error) {
+    status.textContent = "Could not load your account.";
+    details.textContent = error.message;
+  }
+}
+
+db.auth.onAuthStateChange((event,session) => {
+  document.getElementById("message").textContent =
+    session ? "You are signed in." : "You are not signed in.";
+  showDashboard();
+});
+
+// Currency display: best-effort country detection, with a manual selector fallback.
+let displayCurrency = localStorage.getItem('rianderblog_currency') || 'USD';
+let exchangeRates = {};
+const currencyByCountry = {MW:'MWK',US:'USD',GB:'GBP',ZA:'ZAR',KE:'KES',NG:'NGN',GH:'GHS',IN:'INR',CA:'CAD',AU:'AUD',JP:'JPY',DE:'EUR',FR:'EUR',IT:'EUR',ES:'EUR',NL:'EUR'};
+
+async function initialiseCurrency(){
+  try {
+    const saved=localStorage.getItem('rianderblog_currency');
+    if(saved){displayCurrency=saved;}
+    else {
+      const r=await fetch('https://ipapi.co/json/');
+      const geo=await r.json();
+      displayCurrency=currencyByCountry[geo.country_code] || geo.currency || 'USD';
+    }
+  } catch(e){
+    displayCurrency=localStorage.getItem('rianderblog_currency')||'USD';
+  }
+
+  const select=document.getElementById('currencySelect');
+  if([...select.options].some(o=>o.value===displayCurrency)) select.value=displayCurrency;
+  document.getElementById('currencyStatus').textContent='Showing '+displayCurrency+' (estimated from your country; you can change it).';
+  await loadRates();
+  displayProducts();
+  updateCart();
+}
+
+async function loadRates(){
+  try{
+    const r=await fetch('https://open.er-api.com/v6/latest/USD');
+    const j=await r.json();
+    if(j.result==='success')exchangeRates=j.rates||{};
+  }catch(e){
+    exchangeRates={};
+  }
+}
+
+function setCurrency(code){
+  displayCurrency=code;
+  localStorage.setItem('rianderblog_currency',code);
+  document.getElementById('currencyStatus').textContent='Currency set to '+code+'.';
+  displayProducts();
+  updateCart();
+}
+
+function formatPrice(amount,from){
+  const n=Number(amount||0);
+  let converted=n;
+  if(from!==displayCurrency && exchangeRates[from] && exchangeRates[displayCurrency]) {
+    converted=n/exchangeRates[from]*exchangeRates[displayCurrency];
+  }
+  try{
+    return new Intl.NumberFormat(undefined,{style:'currency',currency:displayCurrency,maximumFractionDigits:2}).format(converted)+(from!==displayCurrency?' (approx.)':'');
+  }
+  catch(e){
+    return displayCurrency+' '+converted.toFixed(2);
+  }
+}
+
+const paymentDescriptions={
+ 'PayPal':'Customers can pay through PayPal after RIANDERBLOG connects an eligible business account. Availability to receive and withdraw funds depends on the account country and verification. Not connected yet.',
+ 'Visa / Mastercard':'Card payments will use a PCI-compliant payment gateway checkout. RIANDERBLOG must be approved by a provider before cards can be charged. Do not enter card details on this page.',
+ 'Airtel Money':'For supported countries, customers will be redirected to an approved mobile-money payment prompt. A merchant account and provider integration are required. Not connected yet.',
+ 'TNM Mpamba':'Malawi customers will use an approved Mpamba merchant checkout or payment prompt after merchant approval and integration. Not connected yet.',
+ 'Bank transfer':'Bank transfer instructions will appear only after RIANDERBLOG configures and verifies its business bank account. No bank details are published here.',
+ 'Other international methods':'Additional methods such as regional wallets or local bank options can be enabled only after confirming country support and completing provider onboarding.'
+};
+
+function selectPayment(method,button){
+  document.querySelectorAll('.method-option').forEach(b=>b.classList.remove('selected'));
+  if(button)button.classList.add('selected');
+  document.getElementById('paymentInfo').innerHTML='<strong>'+escapeHTML(method)+'</strong><br>'+escapeHTML(paymentDescriptions[method])+'<br><span class="pill">Setup required — not live</span>';
+}
+
+let suppliersCache=[];
+
+async function renderSuppliers(){
+ const box=document.getElementById('supplierList');
+ const q=(document.getElementById('supplierSearch').value||'').toLowerCase();
+
+ const {data,error}=await db.from('suppliers').select('id,company_name,country,description,website').eq('status','approved').order('company_name');
+
+ if(error){
+   box.innerHTML='<p class="small-note">Supplier directory is being set up. '+escapeHTML(error.message)+'</p>';
+   return;
+ }
+
+ suppliersCache=data||[];
+ const rows=suppliersCache.filter(x=>(x.company_name+' '+x.country+' '+x.description).toLowerCase().includes(q));
+
+ box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
+}
+
+async function applySupplier(){
+ const {data:{user}}=await db.auth.getUser();
+
+ if(!user){
+   document.getElementById('supplierMessage').textContent='Please create an account or sign in first.';
+   return;
+ }
+
+ const row={
+   user_id:user.id,
+   company_name:document.getElementById('supplierCompany').value.trim(),
+   country:document.getElementById('supplierCountry').value.trim(),
+   email:document.getElementById('supplierEmail').value.trim(),
+   website:safeUrl(document.getElementById('supplierWebsite').value),
+   description:document.getElementById('supplierDescription').value.trim(),
+   status:'pending'
  };
- let result=id?await db.from("products").update(product).eq("id",id):await db.from("products").insert(product);
- let msg=document.getElementById("adminMessage");
- if(result.error){msg.textContent="Error: "+result.error.message;msg.classList.remove("hidden");return}
- msg.textContent=id?"Product updated!":"Product added!";msg.classList.remove("hidden");
- resetProductForm();await loadAdminProducts();await loadProducts();
-});
-async function editProduct(id){
- const {data,error}=await db.from("products").select("*").eq("id",id).single();
- if(error)return alert(error.message);
- document.getElementById("editId").value=data.id;
- document.getElementById("pName").value=data.name||"";
- document.getElementById("pPrice").value=data.price||"";
- document.getElementById("pCurrency").value=data.currency||"USD";
- document.getElementById("pCategory").value=data.category||"";
- document.getElementById("pImage").value=data.image_url||"";
- document.getElementById("pDescription").value=data.description||"";
- document.getElementById("pLink").value=data.affiliate_url||"";
- document.getElementById("saveProductBtn").textContent="Save Changes";
- document.getElementById("cancelEdit").classList.remove("hidden");
- window.scrollTo(0,0);
+
+ if(!row.company_name||!row.country||!row.email){
+   document.getElementById('supplierMessage').textContent='Enter company name, country and business email.';
+   return;
+ }
+
+ const {error}=await db.from('suppliers').insert(row);
+ document.getElementById('supplierMessage').textContent=error?'Could not submit: '+error.message:'Application submitted. It will appear publicly after admin approval.';
 }
-function resetProductForm(){
- document.getElementById("productForm").reset();
- document.getElementById("editId").value="";
- document.getElementById("saveProductBtn").textContent="Add Product";
- document.getElementById("cancelEdit").classList.add("hidden");
- document.getElementById("imagePreview").classList.add("hidden");
+
+async function loadProgrammes(){
+ const box=document.getElementById('programmeList');
+
+ const {data,error}=await db.from('affiliate_programmes').select('id,company_name,commission_rate,website,terms').eq('status','approved').order('created_at',{ascending:false});
+
+ if(error){
+   box.innerHTML='<p class="small-note">Affiliate programme directory is being set up. '+escapeHTML(error.message)+'</p>';
+   return;
+ }
+
+ box.innerHTML=(data||[]).length?data.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${Number(x.commission_rate)}% advertised commission</span><p>${escapeHTML(x.terms||'Programme conditions supplied by the company.')}</p><p class="small-note">Programme ID: ${escapeHTML(x.id)}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved affiliate programmes yet. Companies can submit one for review below.</p>';
 }
-document.getElementById("pImage").addEventListener("input",()=>{
- let url=safeURL(document.getElementById("pImage").value),preview=document.getElementById("imagePreview");
- if(url){document.getElementById("previewImg").src=url;preview.classList.remove("hidden")}
- else preview.classList.add("hidden");
-});
-async function toggleProduct(id,active){
- const {error}=await db.from("products").update({is_active:active}).eq("id",id);
- if(error)return alert(error.message);
- await loadAdminProducts();await loadProducts();
+
+async function submitAffiliateProgramme(){
+ const {data:{user}}=await db.auth.getUser();
+
+ if(!user){
+   document.getElementById('affiliateMessage').textContent='Please sign in first.';
+   return;
+ }
+
+ const row={
+   owner_id:user.id,
+   company_name:document.getElementById('affiliateCompany').value.trim(),
+   contact_email:document.getElementById('affiliateEmail').value.trim(),
+   commission_rate:Number(document.getElementById('affiliateCommission').value),
+   website:safeUrl(document.getElementById('affiliateWebsite').value),
+   terms:document.getElementById('affiliateTerms').value.trim(),
+   status:'pending'
+ };
+
+ if(!row.company_name||!row.contact_email||!(row.commission_rate>=0&&row.commission_rate<=100)){
+   document.getElementById('affiliateMessage').textContent='Enter company, contact email and a commission rate from 0 to 100.';
+   return;
+ }
+
+ const {error}=await db.from('affiliate_programmes').insert(row);
+ document.getElementById('affiliateMessage').textContent=error?'Could not submit: '+error.message:'Programme submitted for admin review. It will be listed after approval.';
 }
-async function deleteProduct(id){
- if(!confirm("Are you sure you want to delete this product?"))return;
- const {error}=await db.from("products").delete().eq("id",id);
- if(error)return alert(error.message);
- cart=cart.filter(x=>String(x.id)!==String(id));
- wishlist=wishlist.filter(x=>x!==String(id));
- saveCart();
- await loadAdminProducts();await loadProducts();
- alert("Product deleted.");
+
+async function applyAffiliate(){
+ const {data:{user}}=await db.auth.getUser();
+
+ if(!user){
+   document.getElementById('affiliateApplyMessage').textContent='Please sign in first.';
+   return;
+ }
+
+ const row={
+   user_id:user.id,
+   applicant_name:document.getElementById('affiliateApplicantName').value.trim(),
+   email:document.getElementById('affiliateApplicantEmail').value.trim(),
+   platform_url:safeUrl(document.getElementById('affiliatePlatform').value),
+   programme_id:document.getElementById('affiliateProgrammeId').value.trim()
+ };
+
+ if(!row.applicant_name||!row.email||!row.programme_id){
+   document.getElementById('affiliateApplyMessage').textContent='Enter your name, email and programme ID.';
+   return;
+ }
+
+ const {error}=await db.from('affiliate_applications').insert(row);
+ document.getElementById('affiliateApplyMessage').textContent=error?'Could not apply: '+error.message:'Application submitted. The company must approve you before tracking links are issued.';
 }
-db.auth.onAuthStateChange((_event,session)=>updateAccount(session?.user||null));
-async function start(){
- saveCart();
- const {data,error}=await db.auth.getSession();
- if(error)console.error(error);
- updateAccount(data.session?.user||null);
- await loadProducts();
-}
-start();
+
+loadProducts();
+showDashboard();
+initialiseCurrency();
+renderSuppliers();
+loadProgrammes();
 </script>
 </body>
-</html>
+ </html>
