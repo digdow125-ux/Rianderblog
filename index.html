@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIANDERBLOG | Global Shopping</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f6fa;color:#222}
+header{background:#172554;color:white;padding:20px}
+header h1{margin:0;color:#fbbf24}
+header p{margin:6px 0}
+nav{background:#1e3a8a;padding:12px;display:flex;gap:15px;flex-wrap:wrap}
+nav a{color:white;text-decoration:none}
+.container{padding:18px;max-width:1100px;margin:auto}
+.search{width:100%;padding:14px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+.categories{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
+.categories button{border:0;padding:10px 14px;border-radius:20px;background:#dbeafe}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:15px}
+.product{background:white;border-radius:10px;padding:12px;box-shadow:0 2px 8px #ddd}
+.product img{width:100%;height:180px;object-fit:contain}
+.product h3{margin:10px 0}
+.price{color:#dc2626;font-weight:bold;font-size:19px}
+.buy{display:block;text-align:center;background:#f59e0b;color:#111;padding:12px;border-radius:7px;text-decoration:none;font-weight:bold}
+.auth{background:white;padding:18px;border-radius:10px;margin-top:25px}
+.auth input{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:6px}
+.auth button{padding:11px;margin:5px 5px 5px 0;border:0;border-radius:6px;background:#1e40af;color:white}
+footer{text-align:center;background:#172554;color:white;padding:20px;margin-top:30px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>RIANDERBLOG</h1>
+<p>Your Global Shopping Destination</p>
+</header>
+
+<nav>
+<a href="#">Home</a>
+<a href="#products">Products</a>
+<a href="#account">My Account</a>
+</nav>
+
+<div class="container">
+<h2>Discover Products Worldwide</h2>
+<p>Explore products from international sellers.</p>
+
+<input id="search" class="search" placeholder="Search for products...">
+
+<div class="categories">
+<button onclick="filterCategory('All')">All</button>
+<button onclick="filterCategory('Electronics')">Electronics</button>
+<button onclick="filterCategory('Accessories')">Accessories</button>
+<button onclick="filterCategory('Home')">Home</button>
+</div>
+
+<h2 id="products">Featured Products</h2>
+<div id="productList" class="products">
+<p>Loading products...</p>
+</div>
+
+<div id="account" class="auth">
+<h2>Customer Account</h2>
+<input id="email" type="email" placeholder="Email address">
+<input id="password" type="password" placeholder="Password">
+<button onclick="signUp()">Create Account</button>
+<button onclick="signIn()">Sign In</button>
+<button onclick="signOut()">Sign Out</button>
+<p id="message"></p>
+</div>
+</div>
+
+<footer>
+<p>RIANDERBLOG © 2026</p>
+<p>Shop globally. Discover more.</p>
+</footer>
+
+<script>
+const SUPABASE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+let allProducts = [];
+let currentCategory = "All";
+
+async function loadProducts(){
+ const {data,error} = await db
+  .from("products")
+  .select("*")
+  .eq("is_active",true)
+  .order("created_at",{ascending:false});
+
+ if(error){
+  document.getElementById("productList").innerHTML =
+   "<p>Could not load products. Check your connection settings.</p>";
+  return;
+ }
+ allProducts = data || [];
+ displayProducts();
+}
+
+function displayProducts(){
+ const search = document.getElementById("search").value.toLowerCase();
+ const filtered = allProducts.filter(p =>
+  (currentCategory === "All" || p.category === currentCategory) &&
+  (p.name || "").toLowerCase().includes(search)
+ );
+
+ const list = document.getElementById("productList");
+
+ if(!filtered.length){
+  list.innerHTML = "<p>No products found.</p>";
+  return;
+ }
+
+ list.innerHTML = filtered.map(p => `
+  <div class="product">
+   <img src="${safeUrl(p.image_url)}" alt="${escapeHTML(p.name)}">
+   <h3>${escapeHTML(p.name)}</h3>
+   <p>${escapeHTML(p.description || "")}</p>
+   <p class="price">${escapeHTML(p.currency || "USD")} ${Number(p.price || 0).toFixed(2)}</p>
+   <a class="buy" href="${safeUrl(p.affiliate_url)}"
+    target="_blank" rel="noopener noreferrer">Buy at AliExpress</a>
+  </div>
+ `).join("");
+}
+
+function escapeHTML(value){
+ return String(value).replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function safeUrl(value){
+ try{
+  const url = new URL(value);
+  return ["https:","http:"].includes(url.protocol) ? url.href : "";
+ }catch{return "";}
+}
+
+function filterCategory(category){
+ currentCategory = category;
+ displayProducts();
+}
+
+document.getElementById("search").addEventListener("input",displayProducts);
+
+async function signUp(){
+ const email = document.getElementById("email").value;
+ const password = document.getElementById("password").value;
+ const {error} = await db.auth.signUp({email,password});
+ document.getElementById("message").textContent =
+  error ? error.message : "Account created. Check your email if confirmation is required.";
+}
+
+async function signIn(){
+ const email = document.getElementById("email").value;
+ const password = document.getElementById("password").value;
+ const {error} = await db.auth.signInWithPassword({email,password});
+ document.getElementById("message").textContent =
+  error ? error.message : "You are signed in!";
+}
+
+async function signOut(){
+ const {error} = await db.auth.signOut();
+ document.getElementById("message").textContent =
+  error ? error.message : "You are signed out.";
+}
+
+loadProducts();
+</script>
+</body>
+</html>
