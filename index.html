@@ -1,423 +1,51 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RIANDERBLOG | Global Marketplace</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
- --navy:#10213e;
- --blue:#173b68;
- --gold:#e9b84d;
- --bg:#f3f5f8;
- --white:#fff;
- --text:#263244;
- --muted:#758195;
- --line:#e6eaf0;
- --green:#138b58;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
- margin:0;
- font-family:Arial,Helvetica,sans-serif;
- background:var(--bg);
- color:var(--text);
-}
-.topbar{
- background:#09172b;
- color:#fff;
- text-align:center;
- padding:9px;
- font-size:12px;
- letter-spacing:.5px;
-}
-header{
- background:var(--navy);
- color:white;
- padding:18px 4%;
- display:flex;
- justify-content:space-between;
- align-items:center;
- gap:15px;
- flex-wrap:wrap;
-}
-.brand{
- font-size:27px;
- font-weight:900;
- color:white;
- text-decoration:none;
- letter-spacing:-1px;
-}
-.brand span{color:var(--gold)}
-header p{font-size:13px;color:#d6deea;margin:5px 0}
-.header-actions{
- display:flex;
- align-items:center;
- gap:10px;
- flex-wrap:wrap;
-}
-.header-actions button{
- background:#ffffff16;
- color:white;
- border:1px solid #ffffff35;
-}
-nav{
- background:var(--blue);
- padding:10px 4%;
- position:relative;
- display:flex;
- align-items:center;
- gap:14px;
-}
-.menu-toggle{
- background:transparent;
- color:white;
- border:1px solid #ffffff55;
- font-size:23px;
- padding:6px 13px;
-}
-.nav-caption{color:white;font-size:13px}
-.nav-links{
- display:none;
- position:absolute;
- z-index:1000;
- top:100%;
- left:0;
- background:var(--blue);
- width:270px;
- max-height:80vh;
- overflow-y:auto;
- box-shadow:0 8px 20px #0003;
-}
-.nav-links.open{display:block}
-.nav-links a{
- display:block;
- padding:14px 17px;
- color:white;
- text-decoration:none;
- border-bottom:1px solid #ffffff22;
- font-size:14px;
-}
-.nav-links a:hover{background:#294b76}
-main{max-width:1250px;margin:auto;padding:24px 18px}
-main>section{display:none}
-main>#products{display:block}
-#products{
- background:transparent;
- border:0;
- padding:0;
-}
-.shop-heading{
- display:flex;
- justify-content:space-between;
- align-items:center;
- gap:12px;
- flex-wrap:wrap;
- margin-bottom:18px;
-}
-.shop-heading h2{
- margin:0;
- font-size:25px;
- color:var(--navy);
-}
-.shop-heading p{color:var(--muted);font-size:13px}
-.hero{
- background:linear-gradient(115deg,#10213e,#24558a);
- color:white;
- padding:35px;
- border-radius:16px;
- margin-bottom:22px;
- overflow:hidden;
-}
-.hero h1{
- font-size:clamp(25px,4vw,42px);
- line-height:1.15;
- margin:0 0 12px;
- max-width:650px;
-}
-.hero p{color:#dbe7f6;line-height:1.6;max-width:550px}
-.hero strong{color:var(--gold)}
-.hero button{margin-top:10px}
-.shop-tools{
- display:grid;
- grid-template-columns:minmax(0,1fr) 230px;
- gap:12px;
- margin-bottom:20px;
-}
-#search{
- margin:0;
- padding:15px;
- border:1px solid var(--line);
- background:white;
-}
-#category{
- margin:0;
- max-width:none;
- padding:15px;
- background:white;
-}
-.category-label{
- font-weight:bold;
- color:var(--navy);
- margin:20px 0 10px;
-}
-.category-chips{
- display:flex;
- gap:9px;
- overflow-x:auto;
- padding:3px 0 15px;
-}
-.category-chips button{
- flex:0 0 auto;
- background:white;
- color:var(--navy);
- border:1px solid var(--line);
- border-radius:30px;
- padding:10px 17px;
-}
-.category-chips button:hover{
- background:var(--navy);
- color:white;
-}
-.products{
- display:grid;
- grid-template-columns:repeat(4,minmax(0,1fr));
- gap:16px;
- margin-top:15px;
-}
-.product{
- background:white;
- border:1px solid var(--line);
- padding:13px;
- border-radius:12px;
- transition:transform .2s,box-shadow .2s;
- min-width:0;
-}
-.product:hover{
- transform:translateY(-3px);
- box-shadow:0 8px 24px #10213e12;
-}
-.product img{
- width:100%;
- height:190px;
- object-fit:contain;
- background:#f7f8fa;
- border-radius:9px;
-}
-.product h3{
- color:var(--navy);
- font-size:15px;
- line-height:1.4;
- min-height:40px;
-}
-.product p{
- color:var(--muted);
- font-size:12px;
- line-height:1.5;
-}
-.price{
- font-size:20px;
- font-weight:800;
- color:var(--navy);
- margin:12px 0;
-}
-.product button{width:100%;margin-top:7px}
-.primary{background:var(--navy);color:white}
-.gold{background:var(--gold);color:#172238}
-.secondary{background:#e9edf3;color:#263244}
-.remove{background:#fee8e8;color:#a02020}
-button{
- border:0;
- border-radius:7px;
- padding:11px 15px;
- cursor:pointer;
- font-weight:bold;
-}
-button:hover{filter:brightness(.96)}
-input,select,textarea{
- width:100%;
- padding:12px;
- border:1px solid var(--line);
- border-radius:7px;
- margin:7px 0;
- font-size:15px;
- background:white;
-}
-textarea{min-height:90px}
-h2{color:var(--navy)}
-.panel{
- background:white;
- border:1px solid var(--line);
- padding:22px;
- border-radius:12px;
- margin-top:22px;
-}
-.form-grid{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
- gap:8px;
-}
-.cart-item,.admin-row{
- display:flex;
- align-items:center;
- gap:12px;
- flex-wrap:wrap;
- border-bottom:1px solid var(--line);
- padding:12px 0;
-}
-.cart-item img{width:60px;height:60px;object-fit:contain}
-.cart-info{flex:1}
-.admin-only{display:none}
-.admin-box{border:2px solid var(--gold);background:#fffaf0}
-.stats{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
- gap:12px;
-}
-.stat{background:#f2f4f8;padding:17px;border-radius:9px}
-.stat strong{
- display:block;
- font-size:25px;
- color:var(--navy);
-}
-.admin-tools{
- background:white;
- border:1px solid var(--line);
- border-radius:10px;
- padding:15px;
- margin-top:16px;
-}
-.admin-tools h3{color:var(--navy)}
-.admin-actions{display:flex;gap:6px;flex-wrap:wrap}
-.admin-actions button{font-size:12px;padding:8px}
-.notice{
- background:#f3f5f8;
- padding:12px;
- border-radius:7px;
- font-size:13px;
- line-height:1.5;
-}
-.small-note{color:var(--muted);font-size:13px;line-height:1.5}
-footer{
- background:#09172b;
- color:white;
- text-align:center;
- padding:30px 15px;
- margin-top:40px;
- font-size:13px;
- line-height:1.8;
-}
-footer strong{color:var(--gold)}
-@media(max-width:850px){
- .products{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-@media(max-width:600px){
- header{padding:14px}
- .brand{font-size:23px}
- main{padding:14px 10px}
- .hero{padding:25px 18px}
- .shop-tools{grid-template-columns:1fr}
- .products{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
- .product{padding:9px}
- .product img{height:125px}
- .product h3{font-size:13px}
- .product button{font-size:11px;padding:9px}
- .shop-heading h2{font-size:21px}
-}
+:root{--dark:#172033;--orange:#f36b21;--bg:#f5f6fa}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--dark)}button,input,select{font:inherit;cursor:pointer}.topbar{position:sticky;top:0;z-index:20;background:white;display:flex;align-items:center;gap:12px;padding:13px 4%;box-shadow:0 2px 10px #0001}.logo{font-weight:900;font-size:22px;color:var(--orange);white-space:nowrap}.menu-button,.header-btn{border:0;background:transparent;font-weight:bold}.menu-button{font-size:24px}.searchbox{display:flex;flex:1}.searchbox input{width:100%;padding:12px;border:1px solid #ddd;border-radius:6px 0 0 6px}.searchbox button,.hero button,.primary{background:var(--orange);color:white;border:0;padding:12px 16px;border-radius:0 6px 6px 0}.menu{display:none;position:fixed;z-index:30;right:12px;top:65px;width:240px;background:white;padding:10px;box-shadow:0 4px 20px #0003;border-radius:9px}.menu.open{display:block}.menu button{display:block;width:100%;padding:13px;text-align:left;border:0;background:white;border-bottom:1px solid #eee}.hero{margin:22px 4%;padding:42px 6%;border-radius:14px;color:white;background:linear-gradient(120deg,#172033,#40577c)}.hero h1{font-size:clamp(28px,5vw,44px);margin:0 0 10px}.hero button{border-radius:6px}main{padding:0 4% 35px}.section{display:none}.section.active{display:block}.heading{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}.categories{display:flex;gap:8px;overflow:auto;padding:12px 0}.chip{border:1px solid #ddd;background:white;border-radius:22px;padding:10px 16px;white-space:nowrap}.chip.active,.chip:hover{background:var(--orange);color:white}.products{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}.product-card,.panel,.empty{background:white;border-radius:9px;overflow:hidden}.product-card img{width:100%;height:180px;object-fit:contain;padding:8px}.product-info{padding:12px}.product-info h3{font-size:15px}.product-info p{font-size:13px;color:#697386}.price{font-size:19px;font-weight:bold;color:var(--orange);margin:10px 0}.primary{width:100%;border-radius:6px}.panel{padding:20px;margin:20px 0}.form-input{display:block;width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:6px}.empty{text-align:center;padding:30px;color:#697386}.cart-item{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #eee}.cart-item button{border:0;background:white;color:#c33}footer{text-align:center;background:#172033;color:white;padding:25px;margin-top:25px}@media(max-width:900px){.products{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:600px){.topbar{flex-wrap:wrap;padding:10px 3%}.logo{font-size:18px}.searchbox{order:3;flex-basis:100%}.hero{margin:14px 3%;padding:28px 20px}main{padding:0 3% 25px}.products{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.product-card img{height:140px}.header-btn{font-size:12px}}
 </style>
-
-<div class="topbar">
-  🌍 GLOBAL SHOPPING • DISCOVER PRODUCTS FROM AROUND THE WORLD
-</div>
-
-<header>
-  <div>
-    <a class="brand" href="#" onclick="showSection('products');return false;">
-      RIAN<span>DER</span>BLOG
-    </a>
-    <p>Discover more. Shop beyond borders.</p>
-  </div>
-
-  <div class="header-actions">
-    <button onclick="showSection('account')">👤 Account</button>
-    <button onclick="showSection('cart')">🛒 Cart</button>
-  </div>
+</head>
+<body>
+<header class="topbar">
+<button class="menu-button" onclick="toggleMenu()" aria-label="Menu">☰</button><div class="logo">RIANDERBLOG</div>
+<form class="searchbox" onsubmit="event.preventDefault();displayProducts()"><input id="search" placeholder="Search products..."><button>Search</button></form>
+<button class="header-btn" onclick="showSection('account')">Account</button><button class="header-btn" onclick="showSection('cart')">🛒 Cart (<span id="cartCount">0</span>)</button>
 </header>
-
-<nav>
-  <button class="menu-toggle" id="menuToggle"
-    onclick="toggleMenu()" aria-expanded="false"
-    aria-label="Open menu">☰</button>
-
-  <span class="nav-caption">Explore RIANDERBLOG</span>
-
-  <div class="nav-links" id="navLinks">
-    <a href="#products" onclick="showSection('products')">🏠 Home / Products</a>
-    <a href="#cart" onclick="showSection('cart')">🛒 Shopping Cart</a>
-    <a href="#currency" onclick="showSection('currency')">💱 Shopping Currency</a>
-    <a href="#payments" onclick="showSection('payments')">💳 Payment Centre</a>
-    <a href="#suppliers" onclick="showSection('suppliers')">🏭 Supplier Centre</a>
-    <a href="#affiliates" onclick="showSection('affiliates')">🤝 Affiliate Centre</a>
-    <a href="#account" onclick="showSection('account')">👤 Login / Sign Up</a>
-    <a href="#dashboard" onclick="showSection('dashboard')">📊 My Dashboard</a>
-    <a href="#adminPanel" id="adminNavLink" class="admin-only"
-      onclick="showSection('adminPanel')">🔐 Admin Dashboard</a>
-  </div>
+<nav class="menu" id="menu">
+<button onclick="showSection('home')">🏠 Home</button><button onclick="showSection('cart')">🛒 Shopping Cart</button><button onclick="showSection('account')">👤 My Account</button><button onclick="showSection('supplier')">📦 Supplier Centre</button><button onclick="showSection('affiliate')">🤝 Affiliate Centre</button><button onclick="showSection('payments')">💳 Payments</button>
 </nav>
-
+<section class="hero" id="hero"><h1>Discover the World of Shopping</h1><p>Explore products from suppliers around the world with RIANDERBLOG.</p><button onclick="document.getElementById('productsHeading').scrollIntoView({behavior:'smooth'})">Shop Now</button></section>
 <main>
-
-<section id="products">
-
-  <div class="hero">
-    <h1>Discover the World of <strong>Shopping</strong></h1>
-    <p>
-      Explore products from suppliers around the world.
-      Find great products, compare prices and shop beyond borders
-      with RIANDERBLOG.
-    </p>
-    <button class="gold" onclick="document.getElementById('search').focus()">
-      Explore Products →
-    </button>
-  </div>
-
-  <div class="shop-heading">
-    <div>
-      <h2>Discover Products</h2>
-      <p>Find something you love from our global marketplace.</p>
-    </div>
-  </div>
-
-  <div class="shop-tools">
-    <input id="search" placeholder="🔍 Search for products..."
-      oninput="displayProducts()">
-
-    <select id="category" onchange="displayProducts()">
-      <option value="All">All Categories</option>
-      <option>Electronics</option>
-      <option>Accessories</option>
-      <option>Home</option>
-      <option>Fashion</option>
-      <option>Other</option>
-    </select>
-  </div>
-
-  <div class="category-label">Shop by category</div>
-
-  <div class="category-chips">
-    <button onclick="selectCategory('All')">🌍 All</button>
-    <button onclick="selectCategory('Electronics')">📱 Electronics</button>
-    <button onclick="selectCategory('Fashion')">👕 Fashion</button>
-    <button onclick="selectCategory('Home')">🏠 Home</button>
-    <button onclick="selectCategory('Accessories')">⌚ Accessories</button>
-    <button onclick="selectCategory('Other')">✨ Other</button>
-  </div>
-
-  <div class="category-label">Products available for you</div>
-
-  <div id="productList" class="products">
-    Loading products...
-  </div>
-
-</section>
-
-function selectCategory(category){
-  document.getElementById("category").value=category;
-  displayProducts();
-}
+<section class="section active" id="home"><div class="heading" id="productsHeading"><h2>Products available for you</h2><span id="productTotal"></span></div>
+<div class="categories" id="categoryChips"></div><select id="category" onchange="displayProducts()"><option value="all">All categories</option></select>
+<div id="productMessage" class="empty">Loading products...</div><div class="products" id="productList"></div></section>
+<section class="section" id="cart"><h2>Your Shopping Cart</h2><div class="panel"><div id="cartItems"></div><h3 id="cartTotal">Total: $0.00</h3><p>Checkout and payments will be activated after payment integration.</p></div></section>
+<section class="section" id="account"><h2>Your Account</h2><div class="panel"><input class="form-input" id="authEmail" type="email" placeholder="Email address"><input class="form-input" id="authPassword" type="password" placeholder="Password"><button class="primary" onclick="signIn()">Sign In</button><p><button onclick="signUp()">Create Account</button> <button onclick="signOut()">Sign Out</button></p><p id="authMessage"></p></div></section>
+<section class="section" id="supplier"><h2>Supplier Centre</h2><div class="panel">Supplier registration and approval will be connected after the supplier database is confirmed.</div></section>
+<section class="section" id="affiliate"><h2>Affiliate Centre</h2><div class="panel">Affiliate registration and tracking will be connected after the database is confirmed.</div></section>
+<section class="section" id="payments"><h2>Payments</h2><div class="panel">Customer checkout is not active yet. A supported payment provider must be configured first.</div></section>
+</main><footer><b>RIANDERBLOG</b><p>Your Global Marketplace</p><p>© 2026 RIANDERBLOG</p></footer>
+<script>
+const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
+const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let allProducts=[];
+let cart=JSON.parse(localStorage.getItem("riander_cart")||"[]");
+function toggleMenu(){document.getElementById("menu").classList.toggle("open")}
+function showSection(id){document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");document.getElementById("menu").classList.remove("open");document.getElementById("hero").style.display=id==="home"?"block":"none";if(id==="cart")displayCart();window.scrollTo({top:0,behavior:"smooth"})}
+function selectCategory(category,button){document.getElementById("category").value=category;document.querySelectorAll(".chip").forEach(b=>b.classList.remove("active"));if(button)button.classList.add("active");displayProducts()}
+async function loadProducts(){const msg=document.getElementById("productMessage");msg.textContent="Loading products...";try{const {data,error}=await db.from("products").select("id,name,description,price,currency,category,image_url,is_active").eq("is_active",true).order("created_at",{ascending:false});if(error)throw error;allProducts=data||[];buildCategories();displayProducts();if(!allProducts.length){msg.style.display="block";msg.textContent="No products are available yet."}}catch(e){console.error(e);msg.style.display="block";msg.textContent="Unable to load products. Check Supabase connection and public products read permissions."}}
+function buildCategories(){const cats=[...new Set(allProducts.map(p=>p.category).filter(Boolean))],chips=document.getElementById("categoryChips"),select=document.getElementById("category");chips.innerHTML="";select.innerHTML='<option value="all">All categories</option>';const all=document.createElement("button");all.className="chip active";all.textContent="All products";all.onclick=()=>selectCategory("all",all);chips.appendChild(all);cats.forEach(c=>{const b=document.createElement("button");b.className="chip";b.textContent=c;b.onclick=()=>selectCategory(c,b);chips.appendChild(b);const o=document.createElement("option");o.value=c;o.textContent=c;select.appendChild(o)})}
+function displayProducts(){const list=document.getElementById("productList"),msg=document.getElementById("productMessage"),q=document.getElementById("search").value.toLowerCase(),cat=document.getElementById("category").value;const items=allProducts.filter(p=>(p.name||"").toLowerCase().includes(q)||(p.description||"").toLowerCase().includes(q)).filter(p=>cat==="all"||p.category===cat);list.innerHTML="";document.getElementById("productTotal").textContent=items.length+" products";if(!items.length){msg.style.display="block";msg.textContent="No matching products found.";return}msg.style.display="none";items.forEach(p=>{const card=document.createElement("article");card.className="product-card";const img=document.createElement("img");img.src=p.image_url||"https://placehold.co/400x300?text=RIANDERBLOG";img.alt=p.name||"Product";img.onerror=()=>{img.src="https://placehold.co/400x300?text=RIANDERBLOG"};const info=document.createElement("div");info.className="product-info";const name=document.createElement("h3");name.textContent=p.name||"Unnamed product";const desc=document.createElement("p");desc.textContent=p.description||"";const price=document.createElement("div");price.className="price";price.textContent=(p.currency||"USD")+" "+Number(p.price||0).toFixed(2);const add=document.createElement("button");add.className="primary";add.textContent="Add to Cart";add.onclick=()=>addToCart(p.id);info.append(name,desc,price,add);card.append(img,info);list.appendChild(card)})}
+document.getElementById("search").addEventListener("input",displayProducts);
+function addToCart(id){const p=allProducts.find(x=>String(x.id)===String(id));if(!p)return;const old=cart.find(x=>String(x.id)===String(id));if(old)old.quantity++;else cart.push({id:p.id,name:p.name,price:Number(p.price||0),currency:p.currency||"USD",quantity:1});saveCart();alert("Product added to cart!")}
+function saveCart(){localStorage.setItem("riander_cart",JSON.stringify(cart));document.getElementById("cartCount").textContent=cart.reduce((n,x)=>n+x.quantity,0)}
+function displayCart(){const box=document.getElementById("cartItems"),total=document.getElementById("cartTotal");box.innerHTML="";if(!cart.length){box.innerHTML='<div class="empty">Your cart is empty.</div>';total.textContent="Total: $0.00";return}let sum=0;const currency=cart[0].currency||"USD";cart.forEach(x=>{const row=document.createElement("div");row.className="cart-item";const label=document.createElement("span");label.textContent=x.name+" × "+x.quantity+" — "+x.currency+" "+(x.price*x.quantity).toFixed(2);const del=document.createElement("button");del.textContent="Remove";del.onclick=()=>{cart=cart.filter(y=>String(y.id)!==String(x.id));saveCart();displayCart()};row.append(label,del);box.appendChild(row);sum+=x.price*x.quantity});total.textContent="Total: "+currency+" "+sum.toFixed(2)}
+async function signUp(){const email=document.getElementById("authEmail").value.trim(),password=document.getElementById("authPassword").value,msg=document.getElementById("authMessage");if(!email||!password){msg.textContent="Enter your email and password.";return}const {error}=await db.auth.signUp({email,password});msg.textContent=error?error.message:"Account created. Check your email if confirmation is required."}
+async function signIn(){const email=document.getElementById("authEmail").value.trim(),password=document.getElementById("authPassword").value,msg=document.getElementById("authMessage");const {error}=await db.auth.signInWithPassword({email,password});msg.textContent=error?error.message:"Welcome! You are signed in."}
+async function signOut(){const {error}=await db.auth.signOut();document.getElementById("authMessage").textContent=error?error.message:"You have signed out."}
+saveCart();loadProducts();
+</script></body></html>
