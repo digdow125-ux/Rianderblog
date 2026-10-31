@@ -114,6 +114,28 @@ footer strong{color:var(--gold)}
 .listing h4{margin:0 0 5px;color:var(--navy)}
 .small-note{font-size:12px;color:var(--muted);line-height:1.5}
 
+/* RIANDERBLOG marketplace storefront layout */
+:root{--orange:#f36b25;--orange-dark:#d95517;--market-blue:#173b63}
+.topbar{background:#f36b25;color:#fff;font-weight:700}
+header{background:#fff;color:#172b45;padding-top:15px;padding-bottom:15px}
+.brand-name{color:#173b63}.brand-tag{color:#718096}.brand-mark{background:#173b63;border-color:#f36b25;color:#fff}
+.header-note{color:#52647b}
+nav{background:#173b63}
+.menu-toggle{background:#f36b25;color:#fff;border:0}
+.hero{background:linear-gradient(110deg,#173b63,#245b86);border-radius:12px;padding:30px 32px}
+.hero-link{background:#f36b25;color:#fff}.hero-stamp{border-color:#f6a16f;color:#ffd2b8}
+.benefits{grid-template-columns:repeat(3,1fr)}
+.categories button.active,.categories button:hover{background:#f36b25;border-color:#f36b25}
+.add,.primary{background:#f36b25}.add:hover,.primary:hover{background:#d95517}
+.buy{background:#173b63;color:#fff}
+.section-head h2{font-size:25px}
+.product{border-radius:8px}.product img{height:190px;background:#fff}
+.secondary-page{display:none}
+.market-intro{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0 8px}
+.market-intro strong{color:#173b63;font-size:14px}
+.market-promise{font-size:12px;color:#6b7788}
+@media(max-width:650px){.benefits{grid-template-columns:1fr}.hero-stamp{display:none}}
+
 /* Three-line menu: visible at the upper-left on desktop and mobile */
 nav{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:12px;min-height:54px;padding:8px max(18px,calc((100% - 1150px)/2));}
 .menu-toggle{display:block;flex:0 0 auto;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35);font-size:27px;line-height:1;padding:7px 12px;border-radius:7px;}
@@ -146,15 +168,15 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
 <nav aria-label="Main navigation">
   <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰</button>
   <div class="nav-links" id="navLinks">
-    <a href="#" onclick="closeMenu()">Home</a>
-    <a href="#products" onclick="closeMenu()">Products</a>
-    <a href="#cart" onclick="closeMenu()">My Cart (<span id="cartCount">0</span>)</a>
-    <a href="#account" onclick="closeMenu()">My Account</a>
-    <a href="#dashboard" onclick="closeMenu()">Dashboard</a>
-    <a href="#suppliers" onclick="closeMenu()">Suppliers</a>
-    <a href="#affiliates" onclick="closeMenu()">Affiliates</a>
-    <a href="#payments" onclick="closeMenu()">Payments</a>
-    <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="closeMenu()">Admin Panel</a>
+    <a href="#products" onclick="showSection('products');closeMenu();return false">🏠 Home / Products</a>
+    <a href="#cart" onclick="showSection('cart');closeMenu();return false">🛒 My Cart (<span id="cartCount">0</span>)</a>
+    <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Currency</a>
+    <a href="#account" onclick="showSection('account');closeMenu();return false">👤 My Account</a>
+    <a href="#dashboard" onclick="showSection('dashboard');closeMenu();return false">📊 My Dashboard</a>
+    <a href="#suppliers" onclick="showSection('suppliers');closeMenu();return false">🏭 Supplier Centre</a>
+    <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate Centre</a>
+    <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment Information</a>
+    <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin Panel</a>
   </div>
 </nav>
 <main>
@@ -162,30 +184,35 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
     <div class="hero-copy">
       <div class="eyebrow">The world, within reach</div>
       <h1>Discover something extraordinary.</h1>
-      <p>Explore products from international sellers, compare your finds and continue to the supplier's store when you're ready to buy.</p>
+      <p>Shop trending finds across electronics, fashion, home, beauty and more — all in one place.</p>
       <a class="hero-link" href="#products">Explore products</a>
     </div>
     <div class="hero-stamp">GLOBAL<br>FINDS<br><strong>RIANDERBLOG</strong></div>
   </section>
   <section class="benefits">
-    <div class="benefit">✦ Discover products worldwide</div>
-    <div class="benefit">✦ Save items in your shopping cart</div>
-    <div class="benefit">✦ Buy securely through the supplier</div>
+    <div class="benefit">✦ Explore products across the world</div>
+    <div class="benefit">✦ Add favourites to your cart</div>
+    <div class="benefit">✦ Discover trusted seller offers</div>
   </section>
 
   <section id="products">
     <div class="section-head"><div><h2>Explore our products</h2><p>Choose a product to view its full details.</p></div></div>
-    <input class="search" id="search" placeholder="Search products by name or description..." aria-label="Search products">
+    <div class="market-intro"><strong>Find what you love</strong><span class="market-promise">Great finds • Global sellers • New discoveries</span></div>
+    <input class="search" id="search" placeholder="Search products, brands and categories..." aria-label="Search products">
     <div class="categories">
-      <button class="active" onclick="filterCategory('All',this)">All</button>
+      <button class="active" onclick="filterCategory('All',this)">All products</button>
       <button onclick="filterCategory('Electronics',this)">Electronics</button>
+      <button onclick="filterCategory('Fashion',this)">Fashion</button>
       <button onclick="filterCategory('Accessories',this)">Accessories</button>
-      <button onclick="filterCategory('Home',this)">Home</button>
+      <button onclick="filterCategory('Home',this)">Home & Living</button>
+      <button onclick="filterCategory('Beauty',this)">Beauty</button>
+      <button onclick="filterCategory('Sports',this)">Sports</button>
+      <button onclick="filterCategory('Other',this)">Other</button>
     </div>
     <div id="productList" class="products">Loading products...</div>
   </section>
 
-  <section id="cart" class="panel">
+  <section id="cart" class="panel secondary-page">
     <h2>🛒 My Shopping Cart</h2>
     <div id="cartItems">Your cart is empty.</div>
     <h3 id="cartTotal"></h3>
@@ -193,7 +220,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
   </section>
 
 
-  <section class="currency-bar" aria-label="Currency settings">
+  <section id="currencySettings" class="currency-bar secondary-page" aria-label="Currency settings">
     <strong>🌍 Your shopping currency</strong>
     <span id="currencyStatus" class="small-note">Detecting country and currency…</span>
     <label for="currencySelect" class="small-note">Change currency:</label>
@@ -202,7 +229,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
     </select>
   </section>
 
-  <section id="payments" class="panel">
+  <section id="payments" class="panel secondary-page">
     <h2>💳 Payment Centre</h2><p>Select a payment method to see how it is intended to work.</p>
     <div class="method-list">
       <button class="method-option" onclick="selectPayment('PayPal',this)">🅿️ PayPal</button>
@@ -216,7 +243,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
     <p class="small-note">Never enter card details, PINs or mobile-money passwords into this website. Payments will be redirected to verified payment-provider checkout pages once connected.</p>
   </section>
 
-  <section id="suppliers" class="panel">
+  <section id="suppliers" class="panel secondary-page">
     <h2>🏭 Discover Suppliers</h2><p>Find businesses and manufacturers offering products to customers worldwide.</p>
     <input id="supplierSearch" class="search" placeholder="Search suppliers by company, country or products…" oninput="renderSuppliers()">
     <div id="supplierList"><p class="small-note">Supplier directory will display approved supplier profiles here.</p></div>
@@ -225,7 +252,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
     <button class="primary" onclick="applySupplier()">Submit supplier application</button><p id="supplierMessage" class="small-note"></p>
   </section>
 
-  <section id="affiliates" class="panel">
+  <section id="affiliates" class="panel secondary-page">
     <h2>🤝 Affiliate Marketing Centre</h2><p>Discover company affiliate programmes and apply to promote products for commission.</p>
     <div id="programmeList"><p class="small-note">Approved affiliate programmes will appear here.</p></div>
     <h3>Companies: publish an affiliate programme</h3>
@@ -236,7 +263,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
     <button class="primary" onclick="applyAffiliate()">Apply to programme</button><p id="affiliateApplyMessage" class="small-note"></p>
   </section>
 
-  <section id="account" class="panel">
+  <section id="account" class="panel secondary-page">
     <h2>Customer Account</h2>
     <p>Create an account or sign in.</p>
     <input id="email" type="email" placeholder="Email address" autocomplete="email">
@@ -248,7 +275,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
     <p id="message" class="notice">Not signed in yet.</p>
   </section>
 
-  <section id="dashboard" class="panel">
+  <section id="dashboard" class="panel secondary-page">
     <h2>👤 My Customer Dashboard</h2>
     <p id="dashboardStatus">Checking your account...</p>
     <div id="dashboardDetails"></div>
@@ -256,7 +283,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
     <p><a href="#cart">Go to My Shopping Cart</a></p>
   </section>
 
-  <section id="adminPanel" class="panel admin-box admin-only">
+  <section id="adminPanel" class="panel secondary-page admin-box admin-only">
     <h2>🔐 RIANDERBLOG Admin Dashboard</h2>
     <p id="adminStatus">Administrator access is restricted.</p>
     <div class="market-grid" id="adminStats">
@@ -309,7 +336,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
 <footer>
   <p><strong>RIANDERBLOG</strong> © 2026</p>
   <p>Shop globally. Discover more.</p>
-  <p>Payments and order fulfilment are handled by the supplier's website.</p>
+  <p>Browse our global product collection. Seller and checkout details are shown with each product.</p>
 </footer>
 
 <!-- Product details window -->
@@ -327,6 +354,7 @@ const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const ADMIN_USER_ID = "a32248b7-5745-4dd4-8af0-bce4eb465f66";
 function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const open=links.classList.toggle("open");btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕":"☰";}
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");links.classList.remove("open");btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰";}
+function showSection(id){document.querySelectorAll('main > section').forEach(section=>{section.style.display=section.id===id?'block':(section.id==='products'||section.classList.contains('benefits')||section.classList.contains('hero')?'':'none');});const target=document.getElementById(id);if(target){target.style.display='block';window.scrollTo({top:0,behavior:'smooth'});}if(id==='cart')updateCart();if(id==='dashboard')showDashboard();if(id==='suppliers')renderSuppliers();}
 function updateAdminVisibility(user){const allowed=!!user && user.id===ADMIN_USER_ID;document.querySelectorAll(".admin-only").forEach(el=>el.style.display=allowed?(el.id==="adminNavLink"?"inline-block":"block"):"none");const status=document.getElementById("adminStatus");if(status)status.textContent=allowed?"Administrator verified. Manage your marketplace below.":"Administrator access is restricted.";if(allowed)loadAdminDashboard();}
 
 let allProducts = [];
