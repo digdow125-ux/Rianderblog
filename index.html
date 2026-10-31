@@ -154,6 +154,37 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
 .admin-actions button{padding:8px 10px;font-size:12px}
 .admin-tools label{font-size:13px}
 
+
+
+/* Storefront refinements: familiar international-marketplace shopping layout */
+/* Keep the main shopping page focused on products, categories and cart. */
+main > .hero, main > .benefits{display:none !important;}
+.topbar{font-size:12px;letter-spacing:.35px}
+header{position:relative;gap:18px}
+.header-cart{background:#f36b25;color:#fff;border:0;border-radius:7px;padding:11px 16px;font-weight:700;font-size:14px;cursor:pointer}
+.header-cart:hover{background:#d95517}
+.brand{min-width:210px}
+.brand-name{font-size:27px}
+nav{box-shadow:0 2px 8px rgba(10,25,45,.12)}
+main{max-width:1220px}
+.hero{min-height:235px;box-shadow:0 8px 24px rgba(20,55,90,.12)}
+.hero h1{max-width:650px}
+.benefit{border-radius:8px;box-shadow:0 2px 8px rgba(16,33,62,.035)}
+#products{background:transparent}
+#products .section-head{margin-top:25px}
+#products .search{border-radius:24px;padding:15px 19px}
+.categories{gap:9px}
+.categories button{font-size:13px;white-space:nowrap}
+.products{grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:15px}
+.product{padding:12px;display:flex;flex-direction:column;min-width:0}
+.product img{height:185px;object-fit:contain}
+.product h3{min-height:44px}
+.product-desc{flex:1}
+.product-actions{margin-top:auto}
+.product .buy{margin-top:9px}
+.secondary-page{max-width:100%;}
+@media(max-width:650px){main{padding:16px 12px}.hero{padding:25px 19px;min-height:0}.products{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.product{padding:9px}.product img{height:135px}.product h3{font-size:14px}.product-desc{font-size:12px}.product-actions{grid-template-columns:1fr}.product-actions button{font-size:12px;padding:9px}.price{font-size:16px}.categories{flex-wrap:nowrap;overflow-x:auto;padding:3px 0 9px}.categories button{flex:0 0 auto}}
+
 </style>
 </head>
 <body>
@@ -163,7 +194,7 @@ nav{position:relative;display:flex;align-items:center;justify-content:flex-start
     <div class="brand-mark">R</div>
     <div><div class="brand-name">RIANDER<span>BLOG</span></div><div class="brand-tag">Global marketplace</div></div>
   </a>
-  <div class="header-note">Discover more. Shop beyond borders.</div>
+  <button class="header-cart" type="button" onclick="showSection('cart')">🛒 Cart (<span id="headerCartCount">0</span>)</button>
 </header>
 <nav aria-label="Main navigation">
   <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰</button>
@@ -352,9 +383,24 @@ const SUPABASE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co";
 const SUPABASE_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
 const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const ADMIN_USER_ID = "a32248b7-5745-4dd4-8af0-bce4eb465f66";
-function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const open=links.classList.toggle("open");btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕":"☰";}
-function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");links.classList.remove("open");btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰";}
-function showSection(id){document.querySelectorAll('main > section').forEach(section=>{section.style.display=section.id===id?'block':(section.id==='products'||section.classList.contains('benefits')||section.classList.contains('hero')?'':'none');});const target=document.getElementById(id);if(target){target.style.display='block';window.scrollTo({top:0,behavior:'smooth'});}if(id==='cart')updateCart();if(id==='dashboard')showDashboard();if(id==='suppliers')renderSuppliers();}
+function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕":"☰";}
+function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(links){links.classList.remove("open");links.style.display="none";}if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰";}}
+function showSection(id){
+  const target=document.getElementById(id);
+  if(!target){console.warn("RIANDERBLOG: section not found:",id);return false;}
+  const home=(id==="products");
+  document.querySelectorAll("main > section").forEach(section=>{
+    const storefront=section.id==="products"||section.classList.contains("benefits")||section.classList.contains("hero");
+    section.style.display=storefront?(home?"":"none"):(section.id===id?"block":"none");
+  });
+  target.style.display=(id==="currencySettings")?"flex":"block";
+  closeMenu();
+  window.scrollTo({top:0,behavior:"auto"});
+  try{if(id==="cart"&&typeof updateCart==="function")updateCart();if(id==="dashboard"&&typeof showDashboard==="function")showDashboard();if(id==="suppliers"&&typeof renderSuppliers==="function")renderSuppliers();if(id==="affiliates"&&typeof loadProgrammes==="function")loadProgrammes();if(id==="adminPanel"&&typeof loadAdminDashboard==="function")loadAdminDashboard();}catch(err){console.error("RIANDERBLOG section error:",err);}
+  return false;
+}
+// Make navigation work even if an inline menu link is changed later.
+document.addEventListener("DOMContentLoaded",()=>{const nav=document.getElementById("navLinks");if(nav){nav.querySelectorAll("a[onclick]").forEach(a=>{a.addEventListener("click",e=>{e.preventDefault();});});}});
 function updateAdminVisibility(user){const allowed=!!user && user.id===ADMIN_USER_ID;document.querySelectorAll(".admin-only").forEach(el=>el.style.display=allowed?(el.id==="adminNavLink"?"inline-block":"block"):"none");const status=document.getElementById("adminStatus");if(status)status.textContent=allowed?"Administrator verified. Manage your marketplace below.":"Administrator access is restricted.";if(allowed)loadAdminDashboard();}
 
 let allProducts = [];
@@ -546,6 +592,8 @@ function removeFromCart(id) {
 function updateCart() {
   document.getElementById("cartCount").textContent =
     cart.reduce((sum,x) => sum + x.quantity,0);
+  const headerCount = document.getElementById("headerCartCount");
+  if (headerCount) headerCount.textContent = cart.reduce((sum,x) => sum + x.quantity,0);
 
   const container = document.getElementById("cartItems");
   const totalElement = document.getElementById("cartTotal");
