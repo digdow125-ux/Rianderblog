@@ -4,962 +4,672 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RIANDERBLOG | Global Marketplace</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 :root {
-  --navy:#10213e;
-  --blue:#1a3154;
-  --gold:#d6ad55;
-  --bg:#f4f6fa;
-  --white:#fff;
-  --text:#263244;
-  --muted:#687589;
-  --border:#e2e6ed;
+ --navy:#10213e;--blue:#1a3154;--gold:#d6ad55;
+ --bg:#f5f6f9;--white:#fff;--text:#263244;
+ --muted:#687589;--line:#e5e8ee;
 }
-* { box-sizing:border-box; }
-html { scroll-behavior:smooth; }
-body {
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-.topbar {
-  background:#081426;
-  color:white;
-  text-align:center;
-  padding:9px;
-  font-size:12px;
-}
-header {
-  background:var(--navy);
-  color:white;
-  padding:20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:12px;
-}
-.brand {
-  font-size:25px;
-  font-weight:bold;
-  color:white;
-  text-decoration:none;
-  letter-spacing:1px;
-}
-.brand span { color:var(--gold); }
-header p { font-size:12px;color:#d5dce7; }
-nav {
-  background:var(--blue);
-  padding:10px 18px;
-  position:relative;
-}
-.menu-toggle {
-  display:block;
-  background:transparent;
-  border:1px solid #ffffff66;
-  color:white;
-  font-size:25px;
-  padding:5px 12px;
-}
-.nav-links {
-  display:none;
-  position:absolute;
-  top:100%;
-  left:0;
-  z-index:100;
-  background:var(--blue);
-  width:230px;
-  box-shadow:0 8px 18px #0003;
-}
-.nav-links.open { display:block; }
-.nav-links a {
-  display:block;
-  padding:14px;
-  color:white;
-  text-decoration:none;
-  border-bottom:1px solid #ffffff22;
-  font-size:14px;
-}
-.nav-links a:hover { background:var(--navy); }
-main {
-  max-width:1150px;
-  margin:auto;
-  padding:20px;
-}
-.hero {
-  background:linear-gradient(120deg,#0b1930,#294b76);
-  color:white;
-  padding:45px 28px;
-  border-radius:15px;
-}
-.hero h1 {
-  font-size:clamp(30px,5vw,46px);
-  margin:10px 0;
-}
-.hero p {
-  line-height:1.7;
-  max-width:650px;
-  color:#e0e7f1;
-}
-.hero button {
-  background:var(--gold);
-  color:#18243a;
-  padding:13px 20px;
-  margin-top:12px;
-}
-.benefits {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:12px;
-  margin:18px 0;
-}
-.benefit {
-  background:white;
-  border:1px solid var(--border);
-  border-radius:9px;
-  padding:16px;
-  text-align:center;
-  font-weight:bold;
-  font-size:13px;
-}
-h2 { color:var(--navy); }
-.section { margin-top:30px; }
-.search,input,textarea,select {
-  width:100%;
-  padding:12px;
-  border:1px solid var(--border);
-  border-radius:7px;
-  margin:7px 0;
-  font-size:15px;
-}
-button {
-  border:0;
-  border-radius:7px;
-  padding:11px 15px;
-  cursor:pointer;
-  font-weight:bold;
-}
-.primary {
-  background:var(--navy);
-  color:white;
-}
-.gold {
-  background:var(--gold);
-  color:#172238;
-}
-.secondary {
-  background:#e9edf3;
-  color:#263244;
-}
-.products {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  gap:15px;
-  margin-top:15px;
-}
-.product {
-  background:white;
-  border:1px solid var(--border);
-  padding:13px;
-  border-radius:11px;
-}
-.product img {
-  width:100%;
-  height:175px;
-  object-fit:contain;
-  background:#f8f9fb;
-  border-radius:7px;
-}
-.product h3 { color:var(--navy); }
-.product p {
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.5;
-}
-.price {
-  font-size:19px;
-  font-weight:bold;
-  color:var(--navy);
-}
-.product button { margin:3px 0; }
-.panel {
-  background:white;
-  border:1px solid var(--border);
-  padding:20px;
-  border-radius:11px;
-  margin-top:22px;
-}
-.cart-item {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  border-bottom:1px solid var(--border);
-  padding:12px 0;
-  flex-wrap:wrap;
-}
-.cart-item img {
-  width:60px;
-  height:60px;
-  object-fit:contain;
-}
-.cart-info { flex:1; }
-.remove {
-  background:#fee8e8;
-  color:#a02020;
-}
-.form-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  gap:8px;
-}
-textarea { min-height:90px; }
-.notice {
-  background:#f3f5f8;
-  padding:12px;
-  border-radius:7px;
-  font-size:13px;
-  line-height:1.5;
-}
-.small {
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.5;
-}
-.admin-only { display:none; }
-.admin-box {
-  border:2px solid var(--gold);
-  background:#fffaf0;
-}
-footer {
-  background:var(--navy);
-  color:white;
-  text-align:center;
-  padding:25px;
-  margin-top:35px;
-  font-size:13px;
-}
-footer strong { color:var(--gold); }
-@media(max-width:600px) {
-  header { padding:15px; }
-  .hero { padding:30px 20px; }
-  main { padding:14px; }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+.topbar{background:#081426;color:white;text-align:center;padding:9px;font-size:12px}
+header{background:var(--navy);color:white;padding:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.brand{font-size:25px;font-weight:bold;color:white;text-decoration:none}
+.brand span{color:var(--gold)}
+nav{background:var(--blue);padding:10px 18px;position:relative}
+.menu-toggle{background:transparent;color:white;border:1px solid #ffffff55;font-size:26px;padding:5px 12px}
+.nav-links{display:none;position:absolute;z-index:1000;top:100%;left:0;background:var(--blue);width:240px;box-shadow:0 8px 20px #0003}
+.nav-links.open{display:block}
+.nav-links a{display:block;padding:14px;color:white;text-decoration:none;border-bottom:1px solid #ffffff22}
+main{max-width:1150px;margin:auto;padding:20px}
+.hero{background:linear-gradient(120deg,#0b1930,#294b76);color:white;padding:42px 28px;border-radius:14px}
+.hero h1{font-size:clamp(30px,5vw,45px)}
+.hero p{line-height:1.7;color:#e0e7f1;max-width:650px}
+button{border:0;border-radius:7px;padding:11px 15px;cursor:pointer;font-weight:bold}
+.primary{background:var(--navy);color:white}
+.gold{background:var(--gold);color:#172238}
+.secondary{background:#e9edf3;color:#263244}
+.remove{background:#fee8e8;color:#a02020}
+input,select,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:7px;margin:7px 0;font-size:15px}
+textarea{min-height:90px}
+h2{color:var(--navy)}
+.panel{background:white;border:1px solid var(--line);padding:20px;border-radius:11px;margin-top:22px}
+.benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0}
+.benefit{background:white;border:1px solid var(--line);border-radius:9px;padding:16px;text-align:center;font-weight:bold}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:15px;margin-top:15px}
+.product{background:white;border:1px solid var(--line);padding:13px;border-radius:11px}
+.product img{width:100%;height:175px;object-fit:contain;background:#f8f9fb;border-radius:7px}
+.product h3{color:var(--navy)}
+.product p,.small-note{color:var(--muted);font-size:13px;line-height:1.5}
+.price{font-size:19px;font-weight:bold;color:var(--navy)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.cart-item,.admin-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:12px 0}
+.cart-item img{width:60px;height:60px;object-fit:contain}
+.cart-info{flex:1}
+.admin-only{display:none}
+.admin-box{border:2px solid var(--gold);background:#fffaf0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stat{background:#f2f4f8;padding:17px;border-radius:9px}
+.stat strong{display:block;font-size:25px;color:var(--navy)}
+.admin-tools{background:white;border:1px solid var(--line);border-radius:10px;padding:15px;margin-top:16px}
+.admin-tools h3{color:var(--navy)}
+.admin-actions{display:flex;gap:6px;flex-wrap:wrap}
+.admin-actions button{font-size:12px;padding:8px}
+.notice{background:#f3f5f8;padding:12px;border-radius:7px;font-size:13px;line-height:1.5}
+footer{background:var(--navy);color:white;text-align:center;padding:25px;margin-top:35px;font-size:13px}
+footer strong{color:var(--gold)}
+@media(max-width:600px){
+ header{padding:15px}
+ main{padding:14px}
+ .hero{padding:28px 20px}
 }
 </style>
 </head>
-
 <body>
 
-<div class="topbar">
-  DISCOVER PRODUCTS FROM AROUND THE WORLD
-</div>
+<div class="topbar">DISCOVER PRODUCTS FROM AROUND THE WORLD</div>
 
 <header>
-  <a class="brand" href="#">
-    RIAN<span>DER</span>BLOG
-  </a>
-  <p>Discover more. Shop beyond borders.</p>
+<a class="brand" href="#">RIAN<span>DER</span>BLOG</a>
+<p>Discover more. Shop beyond borders.</p>
 </header>
 
 <nav>
-  <button class="menu-toggle" id="menuToggle"
-    onclick="toggleMenu()" aria-label="Open menu">☰</button>
-
-  <div class="nav-links" id="navLinks">
-    <a href="#" onclick="closeMenu()">Home</a>
-    <a href="#products" onclick="closeMenu()">Products</a>
-    <a href="#cart" onclick="closeMenu()">Shopping Cart</a>
-    <a href="#account" onclick="closeMenu()">My Account</a>
-    <a href="#dashboard" onclick="closeMenu()">Dashboard</a>
-    <a href="#suppliers" onclick="closeMenu()">Suppliers</a>
-    <a href="#affiliates" onclick="closeMenu()">Affiliates</a>
-    <a href="#payments" onclick="closeMenu()">Payments</a>
-    <a href="#adminPanel" class="admin-only" id="adminLink"
-      onclick="closeMenu()">Admin Panel</a>
-  </div>
+<button class="menu-toggle" id="menuToggle" onclick="toggleMenu()">☰</button>
+<div class="nav-links" id="navLinks">
+<a href="#" onclick="closeMenu()">Home</a>
+<a href="#products" onclick="closeMenu()">Products</a>
+<a href="#cart" onclick="closeMenu()">Shopping Cart</a>
+<a href="#account" onclick="closeMenu()">My Account</a>
+<a href="#dashboard" onclick="closeMenu()">Dashboard</a>
+<a href="#suppliers" onclick="closeMenu()">Suppliers</a>
+<a href="#affiliates" onclick="closeMenu()">Affiliates</a>
+<a href="#payments" onclick="closeMenu()">Payments</a>
+<a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="closeMenu()">Admin Panel</a>
+</div>
 </nav>
 
 <main>
 
 <section class="hero">
-  <p>THE WORLD, WITHIN REACH</p>
-  <h1>Discover Something Extraordinary.</h1>
-  <p>
-    Explore products from international sellers.
-    Find what you need, save your favourites and
-    continue to the supplier's store to purchase.
-  </p>
-  <button onclick="location.href='#products'">
-    Explore Products
-  </button>
+<p>THE WORLD, WITHIN REACH</p>
+<h1>Discover Something Extraordinary.</h1>
+<p>Explore products from international sellers. Find what you need and continue to the supplier's store to purchase.</p>
+<button class="gold" onclick="location.href='#products'">Explore Products</button>
 </section>
 
 <div class="benefits">
-  <div class="benefit">🌍 Global Products</div>
-  <div class="benefit">🛒 Easy Shopping Cart</div>
-  <div class="benefit">🤝 Connect With Suppliers</div>
+<div class="benefit">🌍 Global Products</div>
+<div class="benefit">🛒 Easy Shopping Cart</div>
+<div class="benefit">🤝 Connect With Suppliers</div>
 </div>
 
-<section class="section" id="products">
-  <h2>Explore Products</h2>
-  <p class="small">Discover products from different countries.</p>
-
-  <input id="search" class="search"
-    placeholder="Search for products..."
-    oninput="displayProducts()">
-
-  <select id="category" onchange="displayProducts()">
-    <option value="All">All Categories</option>
-    <option value="Electronics">Electronics</option>
-    <option value="Accessories">Accessories</option>
-    <option value="Home">Home</option>
-    <option value="Fashion">Fashion</option>
-    <option value="Other">Other</option>
-  </select>
-
-  <div id="productList" class="products">
-    Loading products...
-  </div>
+<section id="products">
+<h2>Explore Products</h2>
+<input id="search" placeholder="Search products..." oninput="displayProducts()">
+<select id="category" onchange="displayProducts()">
+<option value="All">All Categories</option>
+<option>Electronics</option>
+<option>Accessories</option>
+<option>Home</option>
+<option>Fashion</option>
+<option>Other</option>
+</select>
+<div id="productList" class="products">Loading products...</div>
 </section>
 
 <section class="panel" id="cart">
-  <h2>🛒 My Shopping Cart</h2>
-  <div id="cartItems">Your cart is empty.</div>
-  <h3 id="cartTotal">Total: $0.00</h3>
-  <p class="small">
-    Purchases are completed through the supplier's website.
-    This website does not currently process payments.
-  </p>
+<h2>🛒 My Shopping Cart</h2>
+<div id="cartItems">Your cart is empty.</div>
+<h3 id="cartTotal">Total: $0.00</h3>
+<p class="small-note">Purchases are completed through supplier websites. Live checkout is not enabled.</p>
 </section>
 
-<section class="panel" id="currency">
-  <h2>🌍 Shopping Currency</h2>
-  <p class="small">Choose the currency used to display prices.</p>
-  <select id="currencySelect" onchange="setCurrency(this.value)">
-    <option value="USD">USD - US Dollar</option>
-    <option value="MWK">MWK - Malawi Kwacha</option>
-    <option value="GBP">GBP - British Pound</option>
-    <option value="EUR">EUR - Euro</option>
-    <option value="ZAR">ZAR - South African Rand</option>
-    <option value="KES">KES - Kenyan Shilling</option>
-    <option value="NGN">NGN - Nigerian Naira</option>
-    <option value="CAD">CAD - Canadian Dollar</option>
-    <option value="AUD">AUD - Australian Dollar</option>
-    <option value="INR">INR - Indian Rupee</option>
-  </select>
-  <p class="small" id="currencyStatus">
-    Prices are displayed in USD unless changed.
-  </p>
+<section class="panel">
+<h2>🌍 Shopping Currency</h2>
+<select id="currencySelect" onchange="setCurrency(this.value)">
+<option>USD</option><option>MWK</option><option>GBP</option>
+<option>EUR</option><option>ZAR</option><option>KES</option>
+<option>NGN</option><option>CAD</option><option>AUD</option>
+</select>
+<p id="currencyStatus" class="small-note">Prices displayed in USD.</p>
 </section>
 
 <section class="panel" id="payments">
-  <h2>💳 Payment Centre</h2>
-  <p>Select a payment method to see its information.</p>
-
-  <button class="secondary" onclick="paymentInfo('PayPal')">PayPal</button>
-  <button class="secondary" onclick="paymentInfo('Visa / Mastercard')">Visa / Mastercard</button>
-  <button class="secondary" onclick="paymentInfo('Airtel Money')">Airtel Money</button>
-  <button class="secondary" onclick="paymentInfo('TNM Mpamba')">TNM Mpamba</button>
-  <button class="secondary" onclick="paymentInfo('Bank transfer')">Bank transfer</button>
-
-  <div id="paymentDetails" class="notice">
-    Payment gateway integration is not yet enabled.
-  </div>
-  <p class="small">
-    Never enter your card number, PIN or password on this page.
-    Live payments require approved payment-provider integration.
-  </p>
+<h2>💳 Payment Centre</h2>
+<button class="secondary" onclick="paymentInfo('PayPal')">PayPal</button>
+<button class="secondary" onclick="paymentInfo('Visa / Mastercard')">Visa / Mastercard</button>
+<button class="secondary" onclick="paymentInfo('Airtel Money')">Airtel Money</button>
+<button class="secondary" onclick="paymentInfo('TNM Mpamba')">TNM Mpamba</button>
+<button class="secondary" onclick="paymentInfo('Bank transfer')">Bank transfer</button>
+<div id="paymentDetails" class="notice">Live payment integration is not yet enabled.</div>
 </section>
 
 <section class="panel" id="suppliers">
-  <h2>🏭 Supplier Centre</h2>
-  <p>Companies can apply to become RIANDERBLOG suppliers.</p>
-
-  <div class="form-grid">
-    <input id="supplierCompany" placeholder="Company name">
-    <input id="supplierCountry" placeholder="Country">
-    <input id="supplierEmail" type="email" placeholder="Business email">
-    <input id="supplierWebsite" placeholder="Website URL">
-    <textarea id="supplierDescription"
-      placeholder="Describe your products and business"></textarea>
-  </div>
-
-  <button class="primary" onclick="applySupplier()">
-    Submit Supplier Application
-  </button>
-  <p id="supplierMessage" class="small"></p>
+<h2>🏭 Supplier Centre</h2>
+<div class="form-grid">
+<input id="supplierCompany" placeholder="Company name">
+<input id="supplierCountry" placeholder="Country">
+<input id="supplierEmail" type="email" placeholder="Business email">
+<input id="supplierWebsite" placeholder="Website URL">
+<textarea id="supplierDescription" placeholder="Describe your business"></textarea>
+</div>
+<button class="primary" onclick="applySupplier()">Submit Supplier Application</button>
+<p id="supplierMessage" class="small-note"></p>
 </section>
 
 <section class="panel" id="affiliates">
-  <h2>🤝 Affiliate Centre</h2>
-  <p>Companies can submit programmes. Promoters can apply to join them.</p>
-
-  <h3>Submit an Affiliate Programme</h3>
-  <div class="form-grid">
-    <input id="affiliateCompany" placeholder="Company name">
-    <input id="affiliateEmail" type="email" placeholder="Contact email">
-    <input id="affiliateCommission" type="number"
-      min="0" max="100" placeholder="Commission percentage">
-    <input id="affiliateWebsite" placeholder="Company website">
-    <textarea id="affiliateTerms"
-      placeholder="Programme terms and payout conditions"></textarea>
-  </div>
-
-  <button class="primary" onclick="submitAffiliateProgramme()">
-    Submit Programme
-  </button>
-  <p id="affiliateMessage" class="small"></p>
-
-  <hr>
-
-  <h3>Apply as an Affiliate</h3>
-  <div class="form-grid">
-    <input id="affiliateApplicantName" placeholder="Your name">
-    <input id="affiliateApplicantEmail" type="email" placeholder="Your email">
-    <input id="affiliatePlatform" placeholder="Website or social media link">
-    <input id="affiliateProgrammeId" placeholder="Programme ID">
-  </div>
-
-  <button class="primary" onclick="applyAffiliate()">
-    Apply to Programme
-  </button>
-  <p id="affiliateApplyMessage" class="small"></p>
+<h2>🤝 Affiliate Centre</h2>
+<h3>Submit an Affiliate Programme</h3>
+<div class="form-grid">
+<input id="affiliateCompany" placeholder="Company name">
+<input id="affiliateEmail" type="email" placeholder="Contact email">
+<input id="affiliateCommission" type="number" placeholder="Commission percentage">
+<input id="affiliateWebsite" placeholder="Website">
+<textarea id="affiliateTerms" placeholder="Programme terms"></textarea>
+</div>
+<button class="primary" onclick="submitAffiliateProgramme()">Submit Programme</button>
+<p id="affiliateMessage" class="small-note"></p>
+<hr>
+<h3>Apply as an Affiliate</h3>
+<div class="form-grid">
+<input id="affiliateApplicantName" placeholder="Your name">
+<input id="affiliateApplicantEmail" type="email" placeholder="Your email">
+<input id="affiliatePlatform" placeholder="Website or social media link">
+<input id="affiliateProgrammeId" placeholder="Programme ID">
+</div>
+<button class="primary" onclick="applyAffiliate()">Apply to Programme</button>
+<p id="affiliateApplyMessage" class="small-note"></p>
 </section>
 
 <section class="panel" id="account">
-  <h2>👤 Customer Account</h2>
-  <p>Create an account or sign in.</p>
-
-  <input id="email" type="email" placeholder="Email address">
-  <input id="password" type="password" placeholder="Password">
-
-  <button class="primary" onclick="signUp()">Create Account</button>
-  <button class="primary" onclick="signIn()">Sign In</button>
-  <button class="primary" onclick="googleSignIn()">Sign in with Google</button>
-  <button class="secondary" onclick="signOut()">Sign Out</button>
-
-  <p id="message" class="notice">You are not signed in.</p>
+<h2>👤 Customer Account</h2>
+<input id="email" type="email" placeholder="Email address">
+<input id="password" type="password" placeholder="Password">
+<button class="primary" onclick="signUp()">Create Account</button>
+<button class="primary" onclick="signIn()">Sign In</button>
+<button class="primary" onclick="googleSignIn()">Sign in with Google</button>
+<button class="secondary" onclick="signOut()">Sign Out</button>
+<p id="message" class="notice">You are not signed in.</p>
 </section>
 
 <section class="panel" id="dashboard">
-  <h2>My Dashboard</h2>
-  <p id="dashboardStatus">Checking account...</p>
-  <div id="dashboardDetails"></div>
-  <button class="primary" onclick="showDashboard()">Refresh Dashboard</button>
+<h2>My Dashboard</h2>
+<p id="dashboardStatus">Checking account...</p>
+<div id="dashboardDetails"></div>
 </section>
 
+<!-- ADMIN DASHBOARD -->
 <section class="panel admin-box admin-only" id="adminPanel">
-  <h2>🔐 RIANDERBLOG Admin Panel</h2>
-  <p>Administrator access.</p>
-  <p>
-    Manage products, suppliers and affiliate submissions
-    through the Supabase database dashboard.
-  </p>
-  <a href="https://supabase.com/dashboard/project/yymdyxlbdgbrgrykdspx/editor"
-     target="_blank" rel="noopener">
-    Open Supabase Database
-  </a>
-  <p class="small">
-    Database permissions must be configured separately.
-    Hiding this panel does not provide database security.
-  </p>
-</section>
+<h2>🔐 RIANDERBLOG ADMIN DASHBOARD</h2>
+<p id="adminStatus">Administrator access.</p>
 
-</main>
+<div class="stats">
+<div class="stat"><strong id="statProducts">0</strong>Products</div>
+<div class="stat"><strong id="statSuppliers">0</strong>Suppliers</div>
+<div class="stat"><strong id="statProgrammes">0</strong>Affiliate programmes</div>
+<div class="stat"><strong id="statApplications">0</strong>Affiliate applications</div>
+<div class="stat"><strong id="statOrders">—</strong>Orders</div>
+</div>
 
-<footer>
-  <strong>RIANDERBLOG</strong> © 2026
-  <p>Shop globally. Discover more.</p>
-  <p>Payments and fulfilment are handled by the supplier.</p>
-</footer>
+<div class="admin-tools">
+<h3>📦 Product Management</h3>
+<input type="hidden" id="adminProductId">
+<div class="form-grid">
+<input id="adminProductName" placeholder="Product name">
+<input id="adminProductPrice" type="number" placeholder="Price">
+<select id="adminProductCurrency">
+<option>USD</option><option>MWK</option><option>GBP</option><option>EUR</option>
+</select>
+<input id="adminProductCategory" placeholder="Category">
+<input id="adminProductImage" placeholder="Image URL">
+<input id="adminProductLink" placeholder="Supplier purchase URL">
+<textarea id="adminProductDescription" placeholder="Product description"></textarea>
+</div>
+<label><input type="checkbox" id="adminProductActive" checked style="width:auto"> Product is active</label>
+<br><br>
+<button class="primary" onclick="saveAdminProduct()">Save Product</button>
+<button class="secondary" onclick="clearAdminProductForm()">Clear Form</button>
+<p id="adminProductMessage" class="small-note"></p>
+<div id="adminProductList"></div>
+</div>
 
-<script>
-/* SUPABASE CONFIGURATION */
-const SUPABASE_URL =
-  "https://yymdyxlbdgbrgrykdspx.supabase.co";
+<div class="admin-tools">
+<h3>🏭 Supplier Applications</h3>
+<div id="adminSupplierList">Loading...</div>
+</div>
 
-const SUPABASE_KEY =
-  "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+<div class="admin-tools">
+<h3>🤝 Affiliate Programmes</h3>
+<div id="adminProgrammeList">Loading...</div>
+</div>
 
-const ADMIN_ID = "a32248b7-5745-4dd4-8af0-bce4eb465f66";
+<div class="admin-tools">
+<h3>👥 Affiliate Applications</h3>
+<div id="adminAffiliateApplicationList">Loading...</div>
+</div>
 
-const db = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+<div class="admin-tools">
+<h3>🧾 Orders</h3>
+<div id="adminOrderList">Orders require a configured orders table.</div>
+</div>
 
-/* GENERAL FUNCTIONS */
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
-  })[char]);
+<p class="small-note">Admin operations require secure Supabase Row Level Security policies. The admin interface alone is not database security.</p>
+  </section><script>
+const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
+const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const ADMIN_USER_ID="a32248b7-5745-4dd4-8af0-bce4eb465f66";
+
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let allProducts=[];
+let cart=JSON.parse(localStorage.getItem("riander_cart")||"[]");
+let displayCurrency=localStorage.getItem("rianderblog_currency")||"USD";
+let exchangeRates={};
+
+function escapeHTML(v){
+ return String(v??"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ })[c]);
 }
 
-function safeURL(value) {
-  try {
-    const url = new URL(value);
-    return ["http:","https:"].includes(url.protocol)
-      ? url.href : "";
-  } catch {
-    return "";
-  }
+function safeUrl(v){
+ try{
+  const u=new URL(v);
+  return ["http:","https:"].includes(u.protocol)?u.href:"";
+ }catch{return "";}
 }
 
-/* MENU */
-function toggleMenu() {
-  const menu = document.getElementById("navLinks");
-  const button = document.getElementById("menuToggle");
-  menu.classList.toggle("open");
-  button.setAttribute(
-    "aria-expanded",
-    menu.classList.contains("open")
-  );
+function toggleMenu(){
+ const menu=document.getElementById("navLinks");
+ const btn=document.getElementById("menuToggle");
+ const open=menu.classList.toggle("open");
+ btn.textContent=open?"✕":"☰";
+ btn.setAttribute("aria-expanded",String(open));
+}
+function closeMenu(){
+ document.getElementById("navLinks").classList.remove("open");
+ document.getElementById("menuToggle").textContent="☰";
 }
 
-function closeMenu() {
-  document.getElementById("navLinks").classList.remove("open");
-  document.getElementById("menuToggle")
-    .setAttribute("aria-expanded","false");
+function isAdmin(user){
+ return !!user&&user.id===ADMIN_USER_ID;
+}
+
+function updateAdminVisibility(user){
+ const allowed=isAdmin(user);
+ document.querySelectorAll(".admin-only").forEach(el=>{
+  el.style.display=allowed?(el.id==="adminNavLink"?"inline-block":"block"):"none";
+ });
+ if(allowed)loadAdminDashboard();
+}
+
+async function adminGuard(){
+ const {data,error}=await db.auth.getSession();
+ if(error)throw error;
+ if(!isAdmin(data.session?.user))throw new Error("Administrator sign-in required.");
+}
+
+function adminMessage(id,message){
+ const el=document.getElementById(id);
+ if(el)el.textContent=message;
 }
 
 /* PRODUCTS */
-let products = [];
-
-async function loadProducts() {
-  const box = document.getElementById("productList");
-  box.textContent = "Loading products...";
-
-  try {
-    const {data,error} = await db
-      .from("products")
-      .select("*")
-      .eq("is_active",true)
-      .order("created_at",{ascending:false});
-
-    if (error) throw error;
-
-    products = data || [];
-    displayProducts();
-
-  } catch(error) {
-    box.innerHTML =
-      '<p class="notice">Products could not load. Check your Supabase products table and public read policy. ' +
-      escapeHTML(error.message) + '</p>';
-  }
+async function loadProducts(){
+ const box=document.getElementById("productList");
+ try{
+  const {data,error}=await db.from("products").select("*")
+   .eq("is_active",true).order("created_at",{ascending:false});
+  if(error)throw error;
+  allProducts=data||[];
+  displayProducts();
+  renderAdminProducts();
+ }catch(e){
+  box.textContent="Products could not load: "+e.message;
+ }
 }
 
-function displayProducts() {
-  const box = document.getElementById("productList");
-  const search = document.getElementById("search").value.toLowerCase();
-  const category = document.getElementById("category").value;
+function displayProducts(){
+ const search=document.getElementById("search").value.toLowerCase();
+ const category=document.getElementById("category").value;
+ const list=allProducts.filter(p=>
+  (p.name+" "+(p.description||"")).toLowerCase().includes(search)&&
+  (category==="All"||(p.category||"").toLowerCase()===category.toLowerCase())
+ );
+ const box=document.getElementById("productList");
+ if(!list.length){box.textContent="No products found.";return;}
+ box.innerHTML=list.map(p=>{
+  const img=safeUrl(p.image_url)||"https://placehold.co/400x300?text=Product";
+  return `<article class="product">
+   <img src="${img}" alt="${escapeHTML(p.name)}">
+   <h3>${escapeHTML(p.name)}</h3>
+   <p>${escapeHTML(p.description||"")}</p>
+   <div class="price">${formatPrice(p.price,p.currency||"USD")}</div>
+   <button class="primary" onclick="addToCart('${escapeHTML(p.id)}')">Add to Cart</button>
+   ${safeUrl(p.affiliate_url)?`<a href="${safeUrl(p.affiliate_url)}" target="_blank" rel="noopener"><button class="gold">Buy from Supplier</button></a>`:""}
+  </article>`;
+ }).join("");
+}
 
-  const filtered = products.filter(product => {
-    const matchesSearch =
-      (product.name + " " + (product.description || ""))
-      .toLowerCase().includes(search);
-
-    const matchesCategory =
-      category === "All" ||
-      (product.category || "").toLowerCase() === category.toLowerCase();
-
-    return matchesSearch && matchesCategory;
-  });
-
-  if (!filtered.length) {
-    box.innerHTML = "<p>No products found.</p>";
-    return;
-  }
-
-  box.innerHTML = filtered.map(product => {
-    const image = safeURL(product.image_url) ||
-      "https://placehold.co/400x300?text=Product";
-
-    const price = formatPrice(product.price,product.currency || "USD");
-    const affiliate = safeURL(product.affiliate_url);
-
-    return `
-      <article class="product">
-        <img src="${image}" alt="${escapeHTML(product.name)}">
-        <h3>${escapeHTML(product.name)}</h3>
-        <p>${escapeHTML(product.description || "")}</p>
-        <div class="price">${price}</div>
-        <button class="primary" onclick="addToCart('${escapeHTML(product.id)}')">
-          Add to Cart
-        </button>
-        ${affiliate
-          ? `<a href="${affiliate}" target="_blank" rel="noopener">
-               <button class="gold">Buy from Supplier</button>
-             </a>`
-          : ""}
-      </article>
-    `;
-  }).join("");
+/* CART */
+function saveCart(){
+ localStorage.setItem("riander_cart",JSON.stringify(cart));
+}
+function addToCart(id){
+ const p=allProducts.find(x=>String(x.id)===String(id));
+ if(!p)return;
+ const item=cart.find(x=>String(x.id)===String(id));
+ if(item)item.quantity++;
+ else cart.push({
+  id:p.id,name:p.name,price:Number(p.price),
+  currency:p.currency||"USD",image:p.image_url||"",quantity:1
+ });
+ saveCart();updateCart();alert("Added to cart.");
+}
+function removeFromCart(id){
+ cart=cart.filter(x=>String(x.id)!==String(id));
+ saveCart();updateCart();
+}
+function updateCart(){
+ const box=document.getElementById("cartItems");
+ let total=0;
+ if(!cart.length){
+  box.textContent="Your cart is empty.";
+  document.getElementById("cartTotal").textContent="Total: "+formatPrice(0,"USD");
+  return;
+ }
+ box.innerHTML=cart.map(x=>{
+  const rate=exchangeRates[x.currency]&&exchangeRates[displayCurrency]
+   ?exchangeRates[displayCurrency]/exchangeRates[x.currency]:1;
+  total+=x.price*x.quantity*rate;
+  return `<div class="cart-item">
+   <img src="${safeUrl(x.image)||"https://placehold.co/100"}">
+   <div class="cart-info"><strong>${escapeHTML(x.name)}</strong>
+   <p>${x.quantity} × ${formatPrice(x.price,x.currency)}</p></div>
+   <button class="remove" onclick="removeFromCart('${escapeHTML(x.id)}')">Remove</button>
+  </div>`;
+ }).join("");
+ document.getElementById("cartTotal").textContent="Estimated total: "+formatPrice(total,displayCurrency);
 }
 
 /* CURRENCY */
-let currency = localStorage.getItem("riander_currency") || "USD";
-let rates = {};
-
-async function loadRates() {
-  try {
-    const response = await fetch("https://open.er-api.com/v6/latest/USD");
-    const data = await response.json();
-    if (data.result === "success") rates = data.rates;
-  } catch(error) {
-    console.log("Exchange rates unavailable.");
-  }
-
-  document.getElementById("currencySelect").value = currency;
-  document.getElementById("currencyStatus").textContent =
-    "Selected currency: " + currency;
-
-  displayProducts();
-  updateCart();
+async function loadRates(){
+ try{
+  const r=await fetch("https://open.er-api.com/v6/latest/USD");
+  const j=await r.json();
+  if(j.result==="success")exchangeRates=j.rates;
+ }catch(e){console.log("Exchange rates unavailable.");}
+ document.getElementById("currencySelect").value=displayCurrency;
+ displayProducts();updateCart();
+}
+function setCurrency(c){
+ displayCurrency=c;
+ localStorage.setItem("rianderblog_currency",c);
+ document.getElementById("currencyStatus").textContent="Currency set to "+c;
+ displayProducts();updateCart();
+}
+function formatPrice(amount,from){
+ let value=Number(amount||0);
+ if(from!==displayCurrency&&exchangeRates[from]&&exchangeRates[displayCurrency]){
+  value=value/exchangeRates[from]*exchangeRates[displayCurrency];
+ }
+ try{return new Intl.NumberFormat(undefined,{style:"currency",currency:displayCurrency}).format(value);}
+ catch{return displayCurrency+" "+value.toFixed(2);}
 }
 
-function setCurrency(value) {
-  currency = value;
-  localStorage.setItem("riander_currency",value);
-  document.getElementById("currencyStatus").textContent =
-    "Selected currency: " + value;
-  displayProducts();
-  updateCart();
+/* AUTHENTICATION */
+async function signUp(){
+ const email=document.getElementById("email").value.trim();
+ const password=document.getElementById("password").value;
+ if(!email||password.length<6){alert("Enter an email and password of at least 6 characters.");return;}
+ const {error}=await db.auth.signUp({email,password});
+ document.getElementById("message").textContent=error?error.message:"Account created. Check your email if confirmation is required.";
 }
-
-function formatPrice(amount,from) {
-  let number = Number(amount || 0);
-  let converted = number;
-
-  if (from !== currency && rates[from] && rates[currency]) {
-    converted = number / rates[from] * rates[currency];
-  }
-
-  try {
-    return new Intl.NumberFormat(undefined,{
-      style:"currency",
-      currency:currency
-    }).format(converted);
-  } catch {
-    return currency + " " + converted.toFixed(2);
-  }
+async function signIn(){
+ const email=document.getElementById("email").value.trim();
+ const password=document.getElementById("password").value;
+ const {error}=await db.auth.signInWithPassword({email,password});
+ document.getElementById("message").textContent=error?error.message:"Signed in successfully.";
+ await showDashboard();
 }
-
-/* SHOPPING CART */
-let cart = JSON.parse(localStorage.getItem("riander_cart") || "[]");
-
-function saveCart() {
-  localStorage.setItem("riander_cart",JSON.stringify(cart));
+async function googleSignIn(){
+ const {error}=await db.auth.signInWithOAuth({
+  provider:"google",
+  options:{redirectTo:window.location.origin+window.location.pathname}
+ });
+ if(error)alert(error.message);
 }
-
-function addToCart(id) {
-  const product = products.find(item => String(item.id) === String(id));
-  if (!product) return;
-
-  const existing = cart.find(item => String(item.id) === String(id));
-
-  if (existing) {
-    existing.quantity++;
-  } else {
-    cart.push({
-      id:product.id,
-      name:product.name,
-      price:Number(product.price),
-      currency:product.currency || "USD",
-      image:product.image_url || "",
-      quantity:1
-    });
-  }
-
-  saveCart();
-  updateCart();
-  alert("Product added to your cart.");
+async function signOut(){
+ const {error}=await db.auth.signOut();
+ document.getElementById("message").textContent=error?error.message:"Signed out.";
+ await showDashboard();
 }
-
-function removeFromCart(id) {
-  cart = cart.filter(item => String(item.id) !== String(id));
-  saveCart();
-  updateCart();
+async function showDashboard(){
+ const {data,error}=await db.auth.getSession();
+ if(error){document.getElementById("dashboardStatus").textContent=error.message;return;}
+ const user=data.session?.user;
+ updateAdminVisibility(user);
+ if(!user){
+  document.getElementById("dashboardStatus").textContent="You are not signed in.";
+  document.getElementById("dashboardDetails").textContent="";
+  return;
+ }
+ document.getElementById("dashboardStatus").textContent="Welcome to RIANDERBLOG!";
+ document.getElementById("dashboardDetails").textContent="Signed in as "+user.email;
 }
-
-function updateCart() {
-  const box = document.getElementById("cartItems");
-  const totalBox = document.getElementById("cartTotal");
-
-  if (!cart.length) {
-    box.textContent = "Your cart is empty.";
-    totalBox.textContent = "Total: " + formatPrice(0,"USD");
-    return;
-  }
-
-  let total = 0;
-
-  box.innerHTML = cart.map(item => {
-    let price = Number(item.price);
-
-    if (item.currency !== currency &&
-        rates[item.currency] && rates[currency]) {
-      price = price / rates[item.currency] * rates[currency];
-    }
-
-    total += price * item.quantity;
-
-    return `
-      <div class="cart-item">
-        <img src="${safeURL(item.image) || "https://placehold.co/100"}">
-        <div class="cart-info">
-          <strong>${escapeHTML(item.name)}</strong>
-          <p>${item.quantity} × ${formatPrice(item.price,item.currency)}</p>
-        </div>
-        <button class="remove"
-          onclick="removeFromCart('${escapeHTML(item.id)}')">
-          Remove
-        </button>
-      </div>
-    `;
-  }).join("");
-
-  totalBox.textContent = "Estimated total: " +
-    formatPrice(total,currency);
+db.auth.onAuthStateChange((event,session)=>{
+ updateAdminVisibility(session?.user||null);
+});/* ADMIN PRODUCT MANAGEMENT */
+function clearAdminProductForm(){
+ ["adminProductId","adminProductName","adminProductPrice","adminProductCategory",
+ "adminProductImage","adminProductLink","adminProductDescription"]
+ .forEach(id=>document.getElementById(id).value="");
+ document.getElementById("adminProductCurrency").value="USD";
+ document.getElementById("adminProductActive").checked=true;
+ adminMessage("adminProductMessage","");
 }
-
-/* ACCOUNT */
-async function signUp() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-
-  if (!email || password.length < 6) {
-    alert("Enter a valid email and a password of at least 6 characters.");
-    return;
-  }
-
-  const {error} = await db.auth.signUp({email,password});
-
-  document.getElementById("message").textContent =
-    error ? error.message :
-    "Account created. Check your email if confirmation is required.";
+function editAdminProduct(id){
+ const p=allProducts.find(x=>String(x.id)===String(id));
+ if(!p)return;
+ document.getElementById("adminProductId").value=p.id;
+ document.getElementById("adminProductName").value=p.name||"";
+ document.getElementById("adminProductPrice").value=p.price??"";
+ document.getElementById("adminProductCurrency").value=p.currency||"USD";
+ document.getElementById("adminProductCategory").value=p.category||"";
+ document.getElementById("adminProductImage").value=p.image_url||"";
+ document.getElementById("adminProductLink").value=p.affiliate_url||"";
+ document.getElementById("adminProductDescription").value=p.description||"";
+ document.getElementById("adminProductActive").checked=!!p.is_active;
 }
-
-async function signIn() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-
-  const {error} = await db.auth.signInWithPassword({
-    email,password
-  });
-
-  document.getElementById("message").textContent =
-    error ? error.message : "Signed in successfully.";
-
-  await showDashboard();
-}
-
-async function googleSignIn() {
-  const {error} = await db.auth.signInWithOAuth({
-    provider:"google",
-    options:{
-      redirectTo:window.location.origin + window.location.pathname
-    }
-  });
-
-  if (error) alert(error.message);
-}
-
-async function signOut() {
-  const {error} = await db.auth.signOut();
-
-  document.getElementById("message").textContent =
-    error ? error.message : "You have signed out.";
-
-  await showDashboard();
-}
-
-/* ADMIN AND DASHBOARD */
-function updateAdminVisibility(user) {
-  const allowed = user && user.id === ADMIN_ID;
-
-  document.querySelectorAll(".admin-only").forEach(element => {
-    element.style.display = allowed ? "block" : "none";
-  });
-}
-
-async function showDashboard() {
-  const status = document.getElementById("dashboardStatus");
-  const details = document.getElementById("dashboardDetails");
-
-  try {
-    const {data,error} = await db.auth.getSession();
-    if (error) throw error;
-
-    const user = data.session?.user;
-
-    updateAdminVisibility(user);
-
-    if (!user) {
-      status.textContent = "You are not signed in.";
-      details.textContent = "";
-      return;
-    }
-
-    status.textContent = "Welcome to RIANDERBLOG!";
-    details.innerHTML = `
-      <p>Email: ${escapeHTML(user.email)}</p>
-      <p>Cart items: ${cart.reduce((sum,item) => sum + item.quantity,0)}</p>
-      <p>Account created: ${new Date(user.created_at).toLocaleDateString()}</p>
-    `;
-
-  } catch(error) {
-    status.textContent = "Could not load dashboard: " + error.message;
-  }
-}
-
-db.auth.onAuthStateChange((event,session) => {
-  updateAdminVisibility(session?.user || null);
-  document.getElementById("message").textContent =
-    session ? "You are signed in." : "You are not signed in.";
-});
-
-/* PAYMENT INFORMATION */
-function paymentInfo(method) {
-  const messages = {
-    "PayPal":"PayPal checkout is not connected yet. An eligible business account and integration are required.",
-    "Visa / Mastercard":"Card checkout is not connected. A payment gateway and merchant approval are required.",
-    "Airtel Money":"Airtel Money merchant integration is not connected yet.",
-    "TNM Mpamba":"TNM Mpamba merchant integration is not connected yet.",
-    "Bank transfer":"Verified business bank instructions have not been configured."
+async function saveAdminProduct(){
+ try{
+  await adminGuard();
+  const name=document.getElementById("adminProductName").value.trim();
+  const price=Number(document.getElementById("adminProductPrice").value);
+  if(!name||!Number.isFinite(price)||price<0)throw new Error("Enter a product name and valid price.");
+  const image=document.getElementById("adminProductImage").value.trim();
+  const link=document.getElementById("adminProductLink").value.trim();
+  if(image&&!safeUrl(image))throw new Error("Image URL must start with http:// or https://.");
+  if(link&&!safeUrl(link))throw new Error("Supplier URL must start with http:// or https://.");
+  const row={
+   name,price,
+   currency:document.getElementById("adminProductCurrency").value,
+   category:document.getElementById("adminProductCategory").value.trim()||"Other",
+   image_url:image||null,affiliate_url:link||null,
+   description:document.getElementById("adminProductDescription").value.trim(),
+   is_active:document.getElementById("adminProductActive").checked
   };
+  const id=document.getElementById("adminProductId").value;
+  const result=id?await db.from("products").update(row).eq("id",id):await db.from("products").insert(row);
+  if(result.error)throw result.error;
+  adminMessage("adminProductMessage",id?"Product updated.":"Product added.");
+  clearAdminProductForm();await loadProducts();await loadAdminDashboard();
+ }catch(e){adminMessage("adminProductMessage","Could not save: "+e.message);}
+}
+async function deleteAdminProduct(id){
+ if(!confirm("Delete this product permanently?"))return;
+ try{
+  await adminGuard();
+  const {error}=await db.from("products").delete().eq("id",id);
+  if(error)throw error;
+  await loadProducts();await loadAdminDashboard();
+ }catch(e){alert("Delete failed: "+e.message);}
+}
+function renderAdminProducts(){
+ const box=document.getElementById("adminProductList");
+ if(!box)return;
+ box.innerHTML=allProducts.length?allProducts.map(p=>`
+ <div class="admin-row"><div><strong>${escapeHTML(p.name)}</strong>
+ <div class="small-note">${escapeHTML(p.currency||"USD")} ${Number(p.price||0).toFixed(2)}</div></div>
+ <div><button class="secondary" onclick="editAdminProduct('${escapeHTML(p.id)}')">Edit</button>
+ <button class="remove" onclick="deleteAdminProduct('${escapeHTML(p.id)}')">Delete</button></div></div>
+ `).join(""):"No products available.";
+}
 
-  document.getElementById("paymentDetails").textContent =
-    messages[method] || "Payment method not configured.";
+/* ADMIN APPLICATION TABLES */
+async function adminLoadTable(table,columns,container,kind){
+ const box=document.getElementById(container);
+ try{
+  const {data,error}=await db.from(table).select(columns).order("created_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  if(!data?.length){box.textContent="No records found.";return 0;}
+  box.innerHTML=data.map(row=>{
+   const name=escapeHTML(row.company_name||row.applicant_name||"Application");
+   const detail=escapeHTML([row.country,row.email||row.contact_email,row.status].filter(Boolean).join(" · "));
+   const id=escapeHTML(row.id);
+   return `<div class="admin-row"><div><strong>${name}</strong><div class="small-note">${detail}</div></div>
+   <div class="admin-actions">
+   <button class="primary" onclick="adminSetStatus('${kind}','${id}','approved')">Approve</button>
+   <button class="remove" onclick="adminSetStatus('${kind}','${id}','rejected')">Reject</button>
+   </div></div>`;
+  }).join("");
+  return data.length;
+ }catch(e){box.textContent="Cannot load "+table+": "+e.message;return null;}
+}
+async function adminSetStatus(kind,id,status){
+ try{
+  await adminGuard();
+  const table=kind==="supplier"?"suppliers":kind==="programme"?"affiliate_programmes":"affiliate_applications";
+  const {error}=await db.from(table).update({status}).eq("id",id);
+  if(error)throw error;
+  await loadAdminDashboard();
+ }catch(e){alert("Could not update status: "+e.message);}
+}
+async function loadAdminDashboard(){
+ try{
+  await adminGuard();
+  const tables=[
+   ["statProducts","products"],
+   ["statSuppliers","suppliers"],
+   ["statProgrammes","affiliate_programmes"],
+   ["statApplications","affiliate_applications"],
+   ["statOrders","orders"]
+  ];
+  for(const [element,table] of tables){
+   const {count,error}=await db.from(table).select("id",{count:"exact",head:true});
+   document.getElementById(element).textContent=error?"—":(count??0);
+  }
+  await adminLoadTable("suppliers","id,company_name,country,email,status,created_at","adminSupplierList","supplier");
+  await adminLoadTable("affiliate_programmes","id,company_name,contact_email,status,created_at","adminProgrammeList","programme");
+  await adminLoadTable("affiliate_applications","id,applicant_name,email,status,created_at","adminAffiliateApplicationList","application");
+  const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(50);
+  document.getElementById("adminOrderList").textContent=error?"Orders table not configured or accessible.":(data?.length?JSON.stringify(data,null,2):"No orders yet.");
+  renderAdminProducts();
+  document.getElementById("adminStatus").textContent="Administrator verified. Dashboard loaded.";
+ }catch(e){document.getElementById("adminStatus").textContent="Dashboard unavailable: "+e.message;}
 }
 
 /* SUPPLIER APPLICATION */
-async function applySupplier() {
-  const message = document.getElementById("supplierMessage");
-
-  try {
-    const {data,error:authError} = await db.auth.getUser();
-    if (authError) throw authError;
-
-    if (!data.user) {
-      message.textContent = "Please sign in before applying.";
-      return;
-    }
-
-    const row = {
-      user_id:data.user.id,
-      company_name:document.getElementById("supplierCompany").value.trim(),
-      country:document.getElementById("supplierCountry").value.trim(),
-      email:document.getElementById("supplierEmail").value.trim(),
-      website:safeURL(document.getElementById("supplierWebsite").value),
-      description:document.getElementById("supplierDescription").value.trim(),
-      status:"pending"
-    };
-
-    if (!row.company_name || !row.country || !row.email) {
-      message.textContent = "Enter company name, country and email.";
-      return;
-    }
-
-    const {error} = await db.from("suppliers").insert(row);
-    if (error) throw error;
-
-    message.textContent = "Application submitted for review.";
-
-  } catch(error) {
-    message.textContent = "Submission failed: " + error.message;
-  }
+async function applySupplier(){
+ const msg=document.getElementById("supplierMessage");
+ try{
+  const {data}=await db.auth.getUser();
+  if(!data.user){msg.textContent="Please sign in first.";return;}
+  const row={
+   user_id:data.user.id,
+   company_name:document.getElementById("supplierCompany").value.trim(),
+   country:document.getElementById("supplierCountry").value.trim(),
+   email:document.getElementById("supplierEmail").value.trim(),
+   website:safeUrl(document.getElementById("supplierWebsite").value),
+   description:document.getElementById("supplierDescription").value.trim(),
+   status:"pending"
+  };
+  if(!row.company_name||!row.country||!row.email){msg.textContent="Complete company, country and email.";return;}
+  const {error}=await db.from("suppliers").insert(row);
+  if(error)throw error;
+  msg.textContent="Supplier application submitted.";
+ }catch(e){msg.textContent="Submission failed: "+e.message;}
 }
 
-/* COMPANY AFFILIATE PROGRAMME */
-async function submitAffiliateProgramme() {
-  const message = document.getElementById("affiliateMessage");
-
-  try {
-    const {data,error:authError} = await db.auth.getUser();
-    if (authError) throw authError;
-
-    if (!data.user) {
-      message.textContent = "Please sign in first.";
-      return;
-    }
-
-    const row = {
-      owner_id:data.user.id,
-      company_name:document.getElementById("affiliateCompany").value.trim(),
-      contact_email:document.getElementById("affiliateEmail").value.trim(),
-      commission_rate:Number(document.getElementById("affiliateCommission").value),
-      website:safeURL(document.getElementById("affiliateWebsite").value),
-      terms:document.getElementById("affiliateTerms").value.trim(),
-      status:"pending"
-    };
-
-    if (!row.company_name || !row.contact_email ||
-        !(row.commission_rate >= 0 && row.commission_rate <= 100)) {
-      message.textContent = "Enter company, email and a commission rate from 0 to 100.";
-      return;
-    }
-
-    const {error} = await db.from("affiliate_programmes").insert(row);
-    if (error) throw error;
-
-    message.textContent = "Programme submitted for review.";
-
-  } catch(error) {
-    message.textContent = "Submission failed: " + error.message;
+/* AFFILIATE PROGRAMME */
+async function submitAffiliateProgramme(){
+ const msg=document.getElementById("affiliateMessage");
+ try{
+  const {data}=await db.auth.getUser();
+  if(!data.user){msg.textContent="Please sign in first.";return;}
+  const row={
+   owner_id:data.user.id,
+   company_name:document.getElementById("affiliateCompany").value.trim(),
+   contact_email:document.getElementById("affiliateEmail").value.trim(),
+   commission_rate:Number(document.getElementById("affiliateCommission").value),
+   website:safeUrl(document.getElementById("affiliateWebsite").value),
+   terms:document.getElementById("affiliateTerms").value.trim(),
+   status:"pending"
+  };
+  if(!row.company_name||!row.contact_email||row.commission_rate<0||row.commission_rate>100){
+   msg.textContent="Enter company, email and commission between 0 and 100.";return;
   }
+  const {error}=await db.from("affiliate_programmes").insert(row);
+  if(error)throw error;
+  msg.textContent="Affiliate programme submitted.";
+ }catch(e){msg.textContent="Submission failed: "+e.message;}
 }
 
 /* AFFILIATE APPLICATION */
-async function applyAffiliate() {
-  const message = document.getElementById("affiliateApplyMessage");
-
-  try {
-    const {data,error:authError} = await db.auth.getUser();
-    if (authError) throw authError;
-
-    if (!data.user) {
-      message.textContent = "Please sign in first.";
-      return;
-    }
-
-    const row = {
-      user_id:data.user.id,
-      applicant_name:document.getElementById("affiliateApplicantName").value.trim(),
-      email:document.getElementById("affiliateApplicantEmail").value.trim(),
-      platform_url:safeURL(document.getElementById("affiliatePlatform").value),
-      programme_id:document.getElementById("affiliateProgrammeId").value.trim()
-    };
-
-    if (!row.applicant_name || !row.email || !row.programme_id) {
-      message.textContent = "Enter your name, email and programme ID.";
-      return;
-    }
-
-    const {error} = await db.from("affiliate_applications").insert(row);
-    if (error) throw error;
-
-    message.textContent = "Affiliate application submitted.";
-
-  } catch(error) {
-    message.textContent = "Application failed: " + error.message;
+async function applyAffiliate(){
+ const msg=document.getElementById("affiliateApplyMessage");
+ try{
+  const {data}=await db.auth.getUser();
+  if(!data.user){msg.textContent="Please sign in first.";return;}
+  const row={
+   user_id:data.user.id,
+   applicant_name:document.getElementById("affiliateApplicantName").value.trim(),
+   email:document.getElementById("affiliateApplicantEmail").value.trim(),
+   platform_url:safeUrl(document.getElementById("affiliatePlatform").value),
+   programme_id:document.getElementById("affiliateProgrammeId").value.trim(),
+   status:"pending"
+  };
+  if(!row.applicant_name||!row.email||!row.programme_id){
+   msg.textContent="Enter your name, email and programme ID.";return;
   }
+  const {error}=await db.from("affiliate_applications").insert(row);
+  if(error)throw error;
+  msg.textContent="Affiliate application submitted.";
+ }catch(e){msg.textContent="Application failed: "+e.message;}
 }
 
-/* START WEBSITE */
-document.getElementById("currencySelect").value = currency;
+/* PAYMENT INFORMATION */
+function paymentInfo(method){
+ const descriptions={
+  "PayPal":"PayPal checkout is not connected yet.",
+  "Visa / Mastercard":"Card payment gateway is not connected yet.",
+  "Airtel Money":"Airtel Money merchant integration is not connected yet.",
+  "TNM Mpamba":"TNM Mpamba merchant integration is not connected yet.",
+  "Bank transfer":"Verified bank payment instructions have not been configured."
+ };
+ document.getElementById("paymentDetails").textContent=
+  (descriptions[method]||"Not configured")+" Payments are not live.";
+}
 
+/* START */
+document.getElementById("currencySelect").value=displayCurrency;
 loadProducts();
 loadRates();
 updateCart();
 showDashboard();
-
 </script>
 </body>
-    </html>
+</html>
