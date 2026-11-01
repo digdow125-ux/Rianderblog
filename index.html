@@ -1,1515 +1,839 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#ffffff">
-<title>RIANDERBLOG | Global Marketplace</title>
-<meta name="description" content="Discover products from suppliers around the world at RIANDERBLOG.">
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RIANDERBLOG | Premium Global Shopping</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --primary:#1464d8;
-  --dark:#172337;
-  --light:#f5f7fa;
-  --border:#e5e9ef;
-  --text:#252d3a;
-  --muted:#667085;
+:root{
+  --navy:#10213e;--navy2:#1a3154;--gold:#d6ad55;--gold-dark:#ad812e;
+  --ink:#263244;--muted:#687589;--paper:#f5f6f9;--line:#e5e8ee;--white:#fff;
+  --shadow:0 10px 28px rgba(16,33,62,.09)
 }
-* {box-sizing:border-box}
-body {
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:var(--light);
-  color:var(--text);
-}
-button,input,select,textarea {font:inherit}
-button {cursor:pointer;border:0;border-radius:6px;padding:11px 15px}
-.primary {background:var(--primary);color:white}
-.secondary {background:#edf2f8;color:var(--dark)}
-header {
-  background:white;
-  border-bottom:1px solid var(--border);
-  position:sticky;
-  top:0;
-  z-index:100;
-}
-.header-main {
-  max-width:1250px;
-  margin:auto;
-  padding:14px 18px;
-  display:flex;
-  align-items:center;
-  gap:18px;
-}
-.logo {
-  color:var(--primary);
-  font-size:23px;
-  font-weight:900;
-  cursor:pointer;
-  white-space:nowrap;
-}
-.search-box {
-  flex:1;
-  display:flex;
-  min-width:100px;
-}
-.search-box input {
-  width:100%;
-  border:1px solid var(--border);
-  border-radius:6px 0 0 6px;
-  padding:12px;
-  outline:none;
-}
-.search-box button {
-  border-radius:0 6px 6px 0;
-  background:var(--primary);
-  color:white;
-}
-.header-actions {display:flex;align-items:center;gap:8px}
-.header-cart {
-  background:#edf3ff;
-  color:var(--primary);
-  font-weight:bold;
-}
-.menu-button {
-  background:var(--dark);
-  color:white;
-  font-size:19px;
-}
-.nav-links {
-  display:none;
-  position:absolute;
-  right:15px;
-  top:65px;
-  width:240px;
-  background:white;
-  border:1px solid var(--border);
-  border-radius:10px;
-  box-shadow:0 8px 25px #0002;
-  padding:10px;
-}
-.nav-links.open {display:block}
-.nav-links a {
-  display:block;
-  padding:12px;
-  color:var(--dark);
-  text-decoration:none;
-  border-radius:5px;
-  cursor:pointer;
-}
-.nav-links a:hover {background:#edf3ff;color:var(--primary)}
-main {
-  max-width:1250px;
-  margin:22px auto;
-  padding:0 15px;
-}
-.panel {
-  background:white;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:20px;
-  margin-bottom:20px;
-}
-.secondary-page {display:none}
-.home-heading {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.home-heading h2 {margin:0 0 15px}
-.category-list {
-  display:flex;
-  flex-wrap:wrap;
-  gap:9px;
-  margin:15px 0 22px;
-}
-.category-list button {
-  background:white;
-  border:1px solid var(--border);
-  color:var(--dark);
-  border-radius:20px;
-}
-.category-list button.active,
-.category-list button:hover {
-  background:var(--primary);
-  color:white;
-  border-color:var(--primary);
-}
-.products {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
-  gap:16px;
-}
-.product-card {
-  background:white;
-  border:1px solid var(--border);
-  border-radius:9px;
-  overflow:hidden;
-  transition:transform .2s,box-shadow .2s;
-}
-.product-card:hover {
-  transform:translateY(-3px);
-  box-shadow:0 5px 18px #0001;
-}
-.product-card img {
-  width:100%;
-  height:185px;
-  object-fit:cover;
-  background:#edf0f4;
-}
-.product-info {padding:13px}
-.product-info h3 {font-size:16px;margin:7px 0}
-.product-info p {
-  font-size:13px;
-  color:var(--muted);
-  min-height:30px;
-}
-.product-info strong {
-  display:block;
-  color:#d45120;
-  margin:10px 0;
-}
-.product-info button {width:100%;margin-top:7px}
-.product-category {color:var(--muted);font-size:12px}
-.cart-row {
-  display:flex;
-  gap:15px;
-  align-items:center;
-  border-bottom:1px solid var(--border);
-  padding:12px 0;
-}
-.cart-row img {
-  width:75px;
-  height:75px;
-  object-fit:cover;
-  border-radius:7px;
-}
-.cart-row button {padding:7px 11px;margin:3px}
-input,select,textarea {
-  width:100%;
-  border:1px solid var(--border);
-  border-radius:6px;
-  padding:12px;
-  margin:6px 0;
-}
-textarea {min-height:90px;resize:vertical}
-.form-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:10px;
-}
-.notice {
-  background:#f0f5ff;
-  padding:13px;
-  border-radius:7px;
-  margin-top:12px;
-  color:#244d83;
-}
-.market-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  gap:12px;
-}
-.market-card {
-  padding:16px;
-  border:1px solid var(--border);
-  border-radius:8px;
-}
-.admin-tools {
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:15px;
-  margin:15px 0;
-}
-.admin-product {
-  padding:12px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  flex-wrap:wrap;
-}
-.detail-backdrop {
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:200;
-  background:#0008;
-  align-items:center;
-  justify-content:center;
-  padding:15px;
-}
-.detail-box {
-  background:white;
-  border-radius:12px;
-  padding:20px;
-  width:min(500px,100%);
-  max-height:90vh;
-  overflow:auto;
-  position:relative;
-}
-.detail-box img {width:100%;max-height:300px;object-fit:contain}
-.detail-close {
-  position:absolute;
-  right:10px;
-  top:10px;
-  background:#eee;
-  font-size:20px;
-}
-footer {
-  text-align:center;
-  padding:25px;
-  color:var(--muted);
-  background:white;
-  border-top:1px solid var(--border);
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--paper);color:var(--ink)}
+.topbar{background:#0a1528;color:#e1e6ef;text-align:center;padding:8px 12px;font-size:12px;letter-spacing:.5px}
+header{background:var(--navy);color:white;padding:20px max(18px,calc((100% - 1150px)/2));display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand-mark{width:45px;height:45px;border:2px solid var(--gold);border-radius:12px;display:grid;place-items:center;color:var(--gold);font-size:24px;font-weight:900}
+.brand-name{font-size:25px;font-weight:800;letter-spacing:1px;color:white}
+.brand-name span{color:var(--gold)}
+.brand-tag{font-size:10px;color:#cbd4e2;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+.header-note{font-size:13px;color:#d5dce7}
+nav{background:var(--navy2);padding:0 max(18px,calc((100% - 1150px)/2));display:flex;gap:23px;align-items:center;flex-wrap:wrap}
+.menu-toggle{display:none;background:var(--gold);color:#172238;font-size:23px;padding:7px 13px;border-radius:7px}
+.nav-links{display:flex;gap:23px;align-items:center;flex-wrap:wrap}
+.admin-only{display:none}
+.admin-box{border:2px solid var(--gold);background:#fffaf0}
+@media(max-width:650px){nav{display:block;padding:10px 18px}.menu-toggle{display:block}.nav-links{display:none;flex-direction:column;align-items:stretch;gap:0;padding-top:8px}.nav-links.open{display:flex}.nav-links a{padding:12px 5px;border-top:1px solid rgba(255,255,255,.12)} }
+nav a{color:white;text-decoration:none;font-size:13px;font-weight:bold;padding:15px 0}
+nav a:hover{color:var(--gold)}
+main{max-width:1150px;margin:auto;padding:24px 18px}
+.hero{background:linear-gradient(115deg,rgba(10,23,44,.98),rgba(27,52,86,.9));border-radius:17px;padding:42px 35px;color:white;display:flex;align-items:center;justify-content:space-between;gap:22px}
+.hero-copy{max-width:650px}
+.eyebrow{color:var(--gold);font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase}
+.hero h1{font-size:clamp(29px,5vw,45px);line-height:1.12;margin:12px 0}
+.hero p{color:#d9e0ea;line-height:1.65;max-width:570px}
+.hero-link{display:inline-block;background:var(--gold);color:#172238;text-decoration:none;padding:13px 19px;border-radius:7px;font-weight:bold;margin-top:8px}
+.hero-stamp{width:135px;height:135px;border:1px solid rgba(214,173,85,.7);border-radius:50%;display:grid;place-items:center;text-align:center;color:var(--gold);font-size:13px;line-height:1.5;flex:none}
+.benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:17px 0 28px}
+.benefit{background:white;border:1px solid var(--line);border-radius:9px;padding:15px;text-align:center;font-size:13px;font-weight:bold;color:#39465a}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin:27px 0 14px}
+.section-head h2{margin:0;color:var(--navy);font-size:23px}
+.section-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.search{width:100%;padding:14px;border:1px solid #d8dee8;border-radius:8px;font-size:15px;background:white;outline:none}
+.search:focus,input:focus{border-color:var(--gold-dark);box-shadow:0 0 0 3px rgba(214,173,85,.15)}
+.categories{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0 20px}
+button{cursor:pointer;border:0;border-radius:7px;padding:11px;font-weight:bold}
+.categories button{background:white;border:1px solid #dfe4ec;color:#344054;border-radius:22px;padding:10px 15px}
+.categories button.active,.categories button:hover{background:var(--navy);border-color:var(--navy);color:white}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px}
+.product{background:white;border:1px solid var(--line);border-radius:12px;padding:13px;box-shadow:0 3px 13px rgba(16,33,62,.045);transition:.18s}
+.product:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.product img{width:100%;height:175px;object-fit:contain;background:#fafbfc;border-radius:8px}
+.product h3{font-size:16px;line-height:1.4;color:var(--navy);margin:11px 0 5px}
+.product-desc{font-size:13px;line-height:1.5;color:var(--muted);min-height:36px}
+.price{font-size:19px;font-weight:800;color:var(--navy);margin:10px 0}
+.product-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.details-btn{background:#f3ead7;color:#5d4519}
+.add,.primary{background:var(--navy);color:white}
+.add:hover,.primary:hover{background:#29456f}
+.buy{display:block;text-align:center;background:var(--gold);color:#172238;padding:12px;border-radius:7px;text-decoration:none;margin-top:8px;font-weight:bold;font-size:13px}
+.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:24px;box-shadow:0 3px 13px rgba(16,33,62,.04)}
+.panel h2{color:var(--navy);margin-top:0}
+input{width:100%;padding:12px;margin:7px 0;border:1px solid #d8dee8;border-radius:7px;font-size:15px}
+.secondary{background:#e9edf3;color:#29384e;margin:5px}
+.primary{margin:5px}
+.cart-item{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:12px 0}
+.cart-item img{width:65px;height:65px;object-fit:contain;background:#fafbfc;border-radius:7px}
+.cart-info{flex:1;min-width:130px}
+.remove{background:#fee8e8;color:#9b2525}
+.notice{padding:10px;background:#f5f0e5;border-radius:7px;margin-top:10px;color:#59471f;font-size:13px}
+footer{text-align:center;background:var(--navy);color:#dce3ed;padding:25px 18px;margin-top:30px;font-size:13px}
+footer strong{color:var(--gold)}
+/* Product details overlay */
+.detail-backdrop{display:none;position:fixed;inset:0;background:rgba(4,12,25,.76);z-index:9999;padding:15px;align-items:center;justify-content:center}
+.detail-backdrop.open{display:flex}
+.detail-box{background:white;width:100%;max-width:780px;max-height:90vh;overflow-y:auto;padding:27px;border-radius:15px;position:relative;box-shadow:0 20px 65px rgba(0,0,0,.3)}
+.detail-close{position:absolute;right:12px;top:12px;background:#edf0f4;color:#24334a;font-size:19px;width:38px;height:38px;border-radius:50%}
+.detail-content{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding-top:10px}
+.detail-image{width:100%;height:300px;object-fit:contain;background:#f7f8fa;border-radius:10px}
+.detail-category{color:var(--gold-dark);font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1.3px}
+.detail-content h2{color:var(--navy);font-size:25px;line-height:1.3;margin:10px 0}
+.detail-description{color:#586579;line-height:1.7;white-space:pre-wrap}
+.detail-price{color:var(--gold-dark);font-size:25px;font-weight:800;margin:17px 0}
+.detail-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.detail-actions button,.detail-actions a{flex:1;min-width:125px;text-align:center;padding:13px;border-radius:7px;text-decoration:none;font-weight:bold}
+.detail-add{background:var(--navy);color:white}
+.detail-buy{background:var(--gold);color:#172238}
+@media(max-width:650px){
+ header{padding:16px 18px}.header-note{display:none}nav{gap:15px}nav a{font-size:12px}
+ .hero{padding:29px 21px}.hero-stamp{width:90px;height:90px;font-size:10px}
+ .benefits{grid-template-columns:1fr}.detail-content{grid-template-columns:1fr}
+ .detail-image{height:220px}.detail-box{padding:20px}
 }
 
-/* FLOATING SUPPORT */
-.support-launcher {
-  position:fixed;
-  right:20px;
-  bottom:20px;
-  z-index:300;
-  background:var(--primary);
-  color:white;
-  border-radius:30px;
-  box-shadow:0 4px 15px #0003;
-  padding:15px 20px;
-  font-weight:bold;
-}
-.support-window {
-  display:none;
-  position:fixed;
-  z-index:301;
-  right:20px;
-  bottom:85px;
-  width:min(360px,calc(100vw - 30px));
-  height:480px;
-  max-height:75vh;
-  background:white;
-  border-radius:12px;
-  box-shadow:0 5px 30px #0003;
-  overflow:hidden;
-  flex-direction:column;
-}
-.support-window.visible {display:flex}
-.support-head {
-  padding:15px;
-  background:var(--primary);
-  color:white;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.support-tabs {display:flex;border-bottom:1px solid var(--border)}
-.support-tabs button {
-  flex:1;
-  background:white;
-  border-radius:0;
-  color:var(--dark);
-}
-.support-tabs button.active {
-  color:var(--primary);
-  border-bottom:3px solid var(--primary);
-}
-.support-body {
-  display:none;
-  flex:1;
-  min-height:0;
-  flex-direction:column;
-  padding:12px;
-}
-.support-body.active {display:flex}
-.support-hint {font-size:12px;color:var(--muted);margin-bottom:10px}
-.support-log {
-  flex:1;
-  overflow-y:auto;
-  background:#f7f8fa;
-  border-radius:8px;
-  padding:10px;
-}
-.support-msg {
-  max-width:90%;
-  padding:10px;
-  border-radius:9px;
-  margin:7px 0;
-  font-size:13px;
-  overflow-wrap:anywhere;
-}
-.support-msg.agent {background:white;border:1px solid var(--border)}
-.support-msg.customer {background:#dceaff;margin-left:auto}
-.support-compose {display:flex;gap:6px;margin-top:8px}
-.support-compose input {margin:0;min-width:0}
-.support-compose button {background:var(--primary);color:white}
+/* Global marketplace additions */
+.currency-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);padding:12px 15px;border-radius:10px;margin:18px 0}
+.currency-bar select,.form-grid select{padding:11px;border:1px solid #d8dee8;border-radius:7px;background:#fff}
+.market-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.market-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px}
+.market-card h3{margin:0 0 8px;color:var(--navy)}
+.market-card p{font-size:13px;color:var(--muted);line-height:1.55}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.form-grid input,.form-grid select,.form-grid textarea{width:100%;padding:12px;margin:5px 0;border:1px solid #d8dee8;border-radius:7px;font:inherit}
+.form-grid textarea{min-height:90px;grid-column:1/-1}
+.method-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:14px 0}
+.method-option{border:1px solid var(--line);border-radius:9px;padding:13px;background:#fff;text-align:left;color:var(--ink)}
+.method-option.selected{border:2px solid var(--gold-dark);background:#fffaf0}
+.method-info{background:#f6f8fb;padding:15px;border-radius:9px;line-height:1.6;font-size:14px}
+.pill{display:inline-block;background:#f1f3f6;border-radius:20px;padding:5px 9px;font-size:11px;color:#596579}
+.listing{border:1px solid var(--line);border-radius:9px;padding:13px;margin:9px 0;background:#fff}
+.listing h4{margin:0 0 5px;color:var(--navy)}
+.small-note{font-size:12px;color:var(--muted);line-height:1.5}
 
-@media(max-width:600px) {
-  .header-main {gap:8px;padding:11px}
-  .logo {font-size:18px}
-  .header-actions {gap:5px}
-  .header-cart {padding:9px;font-size:12px}
-  .menu-button {padding:9px}
-  .search-box input {padding:9px;font-size:13px}
-  .search-box button {padding:9px}
-  main {margin:12px auto}
-  .panel {padding:14px}
-  .products {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .product-card img {height:145px}
-  .product-info {padding:9px}
-  .product-info h3 {font-size:14px}
-  .support-window {right:10px;bottom:78px}
-  .support-launcher {right:12px;bottom:12px}
-}
+/* RIANDERBLOG marketplace storefront layout */
+:root{--orange:#f36b25;--orange-dark:#d95517;--market-blue:#173b63}
+.topbar{background:#f36b25;color:#fff;font-weight:700}
+header{background:#fff;color:#172b45;padding-top:15px;padding-bottom:15px}
+.brand-name{color:#173b63}.brand-tag{color:#718096}.brand-mark{background:#173b63;border-color:#f36b25;color:#fff}
+.header-note{color:#52647b}
+nav{background:#173b63}
+.menu-toggle{background:#f36b25;color:#fff;border:0}
+.hero{background:linear-gradient(110deg,#173b63,#245b86);border-radius:12px;padding:30px 32px}
+.hero-link{background:#f36b25;color:#fff}.hero-stamp{border-color:#f6a16f;color:#ffd2b8}
+.benefits{grid-template-columns:repeat(3,1fr)}
+.categories button.active,.categories button:hover{background:#f36b25;border-color:#f36b25}
+.add,.primary{background:#f36b25}.add:hover,.primary:hover{background:#d95517}
+.buy{background:#173b63;color:#fff}
+.section-head h2{font-size:25px}
+.product{border-radius:8px}.product img{height:190px;background:#fff}
+.secondary-page{display:none}
+.market-intro{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0 8px}
+.market-intro strong{color:#173b63;font-size:14px}
+.market-promise{font-size:12px;color:#6b7788}
+@media(max-width:650px){.benefits{grid-template-columns:1fr}.hero-stamp{display:none}}
+
+/* Three-line menu: visible at the upper-left on desktop and mobile */
+nav{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:12px;min-height:54px;padding:8px max(18px,calc((100% - 1150px)/2));}
+.menu-toggle{display:block;flex:0 0 auto;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35);font-size:27px;line-height:1;padding:7px 12px;border-radius:7px;}
+.menu-toggle:hover{background:rgba(255,255,255,.12);}
+.nav-links{display:none;position:absolute;z-index:1000;left:max(18px,calc((100% - 1150px)/2));top:calc(100% + 2px);min-width:220px;max-width:min(320px,calc(100vw - 36px));padding:8px;background:var(--navy2);border:1px solid rgba(255,255,255,.15);border-radius:9px;box-shadow:0 12px 28px rgba(0,0,0,.22);flex-direction:column;align-items:stretch;gap:0;}
+.nav-links.open{display:flex;}
+.nav-links a{display:block;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.12);}
+.nav-links a:last-child{border-bottom:0;}
+@media(max-width:650px){nav{display:flex;padding:8px 18px}.nav-links{display:none;flex-direction:column;align-items:stretch;}.nav-links.open{display:flex;}}
+
+.admin-tools{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px;margin-top:16px;overflow-x:auto}
+.admin-tools h3{color:var(--navy);margin:0 0 10px}
+.admin-row{display:flex;gap:9px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:11px 0}
+.admin-row:last-child{border-bottom:0}
+.admin-actions{display:flex;gap:6px;flex-wrap:wrap}
+.admin-actions button{padding:8px 10px;font-size:12px}
+.admin-tools label{font-size:13px}
+
+
+
+/* Storefront refinements: familiar international-marketplace shopping layout */
+/* Keep the main shopping page focused on products, categories and cart. */
+main > .hero, main > .benefits{display:none !important;}
+.topbar{font-size:12px;letter-spacing:.35px}
+header{position:relative;gap:18px}
+.header-cart{background:#f36b25;color:#fff;border:0;border-radius:7px;padding:11px 16px;font-weight:700;font-size:14px;cursor:pointer}
+.header-cart:hover{background:#d95517}
+.brand{min-width:210px}
+.brand-name{font-size:27px}
+nav{box-shadow:0 2px 8px rgba(10,25,45,.12)}
+main{max-width:1220px}
+.hero{min-height:235px;box-shadow:0 8px 24px rgba(20,55,90,.12)}
+.hero h1{max-width:650px}
+.benefit{border-radius:8px;box-shadow:0 2px 8px rgba(16,33,62,.035)}
+#products{background:transparent}
+#products .section-head{margin-top:25px}
+#products .search{border-radius:24px;padding:15px 19px}
+.categories{gap:9px}
+.categories button{font-size:13px;white-space:nowrap}
+.products{grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:15px}
+.product{padding:12px;display:flex;flex-direction:column;min-width:0}
+.product img{height:185px;object-fit:contain}
+.product h3{min-height:44px}
+.product-desc{flex:1}
+.product-actions{margin-top:auto}
+.product .buy{margin-top:9px}
+.secondary-page{max-width:100%;}
+@media(max-width:650px){main{padding:16px 12px}.hero{padding:25px 19px;min-height:0}.products{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.product{padding:9px}.product img{height:135px}.product h3{font-size:14px}.product-desc{font-size:12px}.product-actions{grid-template-columns:1fr}.product-actions button{font-size:12px;padding:9px}.price{font-size:16px}.categories{flex-wrap:nowrap;overflow-x:auto;padding:3px 0 9px}.categories button{flex:0 0 auto}}
+
+
+/* Floating customer support */
+.support-launcher{position:fixed;right:20px;bottom:20px;z-index:10000;background:#f36b25;color:#fff;border-radius:999px;padding:15px 19px;box-shadow:0 8px 28px #10213e55;font-size:15px}
+.support-window{display:none;position:fixed;right:18px;bottom:82px;width:min(370px,calc(100vw - 28px));height:min(570px,calc(100vh - 115px));background:#fff;border:1px solid #dce2eb;border-radius:16px;box-shadow:0 18px 55px #10213e44;z-index:10001;overflow:hidden;flex-direction:column}
+.support-window.open{display:flex}.support-head{background:#173b63;color:white;padding:14px;display:flex;justify-content:space-between;align-items:center}.support-tabs{display:flex;background:#f2f5f8;padding:7px;gap:7px}.support-tabs button{flex:1;background:#e4eaf1;color:#23364d}.support-tabs button.active{background:#f36b25;color:#fff}.support-body{display:none;flex:1;min-height:0;flex-direction:column;padding:12px}.support-body.active{display:flex}.support-log{flex:1;overflow:auto;background:#f7f8fa;border-radius:9px;padding:10px;margin-bottom:9px}.support-msg{padding:9px 11px;border-radius:11px;margin:7px 0;max-width:88%;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}.support-msg.customer{background:#dcecff;margin-left:auto}.support-msg.agent{background:#fff;border:1px solid #e1e6ed}.support-compose{display:flex;gap:7px}.support-compose input{margin:0;min-width:0}.support-compose button{background:#173b63;color:#fff;flex:none}.support-hint{font-size:11px;color:#697789;margin:4px 0 8px}
+
 </style>
 </head>
-
 <body>
+<div class="topbar">A WORLD OF DISCOVERY • SHOP PRODUCTS FROM INTERNATIONAL SELLERS</div>
 <header>
-  <div class="header-main">
-    <div class="logo" onclick="goHome()">RIANDERBLOG</div>
-
-    <div class="search-box">
-      <input id="searchInput" type="search"
-        placeholder="Search products..."
-        oninput="searchProducts()">
-      <button onclick="searchProducts()">Search</button>
-    </div>
-
-    <div class="header-actions">
-      <button class="header-cart" onclick="showSection('cart')">
-        🛒 Cart (<span id="headerCartCount">0</span>)
-      </button>
-      <button class="menu-button" onclick="toggleMenu()">☰</button>
-    </div>
-
-    <nav class="nav-links" id="navLinks">
-      <a onclick="showSection('products')">🏠 Home / Products</a>
-      <a onclick="showSection('cart')">🛒 Shopping Cart (<span id="cartCount">0</span>)</a>
-      <a onclick="showSection('currencySettings')">🌍 Currency</a>
-      <a onclick="showSection('payments')">💳 Payments</a>
-      <a onclick="showSection('suppliers')">🏭 Supplier Centre</a>
-      <a onclick="showSection('affiliates')">🤝 Affiliate Centre</a>
-      <a onclick="showSection('account')">👤 My Account</a>
-      <a onclick="showSection('dashboard')">📊 Dashboard</a>
-      <a onclick="showSection('adminPanel')">🔐 Admin Panel</a>
-    </nav>
-  </div>
+  <a class="brand" href="#">
+    <div class="brand-mark">R</div>
+    <div><div class="brand-name">RIANDER<span>BLOG</span></div><div class="brand-tag">Global marketplace</div></div>
+  </a>
+  <button class="header-cart" type="button" onclick="showSection('cart')">🛒 Cart (<span id="headerCartCount">0</span>)</button>
 </header>
-
+<nav aria-label="Main navigation">
+  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰</button>
+  <div class="nav-links" id="navLinks">
+    <a href="#products" onclick="showSection('products');closeMenu();return false">🏠 Home / Products</a>
+    <a href="#cart" onclick="showSection('cart');closeMenu();return false">🛒 My Cart (<span id="cartCount">0</span>)</a>
+    <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Currency</a>
+    <a href="#account" onclick="showSection('account');closeMenu();return false">👤 My Account</a>
+    <a href="#dashboard" onclick="showSection('dashboard');closeMenu();return false">📊 My Dashboard</a>
+    <a href="#suppliers" onclick="showSection('suppliers');closeMenu();return false">🏭 Supplier Centre</a>
+    <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate Centre</a>
+    <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment Information</a>
+    <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin Panel</a>
+  </div>
+</nav>
 <main>
-  <!-- HOMEPAGE -->
-  <section id="products" class="panel">
-    <div class="home-heading">
-      <h2>Explore Products</h2>
-      <span>Global Marketplace</span>
+  <section class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">The world, within reach</div>
+      <h1>Discover something extraordinary.</h1>
+      <p>Shop trending finds across electronics, fashion, home, beauty and more — all in one place.</p>
+      <a class="hero-link" href="#products">Explore products</a>
     </div>
+    <div class="hero-stamp">GLOBAL<br>FINDS<br><strong>RIANDERBLOG</strong></div>
+  </section>
+  <section class="benefits">
+    <div class="benefit">✦ Explore products across the world</div>
+    <div class="benefit">✦ Add favourites to your cart</div>
+    <div class="benefit">✦ Discover trusted seller offers</div>
+  </section>
 
-    <div class="category-list">
-      <button class="active" onclick="filterCategory('All',this)">All</button>
+  <section id="products">
+    <div class="section-head"><div><h2>Explore our products</h2><p>Choose a product to view its full details.</p></div></div>
+    <div class="market-intro"><strong>Find what you love</strong><span class="market-promise">Great finds • Global sellers • New discoveries</span></div>
+    <input class="search" id="search" placeholder="Search products, brands and categories..." aria-label="Search products">
+    <div class="categories">
+      <button class="active" onclick="filterCategory('All',this)">All products</button>
       <button onclick="filterCategory('Electronics',this)">Electronics</button>
       <button onclick="filterCategory('Fashion',this)">Fashion</button>
+      <button onclick="filterCategory('Accessories',this)">Accessories</button>
       <button onclick="filterCategory('Home',this)">Home & Living</button>
       <button onclick="filterCategory('Beauty',this)">Beauty</button>
       <button onclick="filterCategory('Sports',this)">Sports</button>
-      <button onclick="filterCategory('Accessories',this)">Accessories</button>
       <button onclick="filterCategory('Other',this)">Other</button>
     </div>
-
-    <div id="productGrid" class="products">
-      <p>Loading products...</p>
-    </div>
+    <div id="productList" class="products">Loading products...</div>
   </section>
 
-  <!-- CART -->
   <section id="cart" class="panel secondary-page">
     <h2>🛒 My Shopping Cart</h2>
-    <div id="cartItems"></div>
-    <h3 id="cartTotal">Total: $0.00</h3>
-    <button class="primary" onclick="checkout()">Proceed to Checkout</button>
-    <div id="checkoutMessage" class="notice"></div>
+    <div id="cartItems">Your cart is empty.</div>
+    <h3 id="cartTotal"></h3>
+    <p id="cartNote"></p>
   </section>
 
-  <!-- CURRENCY -->
-  <section id="currencySettings" class="panel secondary-page">
-    <h2>🌍 Currency Converter</h2>
-    <label for="currencySelect">Display currency</label>
-    <select id="currencySelect" onchange="changeCurrency()">
-      <option value="USD">US Dollar (USD)</option>
-      <option value="MWK">Malawian Kwacha (MWK)</option>
-      <option value="GBP">British Pound (GBP)</option>
-      <option value="EUR">Euro (EUR)</option>
-      <option value="ZAR">South African Rand (ZAR)</option>
-      <option value="KES">Kenyan Shilling (KES)</option>
-      <option value="NGN">Nigerian Naira (NGN)</option>
-      <option value="INR">Indian Rupee (INR)</option>
-      <option value="CNY">Chinese Yuan (CNY)</option>
+
+  <section id="currencySettings" class="currency-bar secondary-page" aria-label="Currency settings">
+    <strong>🌍 Your shopping currency</strong>
+    <span id="currencyStatus" class="small-note">Detecting country and currency…</span>
+    <label for="currencySelect" class="small-note">Change currency:</label>
+    <select id="currencySelect" onchange="setCurrency(this.value)">
+      <option value="MWK">MWK – Malawi Kwacha</option><option value="USD">USD – US Dollar</option><option value="GBP">GBP – British Pound</option><option value="EUR">EUR – Euro</option><option value="ZAR">ZAR – South African Rand</option><option value="KES">KES – Kenyan Shilling</option><option value="NGN">NGN – Nigerian Naira</option><option value="GHS">GHS – Ghanaian Cedi</option><option value="INR">INR – Indian Rupee</option><option value="CAD">CAD – Canadian Dollar</option><option value="AUD">AUD – Australian Dollar</option><option value="JPY">JPY – Japanese Yen</option>
     </select>
-    <div id="currencyMessage" class="notice">Prices are displayed in USD by default.</div>
   </section>
 
-  <!-- PAYMENTS -->
   <section id="payments" class="panel secondary-page">
-    <h2>💳 Payment Information</h2>
-    <div class="market-grid">
-      <div class="market-card">
-        <h3>Secure checkout</h3>
-        <p>Payment processing will be activated after a supported payment provider is connected.</p>
-      </div>
-      <div class="market-card">
-        <h3>Order updates</h3>
-        <p>Customers will be able to follow order progress when checkout is activated.</p>
-      </div>
+    <h2>💳 Payment Centre</h2><p>Select a payment method to see how it is intended to work.</p>
+    <div class="method-list">
+      <button class="method-option" onclick="selectPayment('PayPal',this)">🅿️ PayPal</button>
+      <button class="method-option" onclick="selectPayment('Visa / Mastercard',this)">💳 Visa / Mastercard</button>
+      <button class="method-option" onclick="selectPayment('Airtel Money',this)">📱 Airtel Money</button>
+      <button class="method-option" onclick="selectPayment('TNM Mpamba',this)">📱 TNM Mpamba</button>
+      <button class="method-option" onclick="selectPayment('Bank transfer',this)">🏦 Bank transfer</button>
+      <button class="method-option" onclick="selectPayment('Other international methods',this)">🌐 Other international methods</button>
     </div>
-    <div class="notice">Online payments are not active yet. Do not submit payment details here.</div>
+    <div id="paymentInfo" class="method-info">Choose a method above to view its information. Live checkout is not enabled until RIANDERBLOG has approved merchant accounts and secure gateway integration.</div>
+    <p class="small-note">Never enter card details, PINs or mobile-money passwords into this website. Payments will be redirected to verified payment-provider checkout pages once connected.</p>
   </section>
 
-  <!-- SUPPLIERS -->
   <section id="suppliers" class="panel secondary-page">
-    <h2>🏭 Supplier Centre</h2>
-    <p>Apply to become a supplier. All applications require administrator approval.</p>
-    <div class="form-grid">
-      <input id="supplierCompany" placeholder="Company / business name">
-      <input id="supplierCountry" placeholder="Country">
-      <input id="supplierEmail" type="email" placeholder="Business email">
-      <input id="supplierWebsite" placeholder="Website (optional)">
-      <textarea id="supplierDescription" placeholder="Describe your products and business"></textarea>
-    </div>
-    <button class="primary" onclick="applySupplier()">Submit application</button>
-    <div id="supplierMessage" class="notice"></div>
+    <h2>🏭 Discover Suppliers</h2><p>Find businesses and manufacturers offering products to customers worldwide.</p>
+    <input id="supplierSearch" class="search" placeholder="Search suppliers by company, country or products…" oninput="renderSuppliers()">
+    <div id="supplierList"><p class="small-note">Supplier directory will display approved supplier profiles here.</p></div>
+    <h3>Become a supplier</h3><p class="small-note">Create a supplier application. RIANDERBLOG admin approval is required before public listing.</p>
+    <div class="form-grid"><input id="supplierCompany" placeholder="Company / business name"><input id="supplierCountry" placeholder="Country"><input id="supplierEmail" type="email" placeholder="Business email"><input id="supplierWebsite" placeholder="Website URL (optional)"><textarea id="supplierDescription" placeholder="Describe your products, shipping destinations and business"></textarea></div>
+    <button class="primary" onclick="applySupplier()">Submit supplier application</button><p id="supplierMessage" class="small-note"></p>
   </section>
 
-  <!-- AFFILIATES -->
   <section id="affiliates" class="panel secondary-page">
-    <h2>🤝 Affiliate Centre</h2>
-    <p>Promote approved RIANDERBLOG products and earn commission on eligible sales.</p>
-    <div class="form-grid">
-      <input id="affiliateName" placeholder="Your name">
-      <input id="affiliateEmail" type="email" placeholder="Email address">
-      <input id="affiliatePlatform" placeholder="Website or social media URL">
-      <input id="affiliateProgramme" placeholder="Programme ID (if provided)">
-    </div>
-    <button class="primary" onclick="applyAffiliate()">Submit application</button>
-    <div id="affiliateMessage" class="notice"></div>
+    <h2>🤝 Affiliate Marketing Centre</h2><p>Discover company affiliate programmes and apply to promote products for commission.</p>
+    <div id="programmeList"><p class="small-note">Approved affiliate programmes will appear here.</p></div>
+    <h3>Companies: publish an affiliate programme</h3>
+    <div class="form-grid"><input id="affiliateCompany" placeholder="Company name"><input id="affiliateEmail" type="email" placeholder="Contact email"><input id="affiliateCommission" type="number" min="0" max="100" step="0.1" placeholder="Commission rate (%)"><input id="affiliateWebsite" placeholder="Company website"><textarea id="affiliateTerms" placeholder="Programme terms, eligible countries, cookie duration and payout conditions"></textarea></div>
+    <button class="primary" onclick="submitAffiliateProgramme()">Submit programme for review</button><p id="affiliateMessage" class="small-note"></p>
+    <h3>Join as an affiliate</h3>
+    <div class="form-grid"><input id="affiliateApplicantName" placeholder="Your name"><input id="affiliateApplicantEmail" type="email" placeholder="Your email"><input id="affiliatePlatform" placeholder="Website / social media profile"><input id="affiliateProgrammeId" placeholder="Programme ID to apply for"></div>
+    <button class="primary" onclick="applyAffiliate()">Apply to programme</button><p id="affiliateApplyMessage" class="small-note"></p>
   </section>
 
-  <!-- ACCOUNT -->
   <section id="account" class="panel secondary-page">
-    <h2>👤 My Account</h2>
-    <p>Create an account or sign in to access customer and partner features.</p>
-    <input id="authEmail" type="email" placeholder="Email address">
-    <input id="authPassword" type="password" placeholder="Password">
-    <button class="primary" onclick="signUp()">Create account</button>
-    <button class="secondary" onclick="signIn()">Sign in</button>
-    <button class="secondary" onclick="googleSignIn()">Continue with Google</button>
-    <button class="secondary" onclick="signOut()">Sign out</button>
-    <div id="authMessage" class="notice">You are not signed in.</div>
+    <h2>Customer Account</h2>
+    <p>Create an account or sign in.</p>
+    <input id="email" type="email" placeholder="Email address" autocomplete="email">
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="primary" onclick="signUp()">Create Account</button>
+    <button class="primary" onclick="signIn()">Sign In</button>
+    <button class="primary" onclick="signInWithGoogle()">Sign in with Google</button>
+    <button class="secondary" onclick="signOut()">Sign Out</button>
+    <p id="message" class="notice">Not signed in yet.</p>
   </section>
 
-  <!-- DASHBOARD -->
   <section id="dashboard" class="panel secondary-page">
-    <h2>📊 My Dashboard</h2>
-    <div id="dashboardContent" class="market-grid">
-      <div class="market-card">Sign in to view your dashboard.</div>
-    </div>
+    <h2>👤 My Customer Dashboard</h2>
+    <p id="dashboardStatus">Checking your account...</p>
+    <div id="dashboardDetails"></div>
+    <button class="primary" onclick="showDashboard()">Refresh Dashboard</button>
+    <p><a href="#cart">Go to My Shopping Cart</a></p>
   </section>
 
-  <!-- ADMIN PANEL -->
-  <section id="adminPanel" class="panel secondary-page">
-    <h2>🔐 RIANDERBLOG Admin Panel</h2>
-    <div id="adminStatus" class="notice">Administrator access required.</div>
-
-    <div class="admin-tools">
-      <h3>Add or edit a product</h3>
-      <input id="productId" type="hidden">
-      <input id="productName" placeholder="Product name">
-      <input id="productDescription" placeholder="Product description">
-      <input id="productPrice" type="number" step="0.01" placeholder="Price">
-      <select id="productCurrency">
-        <option value="USD">USD</option>
-        <option value="MWK">MWK</option>
-        <option value="EUR">EUR</option>
-        <option value="GBP">GBP</option>
-      </select>
-      <select id="productCategory">
-        <option>Electronics</option>
-        <option>Fashion</option>
-        <option>Home</option>
-        <option>Beauty</option>
-        <option>Sports</option>
-        <option>Accessories</option>
-        <option>Other</option>
-      </select>
-      <input id="productImage" placeholder="Product image URL">
-      <input id="productAffiliate" placeholder="Supplier / product URL">
-      <button class="primary" onclick="saveProduct()">Save product</button>
-      <button class="secondary" onclick="clearProductForm()">Clear form</button>
+  <section id="adminPanel" class="panel secondary-page admin-box admin-only">
+    <h2>🔐 RIANDERBLOG Admin Dashboard</h2>
+    <p id="adminStatus">Administrator access is restricted.</p>
+    <div class="market-grid" id="adminStats">
+      <div class="market-card"><h3 id="statProducts">—</h3><p>Products</p></div>
+      <div class="market-card"><h3 id="statSuppliers">—</h3><p>Supplier applications</p></div>
+      <div class="market-card"><h3 id="statProgrammes">—</h3><p>Affiliate programmes</p></div>
+      <div class="market-card"><h3 id="statApplications">—</h3><p>Affiliate applications</p></div>
+      <div class="market-card"><h3 id="statOrders">—</h3><p>Orders (if orders table exists)</p></div>
     </div>
-
     <div class="admin-tools">
-      <h3>Manage products</h3>
-      <div id="adminProducts">Loading products...</div>
+      <h3>Product management</h3>
+      <p class="small-note">Add products to the public catalogue, or edit/delete existing listings.</p>
+      <input id="adminProductId" type="hidden">
+      <div class="form-grid">
+        <input id="adminProductName" placeholder="Product name">
+        <input id="adminProductPrice" type="number" min="0" step="0.01" placeholder="Price">
+        <input id="adminProductCurrency" value="USD" placeholder="Currency (e.g. USD)">
+        <input id="adminProductCategory" placeholder="Category">
+        <input id="adminProductImage" placeholder="Image URL (https://...) ">
+        <input id="adminProductLink" placeholder="Supplier / affiliate URL (https://...) ">
+        <textarea id="adminProductDescription" placeholder="Product description"></textarea>
+      </div>
+      <label><input id="adminProductActive" type="checkbox" checked style="width:auto"> Active / visible in store</label><br>
+      <button class="primary" onclick="saveAdminProduct()">Save product</button>
+      <button class="secondary" onclick="clearAdminProductForm()">Clear form</button>
+      <p id="adminProductMessage" class="small-note"></p>
+      <div id="adminProductList"></div>
     </div>
-
     <div class="admin-tools">
-      <h3>Customer support conversations</h3>
-      <div id="adminSupportInbox">Administrator access required.</div>
+      <h3>Supplier applications</h3>
+      <div id="adminSupplierList" class="small-note">Not loaded yet.</div>
     </div>
+    <div class="admin-tools">
+      <h3>Affiliate programmes</h3>
+      <div id="adminProgrammeList" class="small-note">Not loaded yet.</div>
+    </div>
+    <div class="admin-tools">
+      <h3>Affiliate applications</h3>
+      <div id="adminAffiliateApplicationList" class="small-note">Not loaded yet.</div>
+    </div>
+    <div class="admin-tools">
+      <h3>💬 Customer support inbox</h3>
+      <p class="small-note">Reply to customers directly on RIANDERBLOG.</p>
+      <button class="primary" onclick="loadAdminSupportInbox()">Refresh support inbox</button>
+      <div id="adminSupportInbox" class="small-note">No conversations loaded.</div>
+    </div>
+    <div class="admin-tools">
+      <h3>Orders</h3>
+      <div id="adminOrderList" class="small-note">Orders table is optional and may not exist yet.</div>
+    </div>
+    <p class="small-note">Admin actions require matching Supabase Row Level Security (RLS) policies. The admin ID check in this page only controls visibility; it is not database security.</p>
+    <a href="https://supabase.com/dashboard/project/yymdyxlbdgbrgrykdspx/editor" target="_blank" rel="noopener">Open Supabase database</a>
   </section>
 </main>
 
 <footer>
-  <strong>RIANDERBLOG</strong> — Discover more. Shop globally.
-  <span id="footerYear"></span>
+  <p><strong>RIANDERBLOG</strong> © 2026</p>
+  <p>Shop globally. Discover more.</p>
+  <p>Browse our global product collection. Seller and checkout details are shown with each product.</p>
 </footer>
 
-<!-- PRODUCT DETAILS -->
-<div class="detail-backdrop" id="detailBackdrop" onclick="if(event.target===this)closeProductDetails()">
+<!-- Product details window -->
+<div id="productDetails" class="detail-backdrop" role="dialog" aria-modal="true" aria-label="Product details" onclick="closeDetailsFromBackdrop(event)">
   <div class="detail-box">
-    <button class="detail-close" onclick="closeProductDetails()">×</button>
+    <button class="detail-close" onclick="closeDetails()" aria-label="Close details">×</button>
     <div id="detailContent"></div>
   </div>
 </div>
 
-<!-- FLOATING SUPPORT BUTTON -->
-<button class="support-launcher" id="supportLauncher" onclick="toggleSupport()">
-  💬 Support
-</button>
-
-<!-- SUPPORT WINDOW -->
-<div class="support-window" id="supportWindow">
-  <div class="support-head">
-    <strong>RIANDERBLOG Support</strong>
-    <button onclick="toggleSupport()" style="background:transparent;color:white;font-size:22px">×</button>
-  </div>
-
-  <div class="support-tabs">
-    <button id="aiTab" class="active" onclick="switchSupportTab('ai')">🤖 AI Assistant</button>
-    <button id="adminChatTab" onclick="switchSupportTab('admin')">💬 Chat Admin</button>
-  </div>
-
-  <div class="support-body active" id="aiSupportBody">
-    <div class="support-hint">Ask about products, prices, categories and shopping.</div>
-    <div class="support-log" id="aiSupportLog">
-      <div class="support-msg agent">Hello! Welcome to RIANDERBLOG. How can I help?</div>
-    </div>
-    <div class="support-compose">
-      <input id="aiSupportInput" placeholder="Ask a question..." onkeydown="if(event.key==='Enter')sendAIMessage()">
-      <button onclick="sendAIMessage()">Send</button>
-    </div>
-  </div>
-
-  <div class="support-body" id="adminSupportBody">
-    <div class="support-hint">Send a private message to the RIANDERBLOG administrator.</div>
-    <div class="support-log" id="adminSupportLog"></div>
-    <div class="support-compose">
-      <input id="adminSupportInput" placeholder="Write your message..." onkeydown="if(event.key==='Enter')sendAdminMessage()">
-      <button onclick="sendAdminMessage()">Send</button>
-    </div>
-  </div>
+<!-- Floating support chat: all conversations stay on this website -->
+<button class="support-launcher" id="supportLauncher" onclick="toggleSupport()" aria-label="Open customer support">💬 Support</button>
+<div class="support-window" id="supportWindow" role="dialog" aria-label="RIANDERBLOG customer support">
+  <div class="support-head"><strong>RIANDERBLOG Support</strong><button onclick="toggleSupport(false)" style="background:transparent;color:white;font-size:20px">✕</button></div>
+  <div class="support-tabs"><button id="aiTab" class="active" onclick="switchSupportTab('ai')">🤖 AI Assistant</button><button id="adminTab" onclick="switchSupportTab('admin')">👨‍💼 Chat with Admin</button></div>
+  <div class="support-body active" id="aiSupportBody"><div class="support-hint">Ask about products, categories, shopping or using the store.</div><div class="support-log" id="aiSupportLog"><div class="support-msg agent">Hello! I'm the RIANDERBLOG AI assistant. How can I help you?</div></div><div class="support-compose"><input id="aiSupportInput" placeholder="Ask the AI assistant..." onkeydown="if(event.key==='Enter')sendAIMessage()"><button onclick="sendAIMessage()">Send</button></div></div>
+  <div class="support-body" id="adminSupportBody"><div class="support-hint" id="adminChatHint">Sign in to send a private message to the administrator. Replies appear here.</div><div class="support-log" id="adminSupportLog"></div><div class="support-compose"><input id="adminSupportInput" placeholder="Write a message..." onkeydown="if(event.key==='Enter')sendAdminMessage()"><button onclick="sendAdminMessage()">Send</button></div></div>
 </div>
 
-/* =========================================
-   RIANDERBLOG — PART 2 OF 4
-   Core website, products, navigation and cart
-========================================= */
-
-// 1. SUPABASE CONNECTION
+<script>
 const SUPABASE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co";
 const SUPABASE_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const ADMIN_USER_ID = "a32248b7-5745-4dd4-8af0-bce4eb465f66";
+let activeSupportConversation=null;
+function toggleSupport(force){const w=document.getElementById('supportWindow');const open=typeof force==='boolean'?force:!w.classList.contains('open');w.classList.toggle('open',open);if(open)loadCustomerSupportChat();}
+function switchSupportTab(which){document.getElementById('aiTab').classList.toggle('active',which==='ai');document.getElementById('adminTab').classList.toggle('active',which==='admin');document.getElementById('aiSupportBody').classList.toggle('active',which==='ai');document.getElementById('adminSupportBody').classList.toggle('active',which==='admin');if(which==='admin')loadCustomerSupportChat();}
+function addSupportMessage(logId,body,kind){const log=document.getElementById(logId);const el=document.createElement('div');el.className='support-msg '+kind;el.textContent=body;log.appendChild(el);log.scrollTop=log.scrollHeight;}
+async function sendAIMessage(){const input=document.getElementById('aiSupportInput');const question=input.value.trim();if(!question)return;input.value='';addSupportMessage('aiSupportLog',question,'customer');const pending=document.createElement('div');pending.className='support-msg agent';pending.textContent='Thinking...';document.getElementById('aiSupportLog').appendChild(pending);try{const {data,error}=await db.functions.invoke('ai-support',{body:{message:question}});if(error)throw error;pending.textContent=data?.reply||'I could not prepare an answer. Please use Chat with Admin.';}catch(e){pending.textContent='AI service is not connected yet. Please use Chat with Admin, or try again later.';console.error('AI support:',e);}}
+async function loadCustomerSupportChat(){const hint=document.getElementById('adminChatHint');const {data:{user}}=await db.auth.getUser();if(!user){hint.textContent='Please sign in or create an account to chat privately with the administrator.';document.getElementById('adminSupportInput').disabled=true;return;}document.getElementById('adminSupportInput').disabled=false;hint.textContent='Your private conversation with the RIANDERBLOG administrator.';try{let q=db.from('support_conversations').select('id').eq('customer_id',user.id).order('created_at',{ascending:false}).limit(1);let {data,error}=await q;if(error)throw error;if(data?.length)activeSupportConversation=data[0].id;else{const created=await db.from('support_conversations').insert({customer_id:user.id,status:'open'}).select('id').single();if(created.error)throw created.error;activeSupportConversation=created.data.id;}const msgs=await db.from('support_messages').select('id,sender_id,message,created_at').eq('conversation_id',activeSupportConversation).order('created_at');if(msgs.error)throw msgs.error;const log=document.getElementById('adminSupportLog');log.innerHTML='';(msgs.data||[]).forEach(m=>addSupportMessage('adminSupportLog',m.message,m.sender_id===user.id?'customer':'agent'));}catch(e){hint.textContent='Chat setup is not complete yet. Please try again later.';console.error('Customer support chat:',e);}}
+async function sendAdminMessage(){const input=document.getElementById('adminSupportInput');const message=input.value.trim();if(!message)return;const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('adminChatHint').textContent='Please sign in first.';return;}if(!activeSupportConversation){await loadCustomerSupportChat();if(!activeSupportConversation)return;}const {error}=await db.from('support_messages').insert({conversation_id:activeSupportConversation,sender_id:user.id,message});if(error){document.getElementById('adminChatHint').textContent='Message not sent: '+error.message;return;}input.value='';addSupportMessage('adminSupportLog',message,'customer');}
+async function loadAdminSupportInbox(){const box=document.getElementById('adminSupportInbox');const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_USER_ID){box.textContent='Administrator sign-in required.';return;}const {data:convos,error}=await db.from('support_conversations').select('id,customer_id,status,created_at').order('created_at',{ascending:false});if(error){box.textContent='Could not load inbox: '+error.message;return;}box.innerHTML='';if(!convos?.length){box.textContent='No customer conversations yet.';return;}for(const c of convos){const wrap=document.createElement('div');wrap.className='listing';const title=document.createElement('strong');title.textContent='Customer '+c.customer_id;const status=document.createElement('p');status.textContent='Status: '+c.status;const log=document.createElement('div');log.id='adminThread_'+c.id;const input=document.createElement('input');input.placeholder='Reply to this customer';const btn=document.createElement('button');btn.className='primary';btn.textContent='Send reply';btn.onclick=async()=>{const msg=input.value.trim();if(!msg)return;const result=await db.from('support_messages').insert({conversation_id:c.id,sender_id:user.id,message:msg});if(result.error){alert(result.error.message);return;}input.value='';await renderAdminThread(c.id,log);};wrap.append(title,status,log,input,btn);box.appendChild(wrap);await renderAdminThread(c.id,log);}}
+async function renderAdminThread(id,log){const {data,error}=await db.from('support_messages').select('sender_id,message,created_at').eq('conversation_id',id).order('created_at');if(error){log.textContent=error.message;return;}log.innerHTML='';(data||[]).forEach(m=>{const p=document.createElement('p');p.textContent=(m.sender_id===ADMIN_USER_ID?'ADMIN: ':'CUSTOMER: ')+m.message;log.appendChild(p);});}
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-// 2. WEBSITE SETTINGS
-const ADMIN_ID = "a32248b7-5745-4dd4-8af0-bce4eb465f66";
-
-let currentUser = null;
-let allProducts = [];
-let cart = JSON.parse(localStorage.getItem("rianderblog_cart") || "[]");
-let selectedCategory = "All";
-
-// 3. NAVIGATION
-function showSection(sectionId) {
-  document.querySelectorAll(".section").forEach(section => {
-    section.style.display = "none";
+function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕":"☰";}
+function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(links){links.classList.remove("open");links.style.display="none";}if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰";}}
+function showSection(id){
+  const target=document.getElementById(id);
+  if(!target){console.warn("RIANDERBLOG: section not found:",id);return false;}
+  const home=(id==="products");
+  document.querySelectorAll("main > section").forEach(section=>{
+    const storefront=section.id==="products"||section.classList.contains("benefits")||section.classList.contains("hero");
+    section.style.display=storefront?(home?"":"none"):(section.id===id?"block":"none");
   });
+  target.style.display=(id==="currencySettings")?"flex":"block";
+  closeMenu();
+  window.scrollTo({top:0,behavior:"auto"});
+  try{if(id==="cart"&&typeof updateCart==="function")updateCart();if(id==="dashboard"&&typeof showDashboard==="function")showDashboard();if(id==="suppliers"&&typeof renderSuppliers==="function")renderSuppliers();if(id==="affiliates"&&typeof loadProgrammes==="function")loadProgrammes();if(id==="adminPanel"&&typeof loadAdminDashboard==="function")loadAdminDashboard();}catch(err){console.error("RIANDERBLOG section error:",err);}
+  return false;
+}
+// Make navigation work even if an inline menu link is changed later.
+document.addEventListener("DOMContentLoaded",()=>{const nav=document.getElementById("navLinks");if(nav){nav.querySelectorAll("a[onclick]").forEach(a=>{a.addEventListener("click",e=>{e.preventDefault();});});}});
+function updateAdminVisibility(user){const allowed=!!user && user.id===ADMIN_USER_ID;document.querySelectorAll(".admin-only").forEach(el=>el.style.display=allowed?(el.id==="adminNavLink"?"inline-block":"block"):"none");const status=document.getElementById("adminStatus");if(status)status.textContent=allowed?"Administrator verified. Manage your marketplace below.":"Administrator access is restricted.";if(allowed){loadAdminDashboard();loadAdminSupportInbox();}}
 
-  const selected = document.getElementById(sectionId);
+let allProducts = [];
+let currentCategory = "All";
+let cart = [];
 
-  if (selected) {
-    selected.style.display = "block";
-    selected.scrollIntoView({ behavior: "smooth", block: "start" });
+try {
+  cart = JSON.parse(localStorage.getItem("rianderblog_cart") || "[]");
+  if (!Array.isArray(cart)) cart = [];
+} catch (e) {
+  cart = [];
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function safeUrl(value) {
+  try {
+    const u = new URL(value);
+    return ["https:","http:"].includes(u.protocol) ? u.href : "";
+  } catch (e) {
+    return "";
   }
-
-  const menu = document.getElementById("menu");
-  if (menu) menu.classList.remove("active");
 }
 
-function toggleMenu() {
-  const menu = document.getElementById("menu");
-  if (menu) menu.classList.toggle("active");
+function saveCart() {
+  localStorage.setItem("rianderblog_cart",JSON.stringify(cart));
+  updateCart();
 }
 
-// 4. LOAD PRODUCTS FROM SUPABASE
+
+function isAdminSession(user){return !!user && user.id===ADMIN_USER_ID;}
+async function adminGuard(){const {data,error}=await db.auth.getSession();if(error)throw error;if(!isAdminSession(data.session?.user))throw new Error('Admin sign-in required.');}
+function adminMessage(id,msg){const el=document.getElementById(id);if(el)el.textContent=msg;}
+function clearAdminProductForm(){['adminProductId','adminProductName','adminProductPrice','adminProductCategory','adminProductImage','adminProductLink','adminProductDescription'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminProductCurrency').value='USD';document.getElementById('adminProductActive').checked=true;adminMessage('adminProductMessage','');}
+function editAdminProduct(id){const p=allProducts.find(x=>String(x.id)===String(id));if(!p)return;document.getElementById('adminProductId').value=p.id;document.getElementById('adminProductName').value=p.name||'';document.getElementById('adminProductPrice').value=p.price??'';document.getElementById('adminProductCurrency').value=p.currency||'USD';document.getElementById('adminProductCategory').value=p.category||'';document.getElementById('adminProductImage').value=p.image_url||'';document.getElementById('adminProductLink').value=p.affiliate_url||'';document.getElementById('adminProductDescription').value=p.description||'';document.getElementById('adminProductActive').checked=!!p.is_active;document.getElementById('adminProductName').scrollIntoView({behavior:'smooth',block:'center'});}
+async function saveAdminProduct(){try{await adminGuard();const name=document.getElementById('adminProductName').value.trim();const price=Number(document.getElementById('adminProductPrice').value);if(!name||!Number.isFinite(price)||price<0)throw new Error('Enter a product name and a valid non-negative price.');const image=document.getElementById('adminProductImage').value.trim();const link=document.getElementById('adminProductLink').value.trim();if(image&&!safeUrl(image))throw new Error('Image URL must start with http:// or https://.');if(link&&!safeUrl(link))throw new Error('Supplier URL must start with http:// or https://.');const row={name,price,currency:document.getElementById('adminProductCurrency').value.trim().toUpperCase()||'USD',category:document.getElementById('adminProductCategory').value.trim()||'Other',image_url:image||null,affiliate_url:link||null,description:document.getElementById('adminProductDescription').value.trim(),is_active:document.getElementById('adminProductActive').checked};const id=document.getElementById('adminProductId').value;const result=id?await db.from('products').update(row).eq('id',id):await db.from('products').insert(row);if(result.error)throw result.error;adminMessage('adminProductMessage',id?'Product updated.':'Product added.');clearAdminProductForm();await loadProducts();await loadAdminDashboard();}catch(e){adminMessage('adminProductMessage','Could not save: '+e.message);}}
+async function deleteAdminProduct(id){if(!confirm('Delete this product permanently?'))return;try{await adminGuard();const {error}=await db.from('products').delete().eq('id',id);if(error)throw error;adminMessage('adminProductMessage','Product deleted.');await loadProducts();await loadAdminDashboard();}catch(e){adminMessage('adminProductMessage','Could not delete: '+e.message);}}
+async function adminLoadTable(table,select,containerId,kind){const box=document.getElementById(containerId);try{const {data,error}=await db.from(table).select(select).order('created_at',{ascending:false}).limit(100);if(error)throw error;if(!data?.length){box.textContent='No records found.';return 0;}box.innerHTML=data.map(row=>{const title=escapeHTML(row.company_name||row.applicant_name||row.name||row.id||'Record');const detail=escapeHTML([row.country,row.email||row.contact_email,row.commission_rate!=null?row.commission_rate+'% commission':null,row.status||''].filter(Boolean).join(' · '));const id=escapeHTML(row.id);let actions='';if(kind==='supplier'||kind==='programme'){actions=`<button class="primary" onclick="adminSetStatus('${kind}','${id}','approved')">Approve</button><button class="secondary" onclick="adminSetStatus('${kind}','${id}','rejected')">Reject</button>`;}else if(kind==='application'){actions=`<button class="primary" onclick="adminSetStatus('application','${id}','approved')">Approve</button><button class="secondary" onclick="adminSetStatus('application','${id}','rejected')">Reject</button>`;}return `<div class="admin-row"><div><strong>${title}</strong><div class="small-note">${detail}</div></div><div class="admin-actions">${actions}</div></div>`;}).join('');return data.length;}catch(e){box.textContent='Cannot load '+table+': '+e.message;return null;}}
+async function adminSetStatus(kind,id,status){try{await adminGuard();const table=kind==='supplier'?'suppliers':kind==='programme'?'affiliate_programmes':'affiliate_applications';const {error}=await db.from(table).update({status}).eq('id',id);if(error)throw error;await loadAdminDashboard();}catch(e){alert('Could not update status: '+e.message);}}
+async function loadAdminDashboard(){try{await adminGuard();const products=await db.from('products').select('id',{count:'exact',head:true});const suppliers=await db.from('suppliers').select('id',{count:'exact',head:true});const programmes=await db.from('affiliate_programmes').select('id',{count:'exact',head:true});const apps=await db.from('affiliate_applications').select('id',{count:'exact',head:true});const orders=await db.from('orders').select('id',{count:'exact',head:true});[['statProducts',products],['statSuppliers',suppliers],['statProgrammes',programmes],['statApplications',apps],['statOrders',orders]].forEach(([id,r])=>document.getElementById(id).textContent=r.error?'—':(r.count??0));await adminLoadTable('suppliers','id,company_name,country,email,status,created_at','adminSupplierList','supplier');await adminLoadTable('affiliate_programmes','id,company_name,contact_email,commission_rate,status,created_at','adminProgrammeList','programme');await adminLoadTable('affiliate_applications','id,applicant_name,email,status,created_at','adminAffiliateApplicationList','application');const orderBox=document.getElementById('adminOrderList');if(orders.error){orderBox.textContent='Orders table is not configured yet. No order management is active.';}else{const {data,error}=await db.from('orders').select('*').order('created_at',{ascending:false}).limit(50);orderBox.textContent=error?'Could not load orders: '+error.message:(data?.length?JSON.stringify(data,null,2):'No orders yet.');}renderAdminProducts();}catch(e){const status=document.getElementById('adminStatus');if(status)status.textContent='Admin dashboard unavailable: '+e.message;}}
+function renderAdminProducts(){const box=document.getElementById('adminProductList');if(!box)return;box.innerHTML=allProducts.length?allProducts.map(p=>`<div class="admin-row"><div><strong>${escapeHTML(p.name)}</strong><div class="small-note">${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)} · ${p.is_active?'Active':'Hidden'}</div></div><div class="admin-actions"><button class="secondary" onclick="editAdminProduct('${escapeHTML(p.id)}')">Edit</button><button class="remove" onclick="deleteAdminProduct('${escapeHTML(p.id)}')">Delete</button></div></div>`).join(''):'No products available.';}
+
 async function loadProducts() {
-  const grid = document.getElementById("productsGrid");
-  if (grid) grid.innerHTML = "<p>Loading products...</p>";
-
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  const list = document.getElementById("productList");
+  const {data,error} = await db.from("products").select("*");
 
   if (error) {
-    console.error("Product loading error:", error);
-    if (grid) grid.innerHTML = "<p>Unable to load products. Please try again.</p>";
+    list.textContent = "Could not load products: " + error.message;
     return;
   }
 
   allProducts = data || [];
-  displayProducts(allProducts);
-  displayCategories();
+  displayProducts();
+  updateCart();
+  renderAdminProducts();
 }
 
-// 5. DISPLAY PRODUCTS
-function displayProducts(products) {
-  const grid = document.getElementById("productsGrid");
-  if (!grid) return;
+function displayProducts() {
+  const search = document.getElementById("search").value.toLowerCase().trim();
 
-  if (!products.length) {
-    grid.innerHTML = "<p>No products found.</p>";
+  const filtered = allProducts.filter(p =>
+    p.is_active === true &&
+    (currentCategory === "All" || p.category === currentCategory) &&
+    (
+      String(p.name || "").toLowerCase().includes(search) ||
+      String(p.description || "").toLowerCase().includes(search)
+    )
+  );
+
+  const list = document.getElementById("productList");
+
+  if (!filtered.length) {
+    list.textContent = "No products found.";
     return;
   }
 
-  grid.innerHTML = products.map(product => `
-    <article class="product-card">
-      <img
-        src="${escapeHTML(product.image_url || "https://placehold.co/400x400?text=Product")}"
-        alt="${escapeHTML(product.name)}"
-        onerror="this.src='https://placehold.co/400x400?text=Product'"
-      >
-
-      <div class="product-info">
-        <h3>${escapeHTML(product.name)}</h3>
-        <p>${escapeHTML(product.description || "")}</p>
-
-        <strong>
-          ${escapeHTML(product.currency || "USD")}
-          ${Number(product.price || 0).toFixed(2)}
-        </strong>
-
-        <button onclick="addToCart(${Number(product.id)})">
-          Add to Cart
-        </button>
+  list.innerHTML = filtered.map(p => `
+    <article class="product">
+      ${safeUrl(p.image_url) ? `<img src="${safeUrl(p.image_url)}" alt="${escapeHTML(p.name)}" loading="lazy">` : ""}
+      <h3>${escapeHTML(p.name)}</h3>
+      <p class="product-desc">${escapeHTML(p.description || "Explore this product for more information.")}</p>
+      <p class="price">${formatPrice(p.price,p.currency || "USD")}</p>
+      <div class="product-actions">
+        <button class="details-btn" onclick="openDetails('${escapeHTML(p.id)}')">View Details</button>
+        <button class="add" onclick="addToCart('${escapeHTML(p.id)}')">Add to Cart</button>
       </div>
+      ${safeUrl(p.affiliate_url) ? `<a class="buy" href="${safeUrl(p.affiliate_url)}" target="_blank" rel="noopener noreferrer">Visit Supplier</a>` : ""}
     </article>
   `).join("");
 }
 
-// 6. BASIC HTML ESCAPING
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, character => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[character]);
+function filterCategory(category,button) {
+  currentCategory = category;
+  document.querySelectorAll(".categories button").forEach(b => b.classList.remove("active"));
+  if (button) button.classList.add("active");
+  displayProducts();
 }
 
-// 7. SEARCH PRODUCTS
-function searchProducts() {
-  const searchInput = document.getElementById("searchInput");
-  const term = (searchInput?.value || "").trim().toLowerCase();
+document.getElementById("search").addEventListener("input",displayProducts);
 
-  const results = allProducts.filter(product => {
-    const matchesText =
-      (product.name || "").toLowerCase().includes(term) ||
-      (product.description || "").toLowerCase().includes(term);
+/* Open full product details */
+function openDetails(id) {
+  const p = allProducts.find(x => String(x.id) === String(id));
+  if (!p) return;
 
-    const matchesCategory =
-      selectedCategory === "All" ||
-      product.category === selectedCategory;
+  const image = safeUrl(p.image_url);
+  const supplier = safeUrl(p.affiliate_url);
 
-    return matchesText && matchesCategory;
-  });
+  document.getElementById("detailContent").innerHTML = `
+    <div class="detail-content">
+      <div>
+        ${image ? `<img class="detail-image" src="${image}" alt="${escapeHTML(p.name)}">` : `<div class="detail-image" style="display:grid;place-items:center;color:#8993a3">Image unavailable</div>`}
+      </div>
+      <div>
+        <div class="detail-category">${escapeHTML(p.category || "Featured product")}</div>
+        <h2>${escapeHTML(p.name)}</h2>
+        <div class="detail-price">${formatPrice(p.price,p.currency || "USD")}</div>
+        <p class="detail-description">${escapeHTML(p.description || "More product information will be added soon.")}</p>
+        <p style="font-size:12px;color:#778195;line-height:1.5">Check the supplier's listing for shipping costs, availability and final price.</p>
+        <div class="detail-actions">
+          <button class="detail-add" onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">Add to Cart</button>
+          ${supplier ? `<a class="detail-buy" href="${supplier}" target="_blank" rel="noopener noreferrer">Visit Supplier</a>` : ""}
+        </div>
+      </div>
+    </div>
+  `;
 
-  displayProducts(results);
+  document.getElementById("productDetails").classList.add("open");
+  document.body.style.overflow = "hidden";
 }
 
-// 8. DISPLAY CATEGORIES
-function displayCategories() {
-  const container = document.getElementById("categories");
-  if (!container) return;
-
-  const categories = [
-    "All",
-    ...new Set(
-      allProducts
-        .map(product => product.category)
-        .filter(Boolean)
-    )
-  ];
-
-  container.innerHTML = categories.map(category => `
-    <button
-      class="${selectedCategory === category ? "selected" : ""}"
-      onclick="filterCategory('${escapeHTML(category).replace(/'/g, "\\'")}')"
-    >
-      ${escapeHTML(category)}
-    </button>
-  `).join("");
+function closeDetails() {
+  document.getElementById("productDetails").classList.remove("open");
+  document.body.style.overflow = "";
 }
 
-function filterCategory(category) {
-  selectedCategory = category;
-  displayCategories();
-  searchProducts();
+function closeDetailsFromBackdrop(event) {
+  if (event.target.id === "productDetails") closeDetails();
 }
 
-// 9. SHOPPING CART
-function saveCart() {
-  localStorage.setItem("rianderblog_cart", JSON.stringify(cart));
-  updateCartDisplay();
-}
+document.addEventListener("keydown",event => {
+  if (event.key === "Escape") closeDetails();
+});
 
-function addToCart(productId) {
-  const product = allProducts.find(
-    item => Number(item.id) === Number(productId)
-  );
+function addToCart(id) {
+  const p = allProducts.find(x => String(x.id) === String(id));
+  if (!p) return;
 
-  if (!product) {
-    alert("Product not found.");
-    return;
-  }
-
-  const existing = cart.find(
-    item => Number(item.id) === Number(productId)
-  );
+  const existing = cart.find(x => String(x.id) === String(id));
 
   if (existing) {
-    existing.quantity += 1;
+    existing.quantity++;
   } else {
     cart.push({
-      id: product.id,
-      name: product.name,
-      price: Number(product.price),
-      currency: product.currency || "USD",
-      image_url: product.image_url || "",
-      quantity: 1
+      id:p.id,
+      name:p.name,
+      price:Number(p.price || 0),
+      currency:p.currency || "USD",
+      image_url:p.image_url || "",
+      affiliate_url:p.affiliate_url || "",
+      quantity:1
     });
   }
 
   saveCart();
-  alert("Added to your cart!");
+  alert("Product added to your cart!");
 }
 
-function updateCartDisplay() {
-  const container = document.getElementById("cartItems");
-  const totalElement = document.getElementById("cartTotal");
-  const countElement = document.getElementById("cartCount");
-
-  const totalItems = cart.reduce(
-    (sum, item) => sum + item.quantity, 0
-  );
-
-  if (countElement) countElement.textContent = totalItems;
-
-  if (container) {
-    if (!cart.length) {
-      container.innerHTML = "<p>Your cart is empty.</p>";
-    } else {
-      container.innerHTML = cart.map(item => `
-        <div class="cart-item">
-          <img
-            src="${escapeHTML(item.image_url || "https://placehold.co/80x80")}"
-            alt=""
-          >
-          <div>
-            <strong>${escapeHTML(item.name)}</strong>
-            <p>
-              ${escapeHTML(item.currency)}
-              ${Number(item.price).toFixed(2)}
-              × ${item.quantity}
-            </p>
-
-            <button onclick="changeQuantity(${Number(item.id)}, -1)">−</button>
-            <button onclick="changeQuantity(${Number(item.id)}, 1)">+</button>
-            <button onclick="removeFromCart(${Number(item.id)})">Remove</button>
-          </div>
-        </div>
-      `).join("");
-    }
-  }
-
-  // Only calculate a single-currency total.
-  const currencies = [...new Set(cart.map(item => item.currency))];
-
-  if (totalElement) {
-    if (currencies.length > 1) {
-      totalElement.textContent =
-        "Your cart contains different currencies. Checkout totals need conversion.";
-    } else {
-      const total = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity, 0
-      );
-
-      totalElement.textContent =
-        `${currencies[0] || "USD"} ${total.toFixed(2)}`;
-    }
-  }
-}
-
-function changeQuantity(productId, change) {
-  const item = cart.find(
-    product => Number(product.id) === Number(productId)
-  );
-
+function changeQuantity(id,amount) {
+  const item = cart.find(x => String(x.id) === String(id));
   if (!item) return;
 
-  item.quantity += change;
-
+  item.quantity += amount;
   if (item.quantity <= 0) {
-    cart = cart.filter(
-      product => Number(product.id) !== Number(productId)
-    );
+    cart = cart.filter(x => String(x.id) !== String(id));
   }
-
   saveCart();
 }
 
-function removeFromCart(productId) {
-  cart = cart.filter(
-    item => Number(item.id) !== Number(productId)
-  );
-
+function removeFromCart(id) {
+  cart = cart.filter(x => String(x.id) !== String(id));
   saveCart();
 }
 
-function clearCart() {
-  if (!confirm("Remove all items from your cart?")) return;
+function updateCart() {
+  document.getElementById("cartCount").textContent =
+    cart.reduce((sum,x) => sum + x.quantity,0);
+  const headerCount = document.getElementById("headerCartCount");
+  if (headerCount) headerCount.textContent = cart.reduce((sum,x) => sum + x.quantity,0);
 
-  cart = [];
-  saveCart();
-}
+  const container = document.getElementById("cartItems");
+  const totalElement = document.getElementById("cartTotal");
+  const note = document.getElementById("cartNote");
 
-// 10. INITIALISE THE WEBSITE
-document.addEventListener("DOMContentLoaded", async () => {
-  await loadProducts();
-  updateCartDisplay();
-
-  const searchInput = document.getElementById("searchInput");
-  if (searchInput) {
-    searchInput.addEventListener("input", searchProducts);
-  }
-
-  showSection("home");
-});
-
-/* =========================================
-   RIANDERBLOG — PART 3 OF 4
-   Authentication, applications and admin access
-========================================= */
-
-// 1. CHECK LOGIN STATUS
-async function checkLogin() {
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error) {
-    console.error("Session error:", error.message);
+  if (!cart.length) {
+    container.textContent = "Your cart is empty. Start shopping!";
+    totalElement.textContent = "";
+    note.textContent = "";
     return;
   }
 
-  currentUser = data.session?.user || null;
-  updateAccountDisplay();
-  return currentUser;
-}
+  container.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      ${safeUrl(item.image_url) ? `<img src="${safeUrl(item.image_url)}" alt="">` : ""}
+      <div class="cart-info">
+        <strong>${escapeHTML(item.name)}</strong>
+        <p>${escapeHTML(item.currency)} ${Number(item.price).toFixed(2)}</p>
+        <p>Subtotal: ${escapeHTML(item.currency)} ${(item.price * item.quantity).toFixed(2)}</p>
+      </div>
+      <button onclick="changeQuantity('${escapeHTML(item.id)}',-1)">−</button>
+      <strong>${item.quantity}</strong>
+      <button onclick="changeQuantity('${escapeHTML(item.id)}',1)">+</button>
+      <button class="remove" onclick="removeFromCart('${escapeHTML(item.id)}')">Remove</button>
+      ${safeUrl(item.affiliate_url) ? `<a class="buy" href="${safeUrl(item.affiliate_url)}" target="_blank" rel="noopener noreferrer">Buy this item</a>` : ""}
+    </div>
+  `).join("");
 
-// 2. UPDATE ACCOUNT DISPLAY
-function updateAccountDisplay() {
-  const status = document.getElementById("accountStatus");
-  const loginArea = document.getElementById("loginArea");
-  const logoutButton = document.getElementById("logoutButton");
-
-  if (status) {
-    status.textContent = currentUser
-      ? `Signed in: ${currentUser.email}`
-      : "You are not signed in.";
-  }
-
-  if (loginArea) loginArea.style.display = currentUser ? "none" : "block";
-  if (logoutButton) logoutButton.style.display = currentUser ? "inline-block" : "none";
-
-  const adminPanel = document.getElementById("adminPanel");
-  if (adminPanel) {
-    adminPanel.style.display =
-      currentUser?.id === ADMIN_ID ? "block" : "none";
-  }
-}
-
-// 3. REGISTER WITH EMAIL
-async function registerAccount() {
-  const email = document.getElementById("registerEmail")?.value.trim();
-  const password = document.getElementById("registerPassword")?.value;
-
-  if (!email || !password) {
-    alert("Enter your email and password.");
-    return;
-  }
-
-  if (password.length < 6) {
-    alert("Your password must contain at least 6 characters.");
-    return;
-  }
-
-  const { error } = await supabaseClient.auth.signUp({
-    email,
-    password
+  const totals = {};
+  cart.forEach(item => {
+    const c = item.currency || "USD";
+    totals[c] = (totals[c] || 0) + item.price * item.quantity;
   });
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+  totalElement.textContent = "Cart total: " +
+    Object.entries(totals).map(([c,v]) => c + " " + v.toFixed(2)).join(" + ");
 
-  alert("Registration submitted. Check your email if confirmation is required.");
+  note.textContent = "Purchases and final payments are completed on the supplier's website.";
 }
 
-// 4. LOGIN WITH EMAIL
-async function loginAccount() {
-  const email = document.getElementById("loginEmail")?.value.trim();
-  const password = document.getElementById("loginPassword")?.value;
+async function signUp() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
 
   if (!email || !password) {
-    alert("Enter your email and password.");
+    document.getElementById("message").textContent = "Enter your email and password.";
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
+  const {error} = await db.auth.signUp({
+    email,password,
+    options:{emailRedirectTo:window.location.origin + window.location.pathname}
   });
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  currentUser = data.user;
-  updateAccountDisplay();
-  alert("You are now signed in.");
+  document.getElementById("message").textContent =
+    error ? error.message : "Account created. Check your email to confirm your account.";
 }
 
-// 5. GOOGLE SIGN-IN
-async function loginWithGoogle() {
-  const { error } = await supabaseClient.auth.signInWithOAuth({
+async function signIn() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const {error} = await db.auth.signInWithPassword({email,password});
+
+  document.getElementById("message").textContent =
+    error ? error.message : "You are signed in successfully!";
+
+  await showDashboard();
+}
+
+async function signInWithGoogle() {
+  const { error } = await db.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: window.location.origin + window.location.pathname
     }
   });
 
-  if (error) alert(error.message);
+  if (error) {
+    document.getElementById("message").textContent = error.message;
+  }
 }
 
-// 6. LOG OUT
-async function logoutAccount() {
-  const { error } = await supabaseClient.auth.signOut();
+async function signOut() {
+  const {error} = await db.auth.signOut();
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+  document.getElementById("message").textContent =
+    error ? error.message : "You are signed out.";
 
-  currentUser = null;
-  updateAccountDisplay();
-  alert("You have signed out.");
+  await showDashboard();
 }
 
-// 7. SUBMIT SUPPLIER APPLICATION
-async function submitSupplierApplication() {
-  if (!currentUser) {
-    alert("Please sign in before applying.");
-    return;
-  }
+async function showDashboard() {
+  const status = document.getElementById("dashboardStatus");
+  const details = document.getElementById("dashboardDetails");
 
-  const companyName =
-    document.getElementById("supplierCompany")?.value.trim();
+  status.textContent = "Checking your account...";
+  details.textContent = "";
 
-  const country =
-    document.getElementById("supplierCountry")?.value.trim();
+  try {
+    const {data,error} = await db.auth.getSession();
+    if (error) throw error;
 
-  const email =
-    document.getElementById("supplierEmail")?.value.trim();
+    const user = data.session?.user;
+    updateAdminVisibility(user);
 
-  const website =
-    document.getElementById("supplierWebsite")?.value.trim();
-
-  const description =
-    document.getElementById("supplierDescription")?.value.trim();
-
-  if (!companyName || !country || !email) {
-    alert("Please complete your company name, country and email.");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("supplier_applications")
-    .insert({
-      user_id: currentUser.id,
-      company_name: companyName,
-      country,
-      email,
-      website,
-      description,
-      status: "pending"
-    });
-
-  if (error) {
-    console.error(error);
-    alert("Application could not be submitted: " + error.message);
-    return;
-  }
-
-  alert("Your supplier application has been submitted for review.");
-}
-
-// 8. SUBMIT AFFILIATE APPLICATION
-async function submitAffiliateApplication() {
-  if (!currentUser) {
-    alert("Please sign in before applying.");
-    return;
-  }
-
-  const applicantName =
-    document.getElementById("affiliateName")?.value.trim();
-
-  const email =
-    document.getElementById("affiliateEmail")?.value.trim();
-
-  const platformUrl =
-    document.getElementById("affiliatePlatform")?.value.trim();
-
-  if (!applicantName || !email || !platformUrl) {
-    alert("Please complete your name, email and platform link.");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("affiliate_applications")
-    .insert({
-      user_id: currentUser.id,
-      applicant_name: applicantName,
-      email,
-      platform_url: platformUrl,
-      status: "pending"
-    });
-
-  if (error) {
-    console.error(error);
-    alert("Application could not be submitted: " + error.message);
-    return;
-  }
-
-  alert("Your affiliate application has been submitted for review.");
-}
-
-// 9. LOAD ADMIN PRODUCT LIST
-async function loadAdminProducts() {
-  if (currentUser?.id !== ADMIN_ID) {
-    alert("Admin access required.");
-    return;
-  }
-
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    alert("Could not load products: " + error.message);
-    return;
-  }
-
-  const container = document.getElementById("adminProducts");
-  if (!container) return;
-
-  container.innerHTML = (data || []).map(product => `
-    <div class="admin-product">
-      <strong>${escapeHTML(product.name)}</strong>
-      <span>${escapeHTML(product.currency)} ${Number(product.price).toFixed(2)}</span>
-      <span>${product.is_active ? "Active" : "Hidden"}</span>
-      <button onclick="toggleProductVisibility(${Number(product.id)}, ${!product.is_active})">
-        ${product.is_active ? "Hide" : "Show"}
-      </button>
-    </div>
-  `).join("");
-}
-
-// 10. SHOW OR HIDE A PRODUCT
-async function toggleProductVisibility(productId, makeActive) {
-  if (currentUser?.id !== ADMIN_ID) {
-    alert("Admin access required.");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("products")
-    .update({ is_active: makeActive })
-    .eq("id", productId);
-
-  if (error) {
-    alert("Update failed: " + error.message);
-    return;
-  }
-
-  await loadAdminProducts();
-  await loadProducts();
-}
-
-// 11. WATCH FOR LOGIN AND LOGOUT
-supabaseClient.auth.onAuthStateChange((_event, session) => {
-  currentUser = session?.user || null;
-
-  setTimeout(() => {
-    updateAccountDisplay();
-  }, 0);
-});
-
-// 12. INITIAL ACCOUNT CHECK
-checkLogin();
-
-/* =========================================
-   RIANDERBLOG — PART 4 OF 4
-   SUPPORT, AI SUPPORT AND CURRENCY
-========================================= */
-
-let activeConversationId = null;
-
-// 1. OPEN CUSTOMER SUPPORT
-async function openCustomerSupport() {
-  if (!currentUser) {
-    alert("Please sign in to contact support.");
-    return;
-  }
-
-  const { data, error } = await supabaseClient
-    .from("support_conversations")
-    .select("id")
-    .eq("customer_id", currentUser.id)
-    .eq("status", "open")
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  if (data && data.length > 0) {
-    activeConversationId = data[0].id;
-  } else {
-    const { data: conversation, error: createError } =
-      await supabaseClient
-        .from("support_conversations")
-        .insert({ customer_id: currentUser.id })
-        .select("id")
-        .single();
-
-    if (createError) {
-      alert(createError.message);
+    if (!user) {
+      status.textContent = "You are not signed in.";
+      details.textContent = "Please sign in using the My Account section.";
       return;
     }
 
-    activeConversationId = conversation.id;
-  }
+    const itemCount = cart.reduce((sum,item) => sum + item.quantity,0);
 
-  await loadCustomerMessages();
-}
-
-// 2. LOAD CUSTOMER MESSAGES
-async function loadCustomerMessages() {
-  if (!activeConversationId) return;
-
-  const { data, error } = await supabaseClient
-    .from("support_messages")
-    .select("id, sender_id, message, created_at")
-    .eq("conversation_id", activeConversationId)
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  const box = document.getElementById("supportMessages");
-  if (!box) return;
-
-  box.innerHTML = (data || []).map(message => `
-    <div class="support-message">
-      <strong>
-        ${message.sender_id === currentUser.id ? "You" : "RIANDERBLOG Support"}
-      </strong>
-      <p>${escapeHTML(message.message)}</p>
-      <small>${new Date(message.created_at).toLocaleString()}</small>
-    </div>
-  `).join("");
-
-  box.scrollTop = box.scrollHeight;
-}
-
-// 3. SEND CUSTOMER MESSAGE
-async function sendCustomerMessage() {
-  if (!currentUser) {
-    alert("Please sign in first.");
-    return;
-  }
-
-  if (!activeConversationId) {
-    await openCustomerSupport();
-    if (!activeConversationId) return;
-  }
-
-  const input = document.getElementById("supportInput");
-  const message = input?.value.trim();
-
-  if (!message) return;
-
-  const { error } = await supabaseClient
-    .from("support_messages")
-    .insert({
-      conversation_id: activeConversationId,
-      sender_id: currentUser.id,
-      message: message
-    });
-
-  if (error) {
-    alert("Message failed: " + error.message);
-    return;
-  }
-
-  input.value = "";
-  await loadCustomerMessages();
-}
-
-// 4. LOAD ADMIN INBOX
-async function loadAdminSupportInbox() {
-  if (currentUser?.id !== ADMIN_ID) {
-    alert("Admin access required.");
-    return;
-  }
-
-  const { data, error } = await supabaseClient
-    .from("support_conversations")
-    .select("id, customer_id, status, created_at")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  const box = document.getElementById("adminSupportInbox");
-  if (!box) return;
-
-  box.innerHTML = (data || []).map(conversation => `
-    <div class="admin-conversation">
-      <p><strong>Customer:</strong>
-        ${escapeHTML(conversation.customer_id)}
-      </p>
-      <p><strong>Status:</strong>
-        ${escapeHTML(conversation.status)}
-      </p>
-      <button onclick="openAdminConversation('${conversation.id}')">
-        Open conversation
-      </button>
-    </div>
-  `).join("");
-}
-
-// 5. ADMIN OPENS CUSTOMER CONVERSATION
-async function openAdminConversation(conversationId) {
-  if (currentUser?.id !== ADMIN_ID) {
-    alert("Admin access required.");
-    return;
-  }
-
-  activeConversationId = conversationId;
-
-  const { data, error } = await supabaseClient
-    .from("support_messages")
-    .select("id, sender_id, message, created_at")
-    .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  const box = document.getElementById("adminSupportMessages");
-  if (!box) return;
-
-  box.innerHTML = (data || []).map(message => `
-    <div class="support-message">
-      <strong>
-        ${message.sender_id === ADMIN_ID ? "Administrator" : "Customer"}
-      </strong>
-      <p>${escapeHTML(message.message)}</p>
-      <small>${new Date(message.created_at).toLocaleString()}</small>
-    </div>
-  `).join("");
-}
-
-// 6. ADMIN SENDS REPLY
-async function sendAdminReply() {
-  if (currentUser?.id !== ADMIN_ID) {
-    alert("Admin access required.");
-    return;
-  }
-
-  if (!activeConversationId) {
-    alert("Open a conversation first.");
-    return;
-  }
-
-  const input = document.getElementById("adminReplyInput");
-  const message = input?.value.trim();
-
-  if (!message) return;
-
-  const { error } = await supabaseClient
-    .from("support_messages")
-    .insert({
-      conversation_id: activeConversationId,
-      sender_id: currentUser.id,
-      message: message
-    });
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  input.value = "";
-  await openAdminConversation(activeConversationId);
-}
-
-// 7. CLOSE CUSTOMER CONVERSATION
-async function closeSupportConversation() {
-  if (!currentUser || !activeConversationId) return;
-
-  const { error } = await supabaseClient
-    .from("support_conversations")
-    .update({ status: "closed" })
-    .eq("id", activeConversationId)
-    .eq("customer_id", currentUser.id);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  activeConversationId = null;
-  alert("Conversation closed.");
-}
-
-// 8. AI SUPPORT PLACEHOLDER
-async function askAISupport() {
-  const input = document.getElementById("aiSupportInput");
-  const output = document.getElementById("aiSupportMessages");
-
-  const question = input?.value.trim();
-
-  if (!question || !output) return;
-
-  const userMessage = document.createElement("p");
-  userMessage.textContent = "You: " + question;
-  output.appendChild(userMessage);
-
-  const reply = document.createElement("p");
-  reply.textContent =
-    "RIANDERBLOG AI: AI service is not connected yet. Please contact our support team using the customer chat.";
-  output.appendChild(reply);
-
-  input.value = "";
-}
-
-// 9. CURRENCY CONVERTER
-async function convertCurrency() {
-  const amount = Number(
-    document.getElementById("convertAmount")?.value
-  );
-
-  const from = document.getElementById("fromCurrency")?.value;
-  const to = document.getElementById("toCurrency")?.value;
-  const result = document.getElementById("conversionResult");
-
-  if (!Number.isFinite(amount) || amount <= 0 || !from || !to) {
-    alert("Enter a valid amount and choose currencies.");
-    return;
-  }
-
-  if (!result) return;
-
-  if (from === to) {
-    result.textContent = `${amount.toFixed(2)} ${to}`;
-    return;
-  }
-
-  result.textContent = "Converting...";
-
-  try {
-    const response = await fetch(
-      `https://open.er-api.com/v6/latest/${encodeURIComponent(from)}`
-    );
-
-    if (!response.ok) {
-      throw new Error("Currency service unavailable.");
-    }
-
-    const data = await response.json();
-    const rate = data.rates?.[to];
-
-    if (!rate) {
-      throw new Error("Currency not supported.");
-    }
-
-    result.textContent =
-      `${(amount * rate).toFixed(2)} ${to}`;
-
+    status.textContent = "Welcome to RIANDERBLOG!";
+    details.innerHTML = `
+      <p><strong>Email:</strong> ${escapeHTML(user.email)}</p>
+      <p><strong>Account status:</strong> ${user.email_confirmed_at ? "Verified" : "Not verified"}</p>
+      <p><strong>Products in your cart:</strong> ${itemCount}</p>
+      <p><strong>Member since:</strong> ${new Date(user.created_at).toLocaleDateString()}</p>
+    `;
   } catch (error) {
-    console.error(error);
-    result.textContent = "Conversion failed. Try again later.";
+    status.textContent = "Could not load your account.";
+    details.textContent = error.message;
   }
 }
 
-// 10. REFRESH ADMIN SUPPORT INBOX
-async function refreshSupportInbox() {
-  if (currentUser?.id === ADMIN_ID) {
-    await loadAdminSupportInbox();
-  }
-}
-
-// 11. REFRESH CUSTOMER MESSAGES
-async function refreshCustomerMessages() {
-  if (currentUser && activeConversationId) {
-    await loadCustomerMessages();
-  }
-}
-
-// 12. FINAL INITIALISATION
-document.addEventListener("DOMContentLoaded", async () => {
-  await checkLogin();
-  updateCartDisplay();
+db.auth.onAuthStateChange((event,session) => {
+  document.getElementById("message").textContent =
+    session ? "You are signed in." : "You are not signed in.";
+  updateAdminVisibility(session?.user || null);
+  showDashboard();
 });
+
+
+// Currency display: best-effort country detection, with a manual selector fallback.
+let displayCurrency = localStorage.getItem('rianderblog_currency') || 'USD';
+let exchangeRates = {};
+const currencyByCountry = {MW:'MWK',US:'USD',GB:'GBP',ZA:'ZAR',KE:'KES',NG:'NGN',GH:'GHS',IN:'INR',CA:'CAD',AU:'AUD',JP:'JPY',DE:'EUR',FR:'EUR',IT:'EUR',ES:'EUR',NL:'EUR'};
+async function initialiseCurrency(){
+  try {
+    const saved=localStorage.getItem('rianderblog_currency');
+    if(saved){displayCurrency=saved;}
+    else {
+      const r=await fetch('https://ipapi.co/json/'); const geo=await r.json();
+      displayCurrency=currencyByCountry[geo.country_code] || geo.currency || 'USD';
+    }
+  } catch(e){displayCurrency=localStorage.getItem('rianderblog_currency')||'USD';}
+  const select=document.getElementById('currencySelect');
+  if([...select.options].some(o=>o.value===displayCurrency)) select.value=displayCurrency;
+  document.getElementById('currencyStatus').textContent='Showing '+displayCurrency+' (estimated from your country; you can change it).';
+  await loadRates(); displayProducts(); updateCart();
+}
+async function loadRates(){
+  try{const r=await fetch('https://open.er-api.com/v6/latest/USD');const j=await r.json();if(j.result==='success')exchangeRates=j.rates||{};}catch(e){exchangeRates={};}
+}
+function setCurrency(code){displayCurrency=code;localStorage.setItem('rianderblog_currency',code);document.getElementById('currencyStatus').textContent='Currency set to '+code+'.';displayProducts();updateCart();}
+function formatPrice(amount,from){
+  const n=Number(amount||0); let converted=n;
+  if(from!==displayCurrency && exchangeRates[from] && exchangeRates[displayCurrency]) converted=n/exchangeRates[from]*exchangeRates[displayCurrency];
+  try{return new Intl.NumberFormat(undefined,{style:'currency',currency:displayCurrency,maximumFractionDigits:2}).format(converted)+(from!==displayCurrency?' (approx.)':'');}
+  catch(e){return displayCurrency+' '+converted.toFixed(2);}
+}
+const paymentDescriptions={
+ 'PayPal':'Customers can pay through PayPal after RIANDERBLOG connects an eligible business account. Availability to receive and withdraw funds depends on the account country and verification. Not connected yet.',
+ 'Visa / Mastercard':'Card payments will use a PCI-compliant payment gateway checkout. RIANDERBLOG must be approved by a provider before cards can be charged. Do not enter card details on this page.',
+ 'Airtel Money':'For supported countries, customers will be redirected to an approved mobile-money payment prompt. A merchant account and provider integration are required. Not connected yet.',
+ 'TNM Mpamba':'Malawi customers will use an approved Mpamba merchant checkout or payment prompt after merchant approval and integration. Not connected yet.',
+ 'Bank transfer':'Bank transfer instructions will appear only after RIANDERBLOG configures and verifies its business bank account. No bank details are published here.',
+ 'Other international methods':'Additional methods such as regional wallets or local bank options can be enabled only after confirming country support and completing provider onboarding.'
+};
+function selectPayment(method,button){document.querySelectorAll('.method-option').forEach(b=>b.classList.remove('selected'));if(button)button.classList.add('selected');document.getElementById('paymentInfo').innerHTML='<strong>'+escapeHTML(method)+'</strong><br>'+escapeHTML(paymentDescriptions[method])+'<br><span class="pill">Setup required — not live</span>';}
+let suppliersCache=[];
+async function renderSuppliers(){
+ const box=document.getElementById('supplierList');const q=(document.getElementById('supplierSearch').value||'').toLowerCase();
+ const {data,error}=await db.from('suppliers').select('id,company_name,country,description,website').eq('status','approved').order('company_name');
+ if(error){box.innerHTML='<p class="small-note">Supplier directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
+ suppliersCache=data||[];const rows=suppliersCache.filter(x=>(x.company_name+' '+x.country+' '+x.description).toLowerCase().includes(q));
+ box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
+}
+async function applySupplier(){
+ const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('supplierMessage').textContent='Please create an account or sign in first.';return;}
+ const row={user_id:user.id,company_name:document.getElementById('supplierCompany').value.trim(),country:document.getElementById('supplierCountry').value.trim(),email:document.getElementById('supplierEmail').value.trim(),website:safeUrl(document.getElementById('supplierWebsite').value),description:document.getElementById('supplierDescription').value.trim(),status:'pending'};
+ if(!row.company_name||!row.country||!row.email){document.getElementById('supplierMessage').textContent='Enter company name, country and business email.';return;}
+ const {error}=await db.from('suppliers').insert(row);document.getElementById('supplierMessage').textContent=error?'Could not submit: '+error.message:'Application submitted. It will appear publicly after admin approval.';
+}
+async function loadProgrammes(){
+ const box=document.getElementById('programmeList');const {data,error}=await db.from('affiliate_programmes').select('id,company_name,commission_rate,website,terms').eq('status','approved').order('created_at',{ascending:false});
+ if(error){box.innerHTML='<p class="small-note">Affiliate programme directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
+ box.innerHTML=(data||[]).length?data.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${Number(x.commission_rate)}% advertised commission</span><p>${escapeHTML(x.terms||'Programme conditions supplied by the company.')}</p><p class="small-note">Programme ID: ${escapeHTML(x.id)}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved affiliate programmes yet. Companies can submit one for review below.</p>';
+}
+async function submitAffiliateProgramme(){
+ const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('affiliateMessage').textContent='Please sign in first.';return;}
+ const row={owner_id:user.id,company_name:document.getElementById('affiliateCompany').value.trim(),contact_email:document.getElementById('affiliateEmail').value.trim(),commission_rate:Number(document.getElementById('affiliateCommission').value),website:safeUrl(document.getElementById('affiliateWebsite').value),terms:document.getElementById('affiliateTerms').value.trim(),status:'pending'};
+ if(!row.company_name||!row.contact_email||!(row.commission_rate>=0&&row.commission_rate<=100)){document.getElementById('affiliateMessage').textContent='Enter company, contact email and a commission rate from 0 to 100.';return;}
+ const {error}=await db.from('affiliate_programmes').insert(row);document.getElementById('affiliateMessage').textContent=error?'Could not submit: '+error.message:'Programme submitted for admin review. It will be listed after approval.';
+}
+async function applyAffiliate(){
+ const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('affiliateApplyMessage').textContent='Please sign in first.';return;}
+ const row={user_id:user.id,applicant_name:document.getElementById('affiliateApplicantName').value.trim(),email:document.getElementById('affiliateApplicantEmail').value.trim(),platform_url:safeUrl(document.getElementById('affiliatePlatform').value),programme_id:document.getElementById('affiliateProgrammeId').value.trim()};
+ if(!row.applicant_name||!row.email||!row.programme_id){document.getElementById('affiliateApplyMessage').textContent='Enter your name, email and programme ID.';return;}
+ const {error}=await db.from('affiliate_applications').insert(row);document.getElementById('affiliateApplyMessage').textContent=error?'Could not apply: '+error.message:'Application submitted. The company must approve you before tracking links are issued.';
+}
+
+loadProducts();
+showDashboard();
+initialiseCurrency();
+renderSuppliers();
+loadProgrammes();
 </script>
 </body>
-  </html>
+</html>
