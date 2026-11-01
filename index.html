@@ -254,6 +254,40 @@ main{max-width:1220px}
     <div id="cartItems">Your cart is empty.</div>
     <h3 id="cartTotal"></h3>
     <p id="cartNote"></p>
+
+    <div class="admin-tools" style="margin-top:20px">
+        <h3>🔒 Secure Checkout with PayChangu</h3>
+        <p class="small-note">
+            Sign in, provide your delivery details and continue to
+            PayChangu's secure payment page.
+        </p>
+
+        <input id="checkoutCustomerName"
+               type="text"
+               placeholder="Full name"
+               autocomplete="name"
+               required>
+
+        <input id="checkoutCustomerPhone"
+               type="tel"
+               placeholder="Phone number"
+               autocomplete="tel"
+               required>
+
+        <textarea id="checkoutShippingAddress"
+                  placeholder="Full delivery address"
+                  required
+                  style="width:100%;min-height:90px;padding:12px;border:1px solid #d8dee8;border-radius:7px;font:inherit"></textarea>
+
+        <button id="payChanguButton"
+                class="primary"
+                type="button"
+                onclick="startPayChanguCheckout()">
+            💳 Pay with PayChangu
+        </button>
+
+        <p id="checkoutMessage" class="small-note" aria-live="polite"></p>
+    </div>
   </section>
 
 
@@ -662,9 +696,124 @@ function updateCart() {
   totalElement.textContent = "Cart total: " +
     Object.entries(totals).map(([c,v]) => c + " " + v.toFixed(2)).join(" + ");
 
-  note.textContent = "Purchases and final payments are completed on the supplier's website.";
+  note.textContent =
+    "You can visit the supplier directly or use PayChangu checkout where enabled.";
 }
+async function startPayChanguCheckout() {
+    const button = document.getElementById("payChanguButton");
+    const message = document.getElementById("checkoutMessage");
 
+    const customerName =
+        document.getElementById("checkoutCustomerName").value.trim();
+
+    const customerPhone =
+        document.getElementById("checkoutCustomerPhone").value.trim();
+
+    const shippingAddress =
+        document.getElementById("checkoutShippingAddress").value.trim();
+
+    if (!cart.length) {
+        message.textContent = "Your shopping cart is empty.";
+        return;
+    }
+
+    if (!customerName || !customerPhone || !shippingAddress) {
+        message.textContent =
+            "Please enter your name, phone number and delivery address.";
+        return;
+    }
+
+    const currencies = [
+        ...new Set(cart.map(item => (item.currency || "USD").toUpperCase()))
+    ];
+
+    if (currencies.length !== 1) {
+        message.textContent =
+            "Please use products with the same currency in one order.";
+        return;
+    }
+
+    if (!["MWK", "USD"].includes(currencies[0])) {
+        message.textContent =
+            "PayChangu checkout currently supports MWK and USD orders only.";
+        return;
+    }
+
+    const items = cart.map(item => ({
+        product_id: Number(item.id),
+        quantity: Number(item.quantity)
+    }));
+
+    if (items.some(item =>
+        !Number.isInteger(item.product_id) ||
+        !Number.isInteger(item.quantity) ||
+        item.product_id <= 0 ||
+        item.quantity <= 0
+    )) {
+        message.textContent =
+            "One or more cart items are invalid. Please refresh your cart.";
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Connecting to PayChangu...";
+    message.textContent = "Preparing your secure checkout...";
+
+    try {
+        const { data: sessionData, error: sessionError } =
+            await db.auth.getSession();
+
+        if (sessionError) throw sessionError;
+
+        const session = sessionData.session;
+
+        if (!session) {
+            throw new Error(
+                "Please sign in to your RIANDERBLOG account before checkout."
+            );
+        }
+
+        const { data, error } = await db.functions.invoke(
+            "paychangu-checkout",
+            {
+                body: {
+                    items: items,
+                    customer_name: customerName,
+                    customer_phone: customerPhone,
+                    shipping_address: shippingAddress
+                }
+            }
+        );
+
+        if (error) throw error;
+
+        if (!data || data.success !== true || !data.checkout_url) {
+            throw new Error(
+                data?.error || "PayChangu did not return a checkout link."
+            );
+        }
+
+        const checkoutUrl = new URL(data.checkout_url);
+
+        if (checkoutUrl.protocol !== "https:") {
+            throw new Error("The checkout link is not secure.");
+        }
+
+        message.textContent = "Opening secure PayChangu checkout...";
+
+        window.location.assign(checkoutUrl.href);
+
+    } catch (error) {
+        console.error("PayChangu checkout error:", error);
+
+        message.textContent =
+            "Checkout could not start: " +
+            (error.message || "Please try again.");
+
+        button.disabled = false;
+        button.textContent = "💳 Pay with PayChangu";
+    }
+}
 async function signUp() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
