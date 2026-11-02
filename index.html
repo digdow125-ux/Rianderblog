@@ -137,6 +137,31 @@ async function detectCustomerCountry() {
     console.error("Country detection failed:", error);
   }
     }
+  function convertProductPrice(usdPrice, exchangeRate) {
+  const price = Number(usdPrice);
+
+  if (!Number.isFinite(price) || price < 0) {
+    throw new Error("Invalid product price");
+  }
+
+  if (customerCurrency.code === "USD") {
+    return price;
+  }
+
+  if (!Number.isFinite(exchangeRate) || exchangeRate <= 0) {
+    throw new Error("Invalid exchange rate");
+  }
+
+  return price * exchangeRate;
+}
+
+function formatPrice(amount) {
+  return new Intl.NumberFormat(customerCurrency.locale, {
+    style: "currency",
+    currency: customerCurrency.code,
+    maximumFractionDigits: 0
+  }).format(amount);
+  }
 /* Global marketplace additions */
 .currency-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);padding:12px 15px;border-radius:10px;margin:18px 0}
 .currency-bar select,.form-grid select{padding:11px;border:1px solid #d8dee8;border-radius:7px;background:#fff}
