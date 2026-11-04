@@ -258,6 +258,92 @@ main{max-width:1220px}
 .support-window{display:none;position:fixed;right:18px;bottom:82px;width:min(370px,calc(100vw - 28px));height:min(570px,calc(100vh - 115px));background:#fff;border:1px solid #dce2eb;border-radius:16px;box-shadow:0 18px 55px #10213e44;z-index:10001;overflow:hidden;flex-direction:column}
 .support-window.open{display:flex}.support-head{background:#173b63;color:white;padding:14px;display:flex;justify-content:space-between;align-items:center}.support-tabs{display:flex;background:#f2f5f8;padding:7px;gap:7px}.support-tabs button{flex:1;background:#e4eaf1;color:#23364d}.support-tabs button.active{background:#f36b25;color:#fff}.support-body{display:none;flex:1;min-height:0;flex-direction:column;padding:12px}.support-body.active{display:flex}.support-log{flex:1;overflow:auto;background:#f7f8fa;border-radius:9px;padding:10px;margin-bottom:9px}.support-msg{padding:9px 11px;border-radius:11px;margin:7px 0;max-width:88%;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}.support-msg.customer{background:#dcecff;margin-left:auto}.support-msg.agent{background:#fff;border:1px solid #e1e6ed}.support-compose{display:flex;gap:7px}.support-compose input{margin:0;min-width:0}.support-compose button{background:#173b63;color:#fff;flex:none}.support-hint{font-size:11px;color:#697789;margin:4px 0 8px}
 
+    
+/* RIANDERBLOG ADMIN DASHBOARD */
+.admin-heading {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+  padding:20px;
+  background:linear-gradient(120deg,#173b63,#245b86);
+  color:white;
+  border-radius:12px;
+}
+.admin-heading h2 {color:white;margin:8px 0}
+.admin-heading p {color:#e0e9f2}
+.admin-kicker {font-size:11px;letter-spacing:2px;color:#ffd09f;font-weight:bold}
+.admin-stat-grid {margin:18px 0}
+.admin-stat-grid .market-card {
+  border-left:4px solid #f36b25;
+  box-shadow:0 4px 14px #173b6310;
+}
+.admin-stat-grid h3 {font-size:25px;color:#173b63}
+.admin-navigation {
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:12px 0;
+  margin:15px 0;
+}
+.admin-navigation button {
+  background:#173b63;
+  color:white;
+  white-space:nowrap;
+  flex:none;
+}
+.admin-navigation button:hover {background:#f36b25}
+.admin-tools {
+  background:white;
+  border:1px solid #e5e8ee;
+  border-radius:12px;
+  padding:18px;
+  margin:15px 0;
+  overflow-x:auto;
+}
+.admin-tools h3 {color:#173b63}
+.admin-table-wrap {overflow-x:auto;margin-top:15px}
+.admin-table-wrap table {
+  width:100%;
+  min-width:650px;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.admin-table-wrap th,
+.admin-table-wrap td {
+  padding:12px;
+  text-align:left;
+  border-bottom:1px solid #e5e8ee;
+}
+.admin-table-wrap th {
+  background:#173b63;
+  color:white;
+}
+.admin-table-wrap tr:hover td {background:#f7f9fc}
+.admin-ai-conversation {
+  min-height:120px;
+  max-height:350px;
+  overflow:auto;
+  background:#f5f7fa;
+  border-radius:9px;
+  padding:14px;
+  margin:12px 0;
+}
+.admin-ai-conversation p {
+  padding:10px;
+  background:white;
+  border-radius:8px;
+  line-height:1.5;
+}
+.admin-actions {display:flex;gap:8px;flex-wrap:wrap}
+.admin-actions button {margin:4px 0}
+@media(max-width:650px) {
+  .admin-heading {padding:15px}
+  .admin-stat-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-tools {padding:13px}
+}
+
 </style>
 </head>
 <body>
@@ -421,35 +507,136 @@ main{max-width:1220px}
     <p><a href="#cart">Go to My Shopping Cart</a></p>
   </section>
 
-  <section id="adminPanel" class="panel secondary-page admin-box admin-only">
-    <h2>🔐 RIANDERBLOG Admin Dashboard</h2>
-    <p id="adminStatus">Administrator access is restricted.</p>
-    <div class="market-grid" id="adminStats">
-      <div class="market-card"><h3 id="statProducts">—</h3><p>Products</p></div>
-      <div class="market-card"><h3 id="statSuppliers">—</h3><p>Supplier applications</p></div>
-      <div class="market-card"><h3 id="statProgrammes">—</h3><p>Affiliate programmes</p></div>
-      <div class="market-card"><h3 id="statApplications">—</h3><p>Affiliate applications</p></div>
-      <div class="market-card"><h3 id="statOrders">—</h3><p>Orders (if orders table exists)</p></div>
+
+<section id="adminPanel" class="panel secondary-page admin-box admin-only">
+  <div class="admin-heading">
+    <div>
+      <span class="admin-kicker">RIANDERBLOG CONTROL CENTRE</span>
+      <h2>Administrator Dashboard</h2>
+      <p id="adminStatus">Administrator access is restricted.</p>
     </div>
+    <button class="primary" onclick="loadAdminDashboard()">↻ Refresh dashboard</button>
+  </div>
+
+  <div class="market-grid admin-stat-grid" id="adminStats">
+    <div class="market-card"><h3 id="statProducts">—</h3><p>Products</p></div>
+    <div class="market-card"><h3 id="statSuppliers">—</h3><p>Supplier applications</p></div>
+    <div class="market-card"><h3 id="statProgrammes">—</h3><p>Affiliate programmes</p></div>
+    <div class="market-card"><h3 id="statApplications">—</h3><p>Affiliate applications</p></div>
+    <div class="market-card"><h3 id="statOrders">—</h3><p>Orders</p></div>
+  </div>
+
+  <div class="admin-navigation">
+    <button onclick="adminShowTab('overview')">Overview</button>
+    <button onclick="adminShowTab('orders')">Orders</button>
+    <button onclick="adminShowTab('products')">Products</button>
+    <button onclick="adminShowTab('support')">Customer support</button>
+    <button onclick="adminShowTab('ai')">AI assistant</button>
+    <button onclick="adminShowTab('applications')">Applications</button>
+  </div>
+
+  <div id="adminTab-overview" class="admin-tab">
+    <div class="admin-tools">
+      <h3>Business overview</h3>
+      <p class="small-note">Your marketplace activity and management tools.</p>
+      <button class="primary" onclick="loadAdminDashboard()">Update statistics</button>
+    </div>
+  </div>
+
+  <div id="adminTab-orders" class="admin-tab" style="display:none">
+    <div class="admin-tools">
+      <h3>Customer orders</h3>
+      <p class="small-note">Review customer details, order totals and payment status.</p>
+      <button class="primary" onclick="loadAdminOrdersTable()">Refresh orders</button>
+      <div id="adminOrderList" class="admin-table-wrap">
+        Orders will appear here.
+      </div>
+    </div>
+  </div>
+
+  <div id="adminTab-products" class="admin-tab" style="display:none">
     <div class="admin-tools">
       <h3>Product management</h3>
-      <p class="small-note">Add products to the public catalogue, or edit/delete existing listings.</p>
+      <p class="small-note">Add products to your public catalogue or edit existing listings.</p>
+
       <input id="adminProductId" type="hidden">
+
       <div class="form-grid">
         <input id="adminProductName" placeholder="Product name">
         <input id="adminProductPrice" type="number" min="0" step="0.01" placeholder="Price">
-        <input id="adminProductCurrency" value="USD" placeholder="Currency (e.g. USD)">
+        <input id="adminProductCurrency" value="USD" placeholder="Currency">
         <input id="adminProductCategory" placeholder="Category">
-        <input id="adminProductImage" placeholder="Image URL (https://...) ">
-        <input id="adminProductLink" placeholder="Supplier / affiliate URL (https://...) ">
+        <input id="adminProductImage" placeholder="Product image URL">
+        <input id="adminProductLink" placeholder="Supplier / affiliate URL">
         <textarea id="adminProductDescription" placeholder="Product description"></textarea>
       </div>
-      <label><input id="adminProductActive" type="checkbox" checked style="width:auto"> Active / visible in store</label><br>
-      <button class="primary" onclick="saveAdminProduct()">Save product</button>
-      <button class="secondary" onclick="clearAdminProductForm()">Clear form</button>
+
+      <label>
+        <input id="adminProductActive" type="checkbox" checked style="width:auto">
+        Active / visible in store
+      </label>
+
+      <div class="admin-actions">
+        <button class="primary" onclick="saveAdminProduct()">Save product</button>
+        <button class="secondary" onclick="clearAdminProductForm()">Clear form</button>
+      </div>
+
       <p id="adminProductMessage" class="small-note"></p>
       <div id="adminProductList"></div>
     </div>
+  </div>
+
+  <div id="adminTab-support" class="admin-tab" style="display:none">
+    <div class="admin-tools">
+      <h3>Customer support inbox</h3>
+      <p class="small-note">Read customer messages and reply privately.</p>
+      <button class="primary" onclick="loadAdminSupportInbox()">Refresh inbox</button>
+      <div id="adminSupportInbox" class="admin-table-wrap">
+        No conversations loaded.
+      </div>
+    </div>
+  </div>
+
+  <div id="adminTab-ai" class="admin-tab" style="display:none">
+    <div class="admin-tools">
+      <h3>RIANDERBLOG AI assistant</h3>
+      <p class="small-note">Ask for help managing products, orders, customer support and marketplace operations.</p>
+      <div id="adminAiConversation" class="admin-ai-conversation">
+        <p>Welcome, administrator. How can I help you manage RIANDERBLOG?</p>
+      </div>
+      <textarea id="adminAiQuestion" placeholder="Ask your AI assistant..." rows="3"></textarea>
+      <button class="primary" id="adminAiButton" onclick="adminAskAI()">Ask AI</button>
+      <p id="adminAiMessage" class="small-note"></p>
+    </div>
+  </div>
+
+  <div id="adminTab-applications" class="admin-tab" style="display:none">
+    <div class="admin-tools">
+      <h3>Supplier applications</h3>
+      <div id="adminSupplierList" class="admin-table-wrap">Not loaded yet.</div>
+    </div>
+
+    <div class="admin-tools">
+      <h3>Affiliate programmes</h3>
+      <div id="adminProgrammeList" class="admin-table-wrap">Not loaded yet.</div>
+    </div>
+
+    <div class="admin-tools">
+      <h3>Affiliate applications</h3>
+      <div id="adminAffiliateApplicationList" class="admin-table-wrap">Not loaded yet.</div>
+    </div>
+  </div>
+
+  <div class="admin-tools">
+    <p class="small-note">
+      Database access is controlled by Supabase Row Level Security policies.
+      The administrator ID check on this page only controls visibility.
+    </p>
+    <a href="https://supabase.com/dashboard/project/yymdyxlbdgbrgrykdspx/editor"
+       target="_blank" rel="noopener">Open Supabase database</a>
+  </div>
+</section>
+
     <div class="admin-tools">
       <h3>Supplier applications</h3>
       <div id="adminSupplierList" class="small-note">Not loaded yet.</div>
