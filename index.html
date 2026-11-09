@@ -1469,11 +1469,15 @@ async function submitAffiliateProgramme(){
   return;
  }
 
- const {error}=await db.from('affiliate_programmes').insert(row);
+ const {data,error}=await db
+ .from('affiliate_programmes')
+ .insert(row)
+ .select('id')
+ .single();
 
  document.getElementById('affiliateMessage').textContent=
- error?'Could not submit: '+error.message:
- 'Programme submitted for admin review. It will be listed after approval.';
+error?'Could not submit: '+error.message:
+'Programme saved successfully! ID: '+data.id;
 }
 async function applyAffiliate(){
  const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('affiliateApplyMessage').textContent='Please sign in first.';return;}
