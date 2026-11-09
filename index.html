@@ -1442,11 +1442,38 @@ async function loadProgrammes(){
  if(error){box.innerHTML='<p class="small-note">Affiliate programme directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
  box.innerHTML=(data||[]).length?data.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${Number(x.commission_rate)}% advertised commission</span><p>${escapeHTML(x.terms||'Programme conditions supplied by the company.')}</p><p class="small-note">Programme ID: ${escapeHTML(x.id)}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved affiliate programmes yet. Companies can submit one for review below.</p>';
 }
+
 async function submitAffiliateProgramme(){
- const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('affiliateMessage').textContent='Please sign in first.';return;}
- const row={owner_id:user.id,company_name:document.getElementById('affiliateCompany').value.trim(),contact_email:document.getElementById('affiliateEmail').value.trim(),commission_rate:Number(document.getElementById('affiliateCommission').value),website:safeUrl(document.getElementById('affiliateWebsite').value),terms:document.getElementById('affiliateTerms').value.trim(),status:'pending'};
- if(!row.company_name||!row.contact_email||!(row.commission_rate>=0&&row.commission_rate<=100)){document.getElementById('affiliateMessage').textContent='Enter company, contact email and a commission rate from 0 to 100.';return;}
- const {error}=await db.from('affiliate_programmes').insert(row);document.getElementById('affiliateMessage').textContent=error?'Could not submit: '+error.message:'Programme submitted for admin review. It will be listed after approval.';
+ const {data:{user}}=await db.auth.getUser();
+
+ if(!user){
+  document.getElementById('affiliateMessage').textContent='Please sign in first.';
+  return;
+ }
+
+ const companyName=document.getElementById('affiliateCompany').value.trim();
+
+ const row={
+  name:companyName,
+  owner_id:user.id,
+  company_name:companyName,
+  contact_email:document.getElementById('affiliateEmail').value.trim(),
+  commission_rate:Number(document.getElementById('affiliateCommission').value),
+  website:safeUrl(document.getElementById('affiliateWebsite').value),
+  terms:document.getElementById('affiliateTerms').value.trim(),
+  status:'pending'
+ };
+
+ if(!row.name||!row.contact_email||!(row.commission_rate>=0&&row.commission_rate<=100)){
+  document.getElementById('affiliateMessage').textContent='Enter company, contact email and a commission rate from 0 to 100.';
+  return;
+ }
+
+ const {error}=await db.from('affiliate_programmes').insert(row);
+
+ document.getElementById('affiliateMessage').textContent=
+ error?'Could not submit: '+error.message:
+ 'Programme submitted for admin review. It will be listed after approval.';
 }
 async function applyAffiliate(){
  const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('affiliateApplyMessage').textContent='Please sign in first.';return;}
