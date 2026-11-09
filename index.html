@@ -5,7 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RIANDERBLOG | Premium Global Shopping</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
+.admin-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 750px;
+  background: white;
+}
+
+.admin-orders-table th,
+.admin-orders-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e8ee;
+  text-align: left;
+  font-size: 13px;
+}
+
+.admin-orders-table th {
+  background: #10213e;
+  color: white;
+}
+
+.admin-orders-table tr:hover {
+  background: #f5f6f9;
+}
+
+.admin-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  <style>
 :root{
   --navy:#10213e;--navy2:#1a3154;--gold:#d6ad55;--gold-dark:#ad812e;
   --ink:#263244;--muted:#687589;--paper:#f5f6f9;--line:#e5e8ee;--white:#fff;
@@ -720,8 +747,179 @@ function showSection(id){
 }
 // Make navigation work even if an inline menu link is changed later.
 document.addEventListener("DOMContentLoaded",()=>{const nav=document.getElementById("navLinks");if(nav){nav.querySelectorAll("a[onclick]").forEach(a=>{a.addEventListener("click",e=>{e.preventDefault();});});}});
-function updateAdminVisibility(user){const allowed=!!user && user.id===ADMIN_USER_ID;document.querySelectorAll(".admin-only").forEach(el=>el.style.display=allowed?(el.id==="adminNavLink"?"inline-block":"block"):"none");const status=document.getElementById("adminStatus");if(status)status.textContent=allowed?"Administrator verified. Manage your marketplace below.":"Administrator access is restricted.";if(allowed){loadAdminDashboard();loadAdminSupportInbox();}}
+function updateAdminVisibility(user) {
+  const allowed = !!user && user.id === ADMIN_USER_ID;
 
+  document.querySelectorAll(".admin-only").forEach(el => {
+    el.style.display = allowed
+      ? (el.id === "adminNavLink" ? "block" : "block")
+      : "none";
+  });
+
+  const status = document.getElementById("adminStatus");
+
+  if (status) {
+    status.textContent = allowed
+      ? "Administrator verified. Manage your marketplace below."
+      : "Administrator access is restricted.";
+  }
+
+  if (allowed) {
+    loadAdminDashboard();
+    loadAdminSupportInbox();
+    loadAdminOrdersTable();
+  }
+}
+// ADMIN PANEL TABS
+function adminShowTab(tab) {
+  if (!isAdminSession(
+    db.auth.getSession ? window.currentAdminUser : null
+  )) {
+    // The database session is checked again by adminGuard below.
+  }
+
+  document.querySelectorAll(".admin-tab").forEach(el => {
+    el.style.display = "none";
+  });
+
+  const selected = document.getElementById("adminTab-" + tab);
+
+  if (selected) selected.style.display = "block";
+
+  if (tab === "orders") loadAdminOrdersTable();
+  if (tab === "products") renderAdminProducts();
+  if (tab === "support") loadAdminSupportInbox();
+}
+
+// LOAD CUSTOMER ORDERS
+async function loadAdminOrdersTable() {
+  const box = document.getElementById("adminOrderList");
+  if (!box) return;
+
+  box.textContent = "Loading orders...";
+
+  try {
+    await adminGuard();
+
+    const { data, error } = await db
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      box.textContent = "No customer orders have been placed yet.";
+      return;
+    }
+
+    const columns = [
+      ["order_number", "Order number"],
+      ["customer_name", "Customer"],
+      ["customer_email", "Email"],
+      ["customer_phone", "Phone"],
+      ["total_amount", "Total"],
+      ["currency", "Currency"],
+      ["payment_status", "Payment"],
+      ["order_status", "Order status"],
+      ["created_at", "Date"]
+    ];
+
+    const available = columns.filter(([key]) =>
+      data.some(order => order[key] !== undefined)
+    );
+
+    box.innerHTML = `
+      <div class="admin-table-wrap">
+        <table class="admin-orders-table">
+          <thead>
+            <tr>
+              ${available.map(([, label]) =>
+                `<th>${escapeHTML(label)}</th>`
+              ).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(order => `
+              <tr>
+                ${available.map(([key]) => {
+                  let value = order[key];
+
+                  if (key === "created_at" && value) {
+                    value = new Date(value).toLocaleString();
+                  }
+
+                  if (key === "total_amount" && value !== null) {
+                    value = Number(value).toFixed(2);
+                  }
+
+                  return `<td>${escapeHTML(value ?? "—")}</td>`;
+                }).join("")}
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (error) {
+    box.textContent = "Could not load orders: " + error.message;
+  }
+}
+
+// ADMIN AI ASSISTANT
+async function adminAskAI() {
+  const input = document.getElementById("adminAiQuestion");
+  const conversation = document.getElementById("adminAiConversation");
+  const message = document.getElementById("adminAiMessage");
+  const button = document.getElementById("adminAiButton");
+
+  const question = input.value.trim();
+
+  if (!question) {
+    message.textContent = "Type a question first.";
+    return;
+  }
+
+  try {
+    await adminGuard();
+
+    button.disabled = true;
+    button.textContent = "Thinking...";
+    message.textContent = "";
+
+    const userMessage = document.createElement("p");
+    userMessage.textContent = "You: " + question;
+    conversation.appendChild(userMessage);
+
+    input.value = "";
+
+    const { data, error } = await db.functions.invoke(
+      "ai-support",
+      {
+        body: {
+          message: question,
+          role: "admin"
+        }
+      }
+    );
+
+    if (error) throw error;
+
+    const answer = document.createElement("p");
+    answer.textContent =
+      "RIANDERBLOG AI: " +
+      (data?.reply || "I could not prepare an answer.");
+
+    conversation.appendChild(answer);
+
+  } catch (error) {
+    message.textContent = "AI assistant error: " + error.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Ask AI";
+  }
+  }  
 let allProducts = [];
 let currentCategory = "All";
 let cart = [];
@@ -763,7 +961,79 @@ async function saveAdminProduct(){try{await adminGuard();const name=document.get
 async function deleteAdminProduct(id){if(!confirm('Delete this product permanently?'))return;try{await adminGuard();const {error}=await db.from('products').delete().eq('id',id);if(error)throw error;adminMessage('adminProductMessage','Product deleted.');await loadProducts();await loadAdminDashboard();}catch(e){adminMessage('adminProductMessage','Could not delete: '+e.message);}}
 async function adminLoadTable(table,select,containerId,kind){const box=document.getElementById(containerId);try{const {data,error}=await db.from(table).select(select).order('created_at',{ascending:false}).limit(100);if(error)throw error;if(!data?.length){box.textContent='No records found.';return 0;}box.innerHTML=data.map(row=>{const title=escapeHTML(row.company_name||row.applicant_name||row.name||row.id||'Record');const detail=escapeHTML([row.country,row.email||row.contact_email,row.commission_rate!=null?row.commission_rate+'% commission':null,row.status||''].filter(Boolean).join(' · '));const id=escapeHTML(row.id);let actions='';if(kind==='supplier'||kind==='programme'){actions=`<button class="primary" onclick="adminSetStatus('${kind}','${id}','approved')">Approve</button><button class="secondary" onclick="adminSetStatus('${kind}','${id}','rejected')">Reject</button>`;}else if(kind==='application'){actions=`<button class="primary" onclick="adminSetStatus('application','${id}','approved')">Approve</button><button class="secondary" onclick="adminSetStatus('application','${id}','rejected')">Reject</button>`;}return `<div class="admin-row"><div><strong>${title}</strong><div class="small-note">${detail}</div></div><div class="admin-actions">${actions}</div></div>`;}).join('');return data.length;}catch(e){box.textContent='Cannot load '+table+': '+e.message;return null;}}
 async function adminSetStatus(kind,id,status){try{await adminGuard();const table=kind==='supplier'?'suppliers':kind==='programme'?'affiliate_programmes':'affiliate_applications';const {error}=await db.from(table).update({status}).eq('id',id);if(error)throw error;await loadAdminDashboard();}catch(e){alert('Could not update status: '+e.message);}}
-async function loadAdminDashboard(){try{await adminGuard();const products=await db.from('products').select('id',{count:'exact',head:true});const suppliers=await db.from('suppliers').select('id',{count:'exact',head:true});const programmes=await db.from('affiliate_programmes').select('id',{count:'exact',head:true});const apps=await db.from('affiliate_applications').select('id',{count:'exact',head:true});const orders=await db.from('orders').select('id',{count:'exact',head:true});[['statProducts',products],['statSuppliers',suppliers],['statProgrammes',programmes],['statApplications',apps],['statOrders',orders]].forEach(([id,r])=>document.getElementById(id).textContent=r.error?'—':(r.count??0));await adminLoadTable('suppliers','id,company_name,country,email,status,created_at','adminSupplierList','supplier');await adminLoadTable('affiliate_programmes','id,company_name,contact_email,commission_rate,status,created_at','adminProgrammeList','programme');await adminLoadTable('affiliate_applications','id,applicant_name,email,status,created_at','adminAffiliateApplicationList','application');const orderBox=document.getElementById('adminOrderList');if(orders.error){orderBox.textContent='Orders table is not configured yet. No order management is active.';}else{const {data,error}=await db.from('orders').select('*').order('created_at',{ascending:false}).limit(50);orderBox.textContent=error?'Could not load orders: '+error.message:(data?.length?JSON.stringify(data,null,2):'No orders yet.');}renderAdminProducts();}catch(e){const status=document.getElementById('adminStatus');if(status)status.textContent='Admin dashboard unavailable: '+e.message;}}
+async function loadAdminDashboard() {
+  try {
+    await adminGuard();
+
+    const productCount = await db
+      .from("products")
+      .select("id", { count: "exact", head: true });
+
+    const supplierCount = await db
+      .from("suppliers")
+      .select("id", { count: "exact", head: true });
+
+    const programmeCount = await db
+      .from("affiliate_programmes")
+      .select("id", { count: "exact", head: true });
+
+    const applicationCount = await db
+      .from("affiliate_applications")
+      .select("id", { count: "exact", head: true });
+
+    const orderCount = await db
+      .from("orders")
+      .select("id", { count: "exact", head: true });
+
+    const stats = [
+      ["statProducts", productCount],
+      ["statSuppliers", supplierCount],
+      ["statProgrammes", programmeCount],
+      ["statApplications", applicationCount],
+      ["statOrders", orderCount]
+    ];
+
+    stats.forEach(([id, result]) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = result.error
+          ? "—"
+          : (result.count ?? 0);
+      }
+    });
+
+    await adminLoadTable(
+      "suppliers",
+      "id,company_name,country,email,status,created_at",
+      "adminSupplierList",
+      "supplier"
+    );
+
+    await adminLoadTable(
+      "affiliate_programmes",
+      "id,company_name,contact_email,commission_rate,status,created_at",
+      "adminProgrammeList",
+      "programme"
+    );
+
+    await adminLoadTable(
+      "affiliate_applications",
+      "id,applicant_name,email,status,created_at",
+      "adminAffiliateApplicationList",
+      "application"
+    );
+
+    await loadAdminOrdersTable();
+    renderAdminProducts();
+
+  } catch (error) {
+    const status = document.getElementById("adminStatus");
+    if (status) {
+      status.textContent =
+        "Admin dashboard unavailable: " + error.message;
+    }
+  }
+  }
 function renderAdminProducts(){const box=document.getElementById('adminProductList');if(!box)return;box.innerHTML=allProducts.length?allProducts.map(p=>`<div class="admin-row"><div><strong>${escapeHTML(p.name)}</strong><div class="small-note">${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)} · ${p.is_active?'Active':'Hidden'}</div></div><div class="admin-actions"><button class="secondary" onclick="editAdminProduct('${escapeHTML(p.id)}')">Edit</button><button class="remove" onclick="deleteAdminProduct('${escapeHTML(p.id)}')">Delete</button></div></div>`).join(''):'No products available.';}
 
 async function loadProducts() {
