@@ -2744,8 +2744,8 @@ async function requestSupplierWithdrawal(){
     if(error)throw error;
     document.getElementById('supplierWithdrawalAmount').value='';
     message.textContent='Withdrawal request submitted. Reference: '+data;
-    const {user}=await db.auth.getUser();
-    await loadSupplierWallet(user.user.id);
+    const {data:{user}}=await db.auth.getUser();
+    await loadSupplierWallet(user.id);
   }catch(e){
     message.textContent='Could not submit withdrawal: '+(e?.message||String(e));
   }
