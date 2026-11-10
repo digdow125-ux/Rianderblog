@@ -230,6 +230,20 @@ main > .hero, main > .benefits{display:none !important;}
 header{position:relative;gap:18px}
 .header-cart{background:#f36b25;color:#fff;border:0;border-radius:7px;padding:11px 16px;font-weight:700;font-size:14px;cursor:pointer}
 .header-cart:hover{background:#d95517}
+.header-actions{position:relative;display:flex;align-items:center;gap:10px}
+.notification-bell{position:relative;display:grid;place-items:center;width:43px;height:43px;border:1px solid #dce3ec;border-radius:9px;background:#fff;color:#10213e;font-size:19px}
+.notification-count{position:absolute;top:-7px;right:-7px;min-width:19px;height:19px;padding:0 5px;border-radius:20px;background:#e34d4d;color:#fff;font-size:10px;font-weight:800;line-height:19px;text-align:center}
+.notification-panel{position:absolute;z-index:1200;right:0;top:calc(100% + 10px);width:min(360px,calc(100vw - 28px));max-height:430px;overflow:auto;border:1px solid #e1e6ed;border-radius:12px;background:#fff;box-shadow:0 14px 36px rgba(10,25,45,.2);color:#25364b}
+.notification-panel-head{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-bottom:1px solid #edf0f4;background:#fff}
+.notification-panel-head button{background:#f1f4f8;color:#20334c;padding:6px 10px}
+.notification-item{display:block;width:100%;padding:12px 15px;border:0;border-bottom:1px solid #edf0f4;border-radius:0;background:#fff;color:#25364b;text-align:left;white-space:normal}
+.notification-item.unread{background:#f3f7fc}
+.notification-item strong,.notification-item small,.notification-item span{display:block}
+.notification-item strong{font-size:13px;color:#10213e}
+.notification-item span{margin-top:4px;font-size:12px;line-height:1.45;color:#58677a}
+.notification-item small{margin-top:5px;font-size:10px;color:#8994a3}
+.notification-empty{padding:18px 15px;color:#718095;font-size:12px}
+@media(max-width:520px){header{gap:8px}.brand{min-width:0}.brand-name{font-size:20px}.header-actions{gap:6px}.notification-bell{width:38px;height:38px}.header-cart{padding:10px 11px;font-size:12px}}
 .brand{min-width:210px}
 .brand-name{font-size:27px}
 nav{box-shadow:0 2px 8px rgba(10,25,45,.12)}
@@ -530,7 +544,14 @@ main{max-width:1220px}
     <div class="brand-mark">R</div>
     <div><div class="brand-name">RIANDER<span>BLOG</span></div><div class="brand-tag">Global marketplace</div></div>
   </a>
-  <button class="header-cart" type="button" onclick="showSection('cart')">🛒 Cart (<span id="headerCartCount">0</span>)</button>
+  <div class="header-actions">
+    <button class="notification-bell" id="notificationBell" type="button" onclick="toggleNotifications()" aria-label="Notifications" aria-expanded="false">🔔<span id="notificationCount" class="notification-count" style="display:none">0</span></button>
+    <button class="header-cart" type="button" onclick="showSection('cart')">🛒 Cart (<span id="headerCartCount">0</span>)</button>
+    <div class="notification-panel" id="notificationPanel" style="display:none">
+      <div class="notification-panel-head"><strong>Notifications</strong><button type="button" onclick="loadNotifications()">↻</button></div>
+      <div id="notificationList"><p class="small-note">Sign in to see your notifications.</p></div>
+    </div>
+  </div>
 </header>
 <nav aria-label="Main navigation">
   <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰</button>
@@ -2328,13 +2349,76 @@ function updateAccountExperience(user){
     if(msg)msg.textContent='You are browsing as a guest. Sign in or create a free account.';
   }
 }
+let notificationChannel=null;
 db.auth.onAuthStateChange((event,session) => {
   const user=session?.user||null;
   updateAccountExperience(user);
   updateAdminVisibility(user);
+  startNotifications(user);
   showDashboard();
 });
 
+
+function toggleNotifications(){
+  const panel=document.getElementById('notificationPanel');
+  const bell=document.getElementById('notificationBell');
+  if(!panel||!bell)return;
+  const opening=panel.style.display==='none';
+  panel.style.display=opening?'block':'none';
+  bell.setAttribute('aria-expanded',String(opening));
+  if(opening)loadNotifications();
+}
+async function startNotifications(user){
+  if(notificationChannel){await db.removeChannel(notificationChannel);notificationChannel=null;}
+  const panel=document.getElementById('notificationPanel');
+  const list=document.getElementById('notificationList');
+  const count=document.getElementById('notificationCount');
+  if(!user){
+    if(panel)panel.style.display='none';
+    if(list)list.innerHTML='<p class="notification-empty">Sign in to see your notifications.</p>';
+    if(count){count.style.display='none';count.textContent='0';}
+    return;
+  }
+  await loadNotifications();
+  notificationChannel=db.channel('rianderblog-notifications-'+user.id)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'recipient_user_id=eq.'+user.id},()=>loadNotifications())
+    .subscribe();
+}
+async function loadNotifications(){
+  const list=document.getElementById('notificationList');
+  const count=document.getElementById('notificationCount');
+  if(!list)return;
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){list.innerHTML='<p class="notification-empty">Sign in to see your notifications.</p>';return;}
+  const {data,error}=await db.from('notifications').select('id,title,body,notification_type,target_section,is_read,created_at,related_order_id').order('created_at',{ascending:false}).limit(30);
+  if(error){list.innerHTML='<p class="notification-empty">Could not load notifications. Please refresh.</p>';console.error('Notification load:',error);return;}
+  const rows=data||[];
+  const unread=rows.filter(n=>!n.is_read).length;
+  if(count){count.textContent=unread>99?'99+':String(unread);count.style.display=unread?'block':'none';}
+  if(!rows.length){list.innerHTML='<p class="notification-empty">You are all caught up. New updates will appear here.</p>';return;}
+  list.innerHTML=rows.map(n=>{
+    const date=new Date(n.created_at).toLocaleString();
+    return '<button type="button" class="notification-item '+(n.is_read?'':'unread')+'" data-notification-id="'+escapeHTML(n.id)+'" data-target-section="'+escapeHTML(n.target_section||'dashboard')+'"><strong>'+escapeHTML(n.title)+'</strong><span>'+escapeHTML(n.body||'')+'</span><small>'+escapeHTML(date)+(n.is_read?'':' · New')+'</small></button>';
+  }).join('');
+  list.querySelectorAll('[data-notification-id]').forEach(button=>button.addEventListener('click',async()=>{
+    const id=button.dataset.notificationId;
+    const allowed=['dashboard','adminPanel','messages','suppliers','cart','products'];
+    const target=allowed.includes(button.dataset.targetSection)?button.dataset.targetSection:'dashboard';
+    await db.from('notifications').update({is_read:true}).eq('id',id);
+    await loadNotifications();
+    document.getElementById('notificationPanel').style.display='none';
+    document.getElementById('notificationBell')?.setAttribute('aria-expanded','false');
+    showSection(target);
+  }));
+}
+document.addEventListener('click',event=>{
+  const panel=document.getElementById('notificationPanel');
+  const actions=document.querySelector('.header-actions');
+  if(panel&&actions&&!actions.contains(event.target)){
+    panel.style.display='none';
+    document.getElementById('notificationBell')?.setAttribute('aria-expanded','false');
+  }
+});
 
 // Currency display: best-effort country detection, with a manual selector fallback.
 let displayCurrency = localStorage.getItem('rianderblog_currency') || 'USD';
