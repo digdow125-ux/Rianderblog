@@ -776,8 +776,9 @@ async function loadAdminOrdersTable() {
       ["total_amount", "Total"],
       ["currency", "Currency"],
       ["payment_status", "Payment"],
-      ["order_status", "Order status"],
-      ["created_at", "Date"]
+   ["order_status", "Order status"],
+["shipping_address", "Delivery address"],
+["created_at", "Date"]
     ];
 
     const available = columns.filter(([key]) =>
