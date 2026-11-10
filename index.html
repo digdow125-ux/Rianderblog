@@ -1627,7 +1627,7 @@ function displayProducts() {
         <button class="details-btn" onclick="openDetails('${escapeHTML(p.id)}')">View Details</button>
         <button class="add" onclick="addToCart('${escapeHTML(p.id)}')">Add to Cart</button>
       </div>
-      ${safeUrl(p.affiliate_url) ? `<a class="buy" href="${safeUrl(p.affiliate_url)}" target="_blank" rel="noopener noreferrer">Visit Supplier</a>` : ""}
+      <button class="buy" onclick="startSupplierConversation('${escapeHTML(p.id)}')">Message Supplier</button>
     </article>
   `).join("");
 }
