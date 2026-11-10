@@ -667,6 +667,29 @@ main{max-width:1220px}
       </table>
     </div>
   </div>
+  <div class="listing" style="margin-top:24px">
+    <h3>💳 My Supplier Wallet & Withdrawals</h3>
+    <p class="small-note">Your approved supplier earnings appear here. Request a payout to Airtel Money, TNM Mpamba or a bank account.</p>
+    <p id="supplierWalletStatus" class="small-note">Wallet balances have not been loaded.</p>
+    <div id="supplierWalletBalances" class="market-grid"></div>
+    <h4>Request a withdrawal</h4>
+    <div class="form-grid">
+      <select id="supplierWithdrawalWallet"><option value="">Select wallet currency</option></select>
+      <input id="supplierWithdrawalAmount" type="number" min="0.01" step="0.01" placeholder="Amount to withdraw">
+      <select id="supplierWithdrawalMethod">
+        <option value="airtel_money">Airtel Money</option>
+        <option value="tnm_mpamba">TNM Mpamba</option>
+        <option value="bank_transfer">Bank transfer</option>
+      </select>
+      <input id="supplierWithdrawalProvider" placeholder="Provider / bank name (e.g. Airtel Malawi)">
+      <input id="supplierWithdrawalAccountName" placeholder="Account holder's full name">
+      <input id="supplierWithdrawalAccountNumber" placeholder="Mobile number or bank account number">
+    </div>
+    <button class="primary" onclick="requestSupplierWithdrawal()">Submit withdrawal request</button>
+    <p id="supplierWithdrawalMessage" class="small-note"></p>
+    <h4>My withdrawal history</h4>
+    <div id="supplierWithdrawalHistory" class="admin-table-wrap">No withdrawal requests yet.</div>
+  </div>
   </section>
   <section id="affiliates" class="panel secondary-page">
     <h2>🤝 Affiliate Marketing Centre</h2><p>Discover company affiliate programmes and apply to promote products for commission.</p>
@@ -783,6 +806,13 @@ main{max-width:1220px}
       <div id="adminWalletTransactions" class="admin-table-wrap">
         No transactions loaded.
       </div>
+    </div>
+    <div class="admin-tools">
+      <h3>Supplier Withdrawal Requests</h3>
+      <p class="small-note">Send the money to the supplier's selected mobile-money or bank account first. Only then mark the request as paid and enter the provider transaction reference.</p>
+      <button class="primary" onclick="loadAdminWithdrawals()">Refresh withdrawal requests</button>
+      <p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p>
+      <div id="adminWithdrawalsTable" class="admin-table-wrap">No withdrawal requests loaded.</div>
     </div>
   </div>
 
@@ -1034,6 +1064,10 @@ function adminShowTab(tab) {
 
   if (tab === "orders") loadAdminOrdersTable();
   if (tab === "products") renderAdminProducts();
+  if (tab === "wallet") {
+    loadAdminWallet();
+    loadAdminWithdrawals();
+  }
   if (tab === "support") loadAdminSupportInbox();
 }
 
@@ -2490,7 +2524,7 @@ async function loadSupplierWorkspace(){
   if(status) status.textContent='Checking supplier access...';
 
   try{
-    const {supplier}=await getCurrentApprovedSupplier();
+    const {user,supplier}=await getCurrentApprovedSupplier();
     currentSupplierRecord=supplier;
 
     if(status){
@@ -2501,6 +2535,7 @@ async function loadSupplierWorkspace(){
 
     await loadSupplierProducts(supplier.id);
     await loadSupplierOrders(supplier.id);
+    await loadSupplierWallet(user.id);
   }catch(e){
     currentSupplierRecord=null;
     supplierProductsCache=[];
@@ -2609,6 +2644,181 @@ async function loadSupplierOrders(supplierId){
     if(status)status.textContent='Could not load supplier orders: '+(error?.message||String(error));
     table.innerHTML='<tr><td colspan="7">Order information could not be loaded.</td></tr>';
     console.error('Supplier orders:',error);
+  }
+}
+
+
+async function loadSupplierWallet(userId){
+  const status=document.getElementById('supplierWalletStatus');
+  const balancesBox=document.getElementById('supplierWalletBalances');
+  const walletSelect=document.getElementById('supplierWithdrawalWallet');
+  const historyBox=document.getElementById('supplierWithdrawalHistory');
+  if(!balancesBox||!walletSelect||!historyBox)return;
+  if(status)status.textContent='Loading your wallet...';
+  balancesBox.innerHTML='';
+  walletSelect.innerHTML='<option value="">Select wallet currency</option>';
+  historyBox.textContent='Loading withdrawal history...';
+  try{
+    const {data:wallets,error:walletError}=await db.from('wallet_accounts')
+      .select('id,currency,status')
+      .eq('owner_id',userId)
+      .eq('account_type','supplier')
+      .eq('status','active')
+      .order('currency');
+    if(walletError)throw walletError;
+    const ids=(wallets||[]).map(w=>w.id);
+    let balances=[];
+    if(ids.length){
+      const result=await db.from('wallet_balances')
+        .select('wallet_account_id,currency,available_balance,pending_balance')
+        .in('wallet_account_id',ids);
+      if(result.error)throw result.error;
+      balances=result.data||[];
+    }
+    if(!balances.length){
+      balancesBox.innerHTML='<div class="listing">No supplier earnings are available yet. Your 92% share will appear after an order is paid and approved by RIANDERBLOG.</div>';
+    }else{
+      balancesBox.innerHTML=balances.map(w=>{
+        const currency=escapeHTML(w.currency);
+        const available=Number(w.available_balance||0);
+        const pending=Number(w.pending_balance||0);
+        return '<div class="market-card"><p class="small-note">'+currency+' supplier wallet</p><h3>'+currency+' '+available.toFixed(2)+'</h3><p class="small-note">Pending / reserved: '+currency+' '+pending.toFixed(2)+'</p></div>';
+      }).join('');
+    }
+    (wallets||[]).forEach(w=>{
+      const b=balances.find(x=>x.wallet_account_id===w.id);
+      const option=document.createElement('option');
+      option.value=w.id;
+      option.textContent=w.currency+' · Available '+Number(b?.available_balance||0).toFixed(2);
+      walletSelect.appendChild(option);
+    });
+    const {data:requests,error:requestError}=await db.from('supplier_withdrawal_requests')
+      .select('id,amount,currency,payout_method,payout_provider,payout_account_name,payout_account_number,status,payment_reference,admin_note,requested_at,processed_at')
+      .eq('supplier_user_id',userId)
+      .order('requested_at',{ascending:false})
+      .limit(30);
+    if(requestError)throw requestError;
+    if(!requests?.length){
+      historyBox.textContent='No withdrawal requests yet.';
+    }else{
+      historyBox.innerHTML='<table><thead><tr><th>Date</th><th>Amount</th><th>Payment destination</th><th>Status</th><th>Reference / Note</th></tr></thead><tbody>'+
+        requests.map(r=>{
+          const destination=[r.payout_provider,r.payout_account_name,r.payout_account_number].filter(Boolean).map(escapeHTML).join('<br>');
+          const details=[r.payment_reference,r.admin_note].filter(Boolean).map(escapeHTML).join('<br>');
+          return '<tr><td>'+escapeHTML(new Date(r.requested_at).toLocaleString())+'</td><td>'+escapeHTML(r.currency)+' '+Number(r.amount).toFixed(2)+'</td><td>'+destination+'</td><td>'+escapeHTML(r.status)+'</td><td>'+(details||'—')+'</td></tr>';
+        }).join('')+'</tbody></table>';
+    }
+    if(status)status.textContent='Wallet and withdrawal history loaded.';
+  }catch(e){
+    if(status)status.textContent='Could not load wallet: '+(e?.message||String(e));
+    historyBox.textContent='Withdrawal history could not be loaded.';
+  }
+}
+
+async function requestSupplierWithdrawal(){
+  const message=document.getElementById('supplierWithdrawalMessage');
+  const walletId=document.getElementById('supplierWithdrawalWallet').value;
+  const amount=Number(document.getElementById('supplierWithdrawalAmount').value);
+  const method=document.getElementById('supplierWithdrawalMethod').value;
+  const provider=document.getElementById('supplierWithdrawalProvider').value.trim();
+  const accountName=document.getElementById('supplierWithdrawalAccountName').value.trim();
+  const accountNumber=document.getElementById('supplierWithdrawalAccountNumber').value.trim();
+  const selected=document.getElementById('supplierWithdrawalWallet').selectedOptions[0];
+  const currency=(selected?.textContent||'').split(' · ')[0].trim();
+  if(!walletId||!Number.isFinite(amount)||amount<=0||!provider||!accountName||!accountNumber){
+    message.textContent='Complete the wallet, amount and payout account details.';
+    return;
+  }
+  if(!confirm('Submit a withdrawal request for '+currency+' '+amount.toFixed(2)+'? The amount will be reserved until RIANDERBLOG processes it.'))return;
+  message.textContent='Submitting withdrawal request...';
+  try{
+    const {data,error}=await db.rpc('request_supplier_withdrawal',{
+      p_wallet_account_id:walletId,
+      p_amount:amount,
+      p_currency:currency,
+      p_payout_method:method,
+      p_payout_provider:provider,
+      p_account_name:accountName,
+      p_account_number:accountNumber
+    });
+    if(error)throw error;
+    document.getElementById('supplierWithdrawalAmount').value='';
+    message.textContent='Withdrawal request submitted. Reference: '+data;
+    const {user}=await db.auth.getUser();
+    await loadSupplierWallet(user.user.id);
+  }catch(e){
+    message.textContent='Could not submit withdrawal: '+(e?.message||String(e));
+  }
+}
+
+async function loadAdminWithdrawals(){
+  const status=document.getElementById('adminWithdrawalsStatus');
+  const box=document.getElementById('adminWithdrawalsTable');
+  if(!box)return;
+  if(status)status.textContent='Loading supplier withdrawal requests...';
+  box.textContent='Loading requests...';
+  try{
+    await adminGuard();
+    const {data:requests,error}=await db.from('supplier_withdrawal_requests')
+      .select('id,supplier_user_id,amount,currency,payout_method,payout_provider,payout_account_name,payout_account_number,status,payment_reference,admin_note,requested_at')
+      .order('requested_at',{ascending:false})
+      .limit(100);
+    if(error)throw error;
+    if(!requests?.length){
+      box.textContent='No supplier withdrawal requests yet.';
+      if(status)status.textContent='No requests to process.';
+      return;
+    }
+    const userIds=[...new Set(requests.map(r=>r.supplier_user_id))];
+    const supplierResult=await db.from('suppliers')
+      .select('user_id,business_name,company_name')
+      .in('user_id',userIds);
+    if(supplierResult.error)throw supplierResult.error;
+    const suppliersByUser=new Map((supplierResult.data||[]).map(s=>[s.user_id,s]));
+    box.innerHTML='<table><thead><tr><th>Requested</th><th>Supplier</th><th>Amount</th><th>Payout destination</th><th>Status</th><th>Payment reference / Note</th><th>Action</th></tr></thead><tbody>'+
+      requests.map(r=>{
+        const supplier=suppliersByUser.get(r.supplier_user_id);
+        const name=supplier?.business_name||supplier?.company_name||'Supplier';
+        const destination=[r.payout_provider,r.payout_method.replaceAll('_',' '),r.payout_account_name,r.payout_account_number].filter(Boolean).map(escapeHTML).join('<br>');
+        const details=[r.payment_reference,r.admin_note].filter(Boolean).map(escapeHTML).join('<br>');
+        const action=r.status==='pending'
+          ? '<button class="primary" onclick="adminProcessSupplierWithdrawal(\''+r.id+'\',\'paid\')">Mark paid</button><button class="remove" onclick="adminProcessSupplierWithdrawal(\''+r.id+'\',\'rejected\')">Reject</button>'
+          : '—';
+        return '<tr><td>'+escapeHTML(new Date(r.requested_at).toLocaleString())+'</td><td>'+escapeHTML(name)+'</td><td>'+escapeHTML(r.currency)+' '+Number(r.amount).toFixed(2)+'</td><td>'+destination+'</td><td>'+escapeHTML(r.status)+'</td><td>'+(details||'—')+'</td><td>'+action+'</td></tr>';
+      }).join('')+'</tbody></table>';
+    if(status)status.textContent='Showing '+requests.length+' withdrawal request(s).';
+  }catch(e){
+    if(status)status.textContent='Could not load withdrawals: '+(e?.message||String(e));
+    box.textContent='Withdrawal requests could not be loaded.';
+  }
+}
+
+async function adminProcessSupplierWithdrawal(requestId,action){
+  let paymentReference=null;
+  let note='';
+  if(action==='paid'){
+    paymentReference=prompt('Enter the Airtel Money, TNM Mpamba or bank transaction reference. Only continue after you have sent the money.');
+    if(paymentReference===null)return;
+    if(paymentReference.trim().length<3){alert('A valid payment reference is required.');return;}
+    note=prompt('Optional admin note:')||'';
+  }else{
+    note=prompt('Reason for rejecting this withdrawal:');
+    if(note===null)return;
+    if(!confirm('Reject this request and release the reserved wallet balance?'))return;
+  }
+  try{
+    const {error}=await db.rpc('admin_process_supplier_withdrawal',{
+      p_request_id:requestId,
+      p_action:action,
+      p_payment_reference:paymentReference,
+      p_admin_note:note
+    });
+    if(error)throw error;
+    alert(action==='paid'?'Withdrawal marked as paid.':'Withdrawal rejected; reserved balance released.');
+    await loadAdminWithdrawals();
+    await loadAdminWallet();
+  }catch(e){
+    alert('Could not process withdrawal: '+(e?.message||String(e)));
   }
 }
 
