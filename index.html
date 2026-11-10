@@ -691,7 +691,16 @@ main{max-width:1220px}
       <p id="adminProductMessage" class="small-note"></p>
     </div>
 
-    <div class="listing">
+      <div class="listing">
+  <h3>⏳ Pending Supplier Products</h3>
+  <p class="small-note">Review supplier products before publishing.</p>
+  <button class="secondary" onclick="loadPendingSupplierProducts()">
+    Refresh pending products
+  </button>
+  <div id="pendingSupplierProductList">
+    Pending supplier products will appear here.
+  </div>
+      </div>
       <h3>📦 Your Product Catalogue</h3>
       <p class="small-note">Edit or remove products and manage their visibility.</p>
       <div id="adminProductList">Products will appear here.</div>
