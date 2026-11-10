@@ -2345,7 +2345,21 @@ async function openMarketplaceConversation(id){
 
   const area=document.getElementById('messageArea');
   const composer=document.getElementById('messageComposer');
+  const {data:conversation}=await db
+    .from('conversations')
+    .select('product_id')
+    .eq('id',id)
+    .maybeSingle();
 
+  const product=allProducts.find(
+    p=>String(p.id)===String(conversation?.product_id)
+  );
+
+  document.getElementById('chatContactName').textContent=
+    product?.name||'RIANDERBLOG Messages';
+
+  document.getElementById('chatContactStatus').textContent=
+    'Marketplace conversation';
   area.textContent='Loading messages...';
   composer.style.display='block';
 
