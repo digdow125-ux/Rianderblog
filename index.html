@@ -2329,7 +2329,8 @@ async function loadMarketplaceConversations(){
       button.style.display='block';
       button.style.width='100%';
       button.style.margin='6px 0';
-      button.textContent='Product conversation';
+      const product=allProducts.find(p=>String(p.id)===String(c.product_id));
+button.textContent=product?.name||'Product conversation';
       button.onclick=()=>openMarketplaceConversation(c.id);
       list.appendChild(button);
     });
