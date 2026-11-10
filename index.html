@@ -503,13 +503,9 @@ main{max-width:1220px}
     </select>
 
     <input id="supplierProductCategory" placeholder="Product category">
-<label for="supplierProductImage">Upload Product Picture (Required)</label>
-<input
-  id="supplierProductImage"
-  type="file"
-  accept="image/*"
-  required
->
+<label>Product Picture</label>
+<input id="supplierProductImage" type="file" accept="image/*">
+<input id="supplierProductImageUrl" type="url" placeholder="Or paste an image URL">
     <input id="supplierProductLink" placeholder="Supplier product URL">
 
     <textarea id="supplierProductDescription"
@@ -646,13 +642,9 @@ main{max-width:1220px}
 <input
   id="adminProductImage"
   type="file"
-  accept="image/*"
-  required
->
-        <input id="adminProductLink" placeholder="Supplier / affiliate URL">
-        <textarea id="adminProductDescription" placeholder="Product description"></textarea>
-      </div>
-
+<label>Product Picture</label>
+<input id="adminProductImage" type="file" accept="image/*">
+<input id="adminProductImageUrl" type="url" placeholder="Or paste an image URL">
       <label>
         <input id="adminProductActive" type="checkbox" checked style="width:auto">
         Active / visible in store
