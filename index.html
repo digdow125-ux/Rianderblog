@@ -912,8 +912,46 @@ function clearAdminProductForm(){['adminProductId','adminProductName','adminProd
 function editAdminProduct(id){const p=allProducts.find(x=>String(x.id)===String(id));if(!p)return;document.getElementById('adminProductId').value=p.id;document.getElementById('adminProductName').value=p.name||'';document.getElementById('adminProductPrice').value=p.price??'';document.getElementById('adminProductCurrency').value=p.currency||'USD';document.getElementById('adminProductCategory').value=p.category||'';document.getElementById('adminProductImage').value=p.image_url||'';document.getElementById('adminProductLink').value=p.affiliate_url||'';document.getElementById('adminProductDescription').value=p.description||'';document.getElementById('adminProductActive').checked=!!p.is_active;document.getElementById('adminProductName').scrollIntoView({behavior:'smooth',block:'center'});}
 async function saveAdminProduct(){try{await adminGuard();const name=document.getElementById('adminProductName').value.trim();const price=Number(document.getElementById('adminProductPrice').value);if(!name||!Number.isFinite(price)||price<0)throw new Error('Enter a product name and a valid non-negative price.');const image=document.getElementById('adminProductImage').value.trim();const link=document.getElementById('adminProductLink').value.trim();if(image&&!safeUrl(image))throw new Error('Image URL must start with http:// or https://.');if(link&&!safeUrl(link))throw new Error('Supplier URL must start with http:// or https://.');const row={name,price,currency:document.getElementById('adminProductCurrency').value.trim().toUpperCase()||'USD',category:document.getElementById('adminProductCategory').value.trim()||'Other',image_url:image||null,affiliate_url:link||null,description:document.getElementById('adminProductDescription').value.trim(),is_active:document.getElementById('adminProductActive').checked};const id=document.getElementById('adminProductId').value;const result=id?await db.from('products').update(row).eq('id',id):await db.from('products').insert(row);if(result.error)throw result.error;adminMessage('adminProductMessage',id?'Product updated.':'Product added.');clearAdminProductForm();await loadProducts();await loadAdminDashboard();}catch(e){adminMessage('adminProductMessage','Could not save: '+e.message);}}
 async function deleteAdminProduct(id){if(!confirm('Delete this product permanently?'))return;try{await adminGuard();const {error}=await db.from('products').delete().eq('id',id);if(error)throw error;adminMessage('adminProductMessage','Product deleted.');await loadProducts();await loadAdminDashboard();}catch(e){adminMessage('adminProductMessage','Could not delete: '+e.message);}}
-async function adminLoadTable(table,select,containerId,kind){const box=document.getElementById(containerId);try{const {data,error}=await db.from(table).select(select).order('created_at',{ascending:false}).limit(100);if(error)throw error;if(!data?.length){box.textContent='No records found.';return 0;}box.innerHTML=data.map(row=>{const title=escapeHTML(row.company_name||row.applicant_name||row.name||row.id||'Record');const detail=escapeHTML([row.country,row.email||row.contact_email,row.commission_rate!=null?row.commission_rate+'% commission':null,row.status||''].filter(Boolean).join(' · '));const id=escapeHTML(row.id);let actions='';if(kind==='supplier'||kind==='programme'){actions=`<button class="primary" onclick="adminSetStatus('${kind}','${id}','approved')">Approve</button><button class="secondary" onclick="adminSetStatus('${kind}','${id}','rejected')">Reject</button>`;}else if(kind==='application'){actions=`<button class="primary" onclick="adminSetStatus('application','${id}','approved')">Approve</button><button class="secondary" onclick="adminSetStatus('application','${id}','rejected')">Reject</button>`;}return `<div class="admin-row"><div><strong>${title}</strong><div class="small-note">${detail}</div></div><div class="admin-actions">${actions}</div></div>`;}).join('');return data.length;}catch(e){box.textContent='Cannot load '+table+': '+e.message;return null;}}
-async function adminSetStatus(kind,id,status){try{await adminGuard();const table=kind==='supplier'?'suppliers':kind==='programme'?'affiliate_programmes':'affiliate_applications';const {error}=await db.from(table).update({status}).eq('id',id);if(error)throw error;await loadAdminDashboard();}catch(e){alert('Could not update status: '+e.message);}}
+async function adminLoadTable(table,select,containerId,kind){
+ const box=document.getElementById(containerId);
+ try{
+  const {data,error}=await db.from(table).select(select).order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  if(!data?.length){box.textContent='No records found.';return 0;}
+  box.innerHTML=data.map(row=>{
+   const title=escapeHTML(row.company_name||row.applicant_name||row.name||row.id||'Record');
+   const detail=escapeHTML([row.country,row.email||row.contact_email,row.commission_rate!=null?row.commission_rate+'% commission':null,row.status||''].filter(Boolean).join(' · '));
+   const id=escapeHTML(row.id);
+   let actions='';
+   if(kind==='supplier'||kind==='programme'){
+    actions=`<button type="button" class="primary" onclick="adminSetStatus('${kind}','${id}','approved')">Approve</button>
+    <button type="button" class="secondary" onclick="adminSetStatus('${kind}','${id}','rejected')">Reject</button>`;
+   }else if(kind==='application'){
+    actions=`<button type="button" class="primary" onclick="adminSetStatus('application','${id}','approved')">Approve</button>
+    <button type="button" class="secondary" onclick="adminSetStatus('application','${id}','rejected')">Reject</button>`;
+   }
+   return `<div class="admin-row"><div><strong>${title}</strong><div class="small-note">${detail}</div></div><div class="admin-actions">${actions}</div></div>`;
+  }).join('');
+  return data.length;
+ }catch(e){
+  box.textContent='Cannot load '+table+': '+e.message;
+  return null;
+ }
+}
+
+async function adminSetStatus(kind,id,status){
+ try{
+  await adminGuard();
+  const table=kind==='supplier'?'suppliers':kind==='programme'?'affiliate_programmes':'affiliate_applications';
+  const {data,error}=await db.from(table).update({status}).eq('id',id).select('id').maybeSingle();
+  if(error)throw error;
+  if(!data)throw new Error('No row was updated. Check admin access.');
+  await loadAdminDashboard();
+  alert('Application status changed to '+status+'.');
+ }catch(e){
+  alert('Could not update status: '+(e?.message||String(e)));
+ }
+}
 async function loadAdminDashboard() {
   try {
     await adminGuard();
