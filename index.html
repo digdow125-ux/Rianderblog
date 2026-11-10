@@ -1989,6 +1989,239 @@ async function applySupplier(){
   message.textContent='Could not submit: '+e.message;
  }
      }
+  
+let supplierProductsCache = [];
+let currentSupplierRecord = null;
+
+async function getCurrentApprovedSupplier(){
+  const {data:{user},error:userError}=await db.auth.getUser();
+  if(userError) throw userError;
+  if(!user) throw new Error('Please sign in first.');
+
+  const {data,error}=await db
+    .from('suppliers')
+    .select('*')
+    .eq('user_id',user.id)
+    .in('status',['approved','active'])
+    .limit(1)
+    .maybeSingle();
+
+  if(error) throw error;
+  if(!data) throw new Error('Your supplier account is not approved yet.');
+
+  return {user,supplier:data};
+}
+
+function clearSupplierProductForm(){
+  [
+    'supplierProductId',
+    'supplierProductName',
+    'supplierProductPrice',
+    'supplierProductCategory',
+    'supplierProductImageUrl',
+    'supplierProductLink',
+    'supplierProductDescription'
+  ].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+
+  const file=document.getElementById('supplierProductImage');
+  if(file) file.value='';
+
+  const currency=document.getElementById('supplierProductCurrency');
+  if(currency) currency.value='USD';
+
+  adminMessage('supplierProductMessage','');
+}
+
+async function loadSupplierWorkspace(){
+  const status=document.getElementById('supplierWorkspaceStatus');
+  if(status) status.textContent='Checking supplier access...';
+
+  try{
+    const {supplier}=await getCurrentApprovedSupplier();
+    currentSupplierRecord=supplier;
+
+    if(status){
+      status.textContent='Approved supplier: '+
+        (supplier.business_name||supplier.company_name||'Your business')+
+        '. You can manage your products below.';
+    }
+
+    await loadSupplierProducts(supplier.id);
+  }catch(e){
+    currentSupplierRecord=null;
+    supplierProductsCache=[];
+
+    if(status) status.textContent=e.message;
+    const box=document.getElementById('supplierProductList');
+    if(box) box.textContent='Your supplier products will appear here after approval.';
+  }
+}
+
+async function loadSupplierProducts(supplierId){
+  const box=document.getElementById('supplierProductList');
+  if(!box) return;
+
+  box.textContent='Loading your products...';
+
+  const {data,error}=await db
+    .from('products')
+    .select('*')
+    .eq('supplier_id',supplierId)
+    .order('created_at',{ascending:false});
+
+  if(error) throw error;
+
+  supplierProductsCache=data||[];
+
+  if(!supplierProductsCache.length){
+    box.textContent='You have not submitted any products yet.';
+    return;
+  }
+
+  box.innerHTML=supplierProductsCache.map(p=>`
+    <div class="admin-row">
+      <div>
+        ${safeUrl(p.image_url)?`
+          <img src="${safeUrl(p.image_url)}"
+               alt="${escapeHTML(p.name)}"
+               style="width:65px;height:65px;object-fit:cover;border-radius:10px">
+        `:''}
+        <strong>${escapeHTML(p.name)}</strong>
+        <div class="small-note">
+          ${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)}
+          · ${escapeHTML(p.category||'Other')}
+        </div>
+        <div class="small-note">
+          ${p.is_active?'Active':'Waiting for admin review'}
+        </div>
+      </div>
+      <div class="admin-actions">
+        <button class="secondary"
+          onclick="editSupplierProduct('${escapeHTML(p.id)}')">Edit</button>
+        <button class="remove"
+          onclick="deleteSupplierProduct('${escapeHTML(p.id)}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editSupplierProduct(id){
+  const p=supplierProductsCache.find(x=>String(x.id)===String(id));
+  if(!p) return;
+
+  document.getElementById('supplierProductId').value=p.id;
+  document.getElementById('supplierProductName').value=p.name||'';
+  document.getElementById('supplierProductPrice').value=p.price??'';
+  document.getElementById('supplierProductCurrency').value=p.currency||'USD';
+  document.getElementById('supplierProductCategory').value=p.category||'';
+
+  document.getElementById('supplierProductImage').value='';
+  document.getElementById('supplierProductImageUrl').value=p.image_url||'';
+
+  document.getElementById('supplierProductLink').value=p.affiliate_url||'';
+  document.getElementById('supplierProductDescription').value=p.description||'';
+
+  document.getElementById('supplierProductName').scrollIntoView({
+    behavior:'smooth',
+    block:'center'
+  });
+
+  adminMessage('supplierProductMessage','Editing product. Save when finished.');
+}
+
+async function saveSupplierProduct(){
+  try{
+    const {user,supplier}=await getCurrentApprovedSupplier();
+    currentSupplierRecord=supplier;
+
+    const name=document.getElementById('supplierProductName').value.trim();
+    const price=Number(document.getElementById('supplierProductPrice').value);
+    const link=safeUrl(document.getElementById('supplierProductLink').value.trim());
+
+    if(!name||!Number.isFinite(price)||price<=0){
+      throw new Error('Enter a product name and a valid price above zero.');
+    }
+
+    if(!link){
+      throw new Error('Enter a valid supplier product URL.');
+    }
+
+    const id=document.getElementById('supplierProductId').value;
+    const oldProduct=id
+      ? supplierProductsCache.find(x=>String(x.id)===String(id))
+      : null;
+
+    if(id&&!oldProduct){
+      throw new Error('That product was not found in your supplier account.');
+    }
+
+    const image=await resolveProductImage(
+      'supplierProductImage',
+      'supplierProductImageUrl',
+      oldProduct?.image_url,
+      user
+    );
+
+    const row={
+      name:name,
+      price:price,
+      currency:document.getElementById('supplierProductCurrency').value,
+      category:document.getElementById('supplierProductCategory').value.trim()||'Other',
+      image_url:image,
+      affiliate_url:link,
+      description:document.getElementById('supplierProductDescription').value.trim(),
+      supplier_id:supplier.id,
+      created_by:user.id,
+      is_active:false
+    };
+
+    const result=id
+      ? await db.from('products').update(row)
+          .eq('id',id).eq('supplier_id',supplier.id)
+      : await db.from('products').insert(row);
+
+    if(result.error) throw result.error;
+
+    adminMessage(
+      'supplierProductMessage',
+      id
+        ? 'Product updated and sent for admin review.'
+        : 'Product submitted successfully for admin review.'
+    );
+
+    clearSupplierProductForm();
+    await loadSupplierProducts(supplier.id);
+
+  }catch(e){
+    adminMessage('supplierProductMessage','Could not submit product: '+e.message);
+  }
+}
+
+async function deleteSupplierProduct(id){
+  if(!confirm('Delete this product permanently?')) return;
+
+  try{
+    const {supplier}=await getCurrentApprovedSupplier();
+
+    const {error}=await db
+      .from('products')
+      .delete()
+      .eq('id',id)
+      .eq('supplier_id',supplier.id);
+
+    if(error) throw error;
+
+    adminMessage('supplierProductMessage','Product deleted.');
+    await loadSupplierProducts(supplier.id);
+
+  }catch(e){
+    adminMessage('supplierProductMessage','Could not delete product: '+e.message);
+  }
+}
+
 async function loadProgrammes(){
  const box=document.getElementById('programmeList');const {data,error}=await db.from('affiliate_programmes').select('id,company_name,commission_rate,website,terms').eq('status','approved').order('created_at',{ascending:false});
  if(error){box.innerHTML='<p class="small-note">Affiliate programme directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
