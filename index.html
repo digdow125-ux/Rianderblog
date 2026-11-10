@@ -820,14 +820,13 @@ async function loadAdminOrdersTable() {
 }
 
   } catch (error) {
+  } catch (error) {
     box.textContent = "Could not load orders: " + error.message;
   }
 }
 
 // APPROVE A PAID CUSTOMER ORDER
-async function adminApproveOrder(orderId) {                        
-
-// APPROVE A PAID CUSTOMER ORDER
+async function adminApproveOrder(orderId) {// APPROVE A PAID CUSTOMER ORDER
 async function adminApproveOrder(orderId) {
   try {
     await adminGuard();
