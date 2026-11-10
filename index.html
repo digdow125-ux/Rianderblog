@@ -974,20 +974,25 @@ async function adminLoadTable(table,select,containerId,kind){
  const box=document.getElementById(containerId);
  try{
   const {data,error}=await db.from(table).select(select).order('created_at',{ascending:false}).limit(100);
-  if(error)throw error;
+  if(error) throw error;
   if(!data?.length){box.textContent='No records found.';return 0;}
+
   box.innerHTML=data.map(row=>{
-   const title=escapeHTML(row.company_name||row.applicant_name||row.name||row.id||'Record');
-   const detail=escapeHTML([row.country,row.email||row.contact_email,row.commission_rate!=null?row.commission_rate+'% commission':null,row.status||''].filter(Boolean).join(' · '));
+   const title=escapeHTML(row.business_name||row.company_name||row.applicant_name||row.name||row.id||'Record');
+   const detail=escapeHTML([row.contact_name,row.country,row.email||row.contact_email,row.status||''].filter(Boolean).join(' · '));
    const id=escapeHTML(row.id);
    let actions='';
-   if(kind==='supplier'||kind==='programme'){
+
+   if(kind==='supplier_application'){
+    actions=row.status==='pending'
+     ? `<button type="button" class="primary" onclick="adminSetStatus('supplier_application','${id}','approved')">Approve</button>
+        <button type="button" class="secondary" onclick="adminSetStatus('supplier_application','${id}','rejected')">Reject</button>`
+     : '';
+   }else if(kind==='supplier'||kind==='programme'||kind==='application'){
     actions=`<button type="button" class="primary" onclick="adminSetStatus('${kind}','${id}','approved')">Approve</button>
     <button type="button" class="secondary" onclick="adminSetStatus('${kind}','${id}','rejected')">Reject</button>`;
-   }else if(kind==='application'){
-    actions=`<button type="button" class="primary" onclick="adminSetStatus('application','${id}','approved')">Approve</button>
-    <button type="button" class="secondary" onclick="adminSetStatus('application','${id}','rejected')">Reject</button>`;
    }
+
    return `<div class="admin-row"><div><strong>${title}</strong><div class="small-note">${detail}</div></div><div class="admin-actions">${actions}</div></div>`;
   }).join('');
   return data.length;
