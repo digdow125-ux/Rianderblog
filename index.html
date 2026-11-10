@@ -1971,17 +1971,6 @@ const row={
   message.textContent='Enter company name, country, business email and phone number.';
   return;
    }
-   country:document.getElementById('supplierCountry').value.trim(),
-   email:document.getElementById('supplierEmail').value.trim(),
-   website:safeUrl(document.getElementById('supplierWebsite').value),
-   fulfilment_details:document.getElementById('supplierDescription').value.trim(),
-   status:'pending'
-  };
-
-  if(!row.business_name||!row.country||!row.email){
-   message.textContent='Enter company name, country and business email.';
-   return;
-  }
 
   const {data:existing,error:checkError}=await db
    .from('supplier_applications')
