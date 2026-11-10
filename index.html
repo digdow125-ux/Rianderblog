@@ -1005,10 +1005,20 @@ async function adminLoadTable(table,select,containerId,kind){
 async function adminSetStatus(kind,id,status){
  try{
   await adminGuard();
-  const table=kind==='supplier'?'suppliers':kind==='programme'?'affiliate_programmes':'affiliate_applications';
-  const {data,error}=await db.from(table).update({status}).eq('id',id).select('id').maybeSingle();
-  if(error)throw error;
-  if(!data)throw new Error('No row was updated. Check admin access.');
+
+  if(kind==='supplier_application'){
+   const {error}=await db.rpc('admin_review_supplier_application',{
+    p_application_id:id,
+    p_status:status
+   });
+   if(error) throw error;
+  }else{
+   const table=kind==='supplier'?'suppliers':kind==='programme'?'affiliate_programmes':'affiliate_applications';
+   const {data,error}=await db.from(table).update({status}).eq('id',id).select('id').maybeSingle();
+   if(error) throw error;
+   if(!data) throw new Error('No row was updated. Check admin access.');
+  }
+
   await loadAdminDashboard();
   alert('Application status changed to '+status+'.');
  }catch(e){
