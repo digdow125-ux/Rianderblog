@@ -522,6 +522,28 @@ main{max-width:1220px}
     </div>
   </div>
 
+  <div class="market-grid admin-stat-grid" id="adminStats">
+    <div class="market-card"><h3 id="statProducts">—</h3><p>Products</p></div>
+    <div class="market-card"><h3 id="statSuppliers">—</h3><p>Supplier applications</p></div>
+    <div class="market-card"><h3 id="statProgrammes">—</h3><p>Affiliate programmes</p></div>
+    <div class="market-card"><h3 id="statApplications">—</h3><p>Affiliate applications</p></div>
+    <div class="market-card"><h3 id="statOrders">—</h3><p>Orders</p></div>
+  </div>
+
+  <div class="admin-navigation">
+    <button onclick="adminShowTab('overview')">Overview</button>
+    <button onclick="adminShowTab('orders')">Orders</button>
+    <button onclick="adminShowTab('products')">Products</button>
+    <button onclick="adminShowTab('wallet')">Wallet</button>
+    <button onclick="adminShowTab('support')">Customer support</button>
+    <button onclick="adminShowTab('ai')">AI assistant</button>
+    <button onclick="adminShowTab('applications')">Applications</button>
+  </div>
+
+  <div id="adminTab-overview" class="admin-tab">
+    <div class="admin-tools">
+      <h3>Business overview</h3>
+      <p class="small-note">Your marketplace activity and management tools.</p>
   <div id="adminTab-orders" class="admin-tab" style="display:none">
     <div class="admin-tools">
       <h3>Customer orders</h3>
