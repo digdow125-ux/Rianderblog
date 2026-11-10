@@ -1491,7 +1491,78 @@ async function loadAdminDashboard() {
   }
       }
 function renderAdminProducts(){const box=document.getElementById('adminProductList');if(!box)return;box.innerHTML=allProducts.length?allProducts.map(p=>`<div class="admin-row"><div><strong>${escapeHTML(p.name)}</strong><div class="small-note">${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)} · ${p.is_active?'Active':'Hidden'}</div></div><div class="admin-actions"><button class="secondary" onclick="editAdminProduct('${escapeHTML(p.id)}')">Edit</button><button class="remove" onclick="deleteAdminProduct('${escapeHTML(p.id)}')">Delete</button></div></div>`).join(''):'No products available.';}
+async function loadPendingSupplierProducts(){
+  const box=document.getElementById('pendingSupplierProductList');
+  if(!box)return;
 
+  box.textContent='Loading supplier submissions...';
+
+  try{
+    await adminGuard();
+
+    const {data,error}=await db.from('products')
+      .select('id,name,description,price,currency,category,image_url,affiliate_url,created_at,supplier_id,review_status,is_active')
+      .not('supplier_id','is',null)
+      .eq('review_status','pending')
+      .order('created_at',{ascending:false});
+
+    if(error)throw error;
+
+    if(!data?.length){
+      box.textContent='No supplier products are waiting for approval.';
+      return;
+    }
+
+    box.innerHTML=data.map(p=>`
+      <div class="admin-row">
+        <div style="min-width:220px;flex:1">
+          ${safeUrl(p.image_url)?`<img src="${safeUrl(p.image_url)}" alt="${escapeHTML(p.name)}" style="width:90px;height:90px;object-fit:contain">`:''}
+          <strong>${escapeHTML(p.name)}</strong>
+          <div class="small-note">${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)} · ${escapeHTML(p.category||'Other')}</div>
+          <div class="small-note">${escapeHTML(p.description||'No description supplied')}</div>
+          ${safeUrl(p.affiliate_url)?`<a href="${safeUrl(p.affiliate_url)}" target="_blank" rel="noopener">View supplier link</a>`:''}
+        </div>
+        <div class="admin-actions">
+          <button class="primary" type="button" onclick="adminReviewSupplierProduct('${p.id}','approved')">Approve</button>
+          <button class="remove" type="button" onclick="adminReviewSupplierProduct('${p.id}','rejected')">Reject</button>
+        </div>
+      </div>
+    `).join('');
+
+  }catch(e){
+    box.textContent='Could not load pending products: '+e.message;
+  }
+}
+
+async function adminReviewSupplierProduct(id,status){
+  if(!['approved','rejected'].includes(status))return;
+
+  const action=status==='approved'?'approve and publish':'reject';
+
+  if(!confirm('Are you sure you want to '+action+' this supplier product?'))return;
+
+  try{
+    await adminGuard();
+
+    const {data,error}=await db.from('products')
+      .update({review_status:status,is_active:status==='approved'})
+      .eq('id',id)
+      .not('supplier_id','is',null)
+      .select('id')
+      .maybeSingle();
+
+    if(error)throw error;
+    if(!data)throw new Error('No supplier product was updated. Check admin access.');
+
+    await loadProducts();
+    await loadPendingSupplierProducts();
+
+    alert('Supplier product '+status+'.');
+
+  }catch(e){
+    alert('Could not '+action+' product: '+e.message);
+  }
+  }
 async function loadProducts() {
   const list = document.getElementById("productList");
   const {data,error} = await db.from("products").select("*");
