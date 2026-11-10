@@ -1047,10 +1047,192 @@ function saveCart() {
 function isAdminSession(user){return !!user && user.id===ADMIN_USER_ID;}
 async function adminGuard(){const {data,error}=await db.auth.getSession();if(error)throw error;if(!isAdminSession(data.session?.user))throw new Error('Admin sign-in required.');}
 function adminMessage(id,msg){const el=document.getElementById(id);if(el)el.textContent=msg;}
-function clearAdminProductForm(){['adminProductId','adminProductName','adminProductPrice','adminProductCategory','adminProductImage','adminProductLink','adminProductDescription'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminProductCurrency').value='USD';document.getElementById('adminProductActive').checked=true;adminMessage('adminProductMessage','');}
-function editAdminProduct(id){const p=allProducts.find(x=>String(x.id)===String(id));if(!p)return;document.getElementById('adminProductId').value=p.id;document.getElementById('adminProductName').value=p.name||'';document.getElementById('adminProductPrice').value=p.price??'';document.getElementById('adminProductCurrency').value=p.currency||'USD';document.getElementById('adminProductCategory').value=p.category||'';document.getElementById('adminProductImage').value=p.image_url||'';document.getElementById('adminProductLink').value=p.affiliate_url||'';document.getElementById('adminProductDescription').value=p.description||'';document.getElementById('adminProductActive').checked=!!p.is_active;document.getElementById('adminProductName').scrollIntoView({behavior:'smooth',block:'center'});}
-async function saveAdminProduct(){try{await adminGuard();const name=document.getElementById('adminProductName').value.trim();const price=Number(document.getElementById('adminProductPrice').value);if(!name||!Number.isFinite(price)||price<0)throw new Error('Enter a product name and a valid non-negative price.');const image=document.getElementById('adminProductImage').value.trim();const link=document.getElementById('adminProductLink').value.trim();if(image&&!safeUrl(image))throw new Error('Image URL must start with http:// or https://.');if(link&&!safeUrl(link))throw new Error('Supplier URL must start with http:// or https://.');const row={name,price,currency:document.getElementById('adminProductCurrency').value.trim().toUpperCase()||'USD',category:document.getElementById('adminProductCategory').value.trim()||'Other',image_url:image||null,affiliate_url:link||null,description:document.getElementById('adminProductDescription').value.trim(),is_active:document.getElementById('adminProductActive').checked};const id=document.getElementById('adminProductId').value;const result=id?await db.from('products').update(row).eq('id',id):await db.from('products').insert(row);if(result.error)throw result.error;adminMessage('adminProductMessage',id?'Product updated.':'Product added.');clearAdminProductForm();await loadProducts();await loadAdminDashboard();}catch(e){adminMessage('adminProductMessage','Could not save: '+e.message);}}
-async function deleteAdminProduct(id){if(!confirm('Delete this product permanently?'))return;try{await adminGuard();const {error}=await db.from('products').delete().eq('id',id);if(error)throw error;adminMessage('adminProductMessage','Product deleted.');await loadProducts();await loadAdminDashboard();}catch(e){adminMessage('adminProductMessage','Could not delete: '+e.message);}}
+
+async function uploadProductImage(file,userId){
+  if(!file) return null;
+  if(!file.type || !file.type.startsWith('image/')) {
+    throw new Error('Choose a valid image file.');
+  }
+  if(file.size > 5*1024*1024) {
+    throw new Error('Image must be 5 MB or smaller.');
+  }
+
+  const extensions = {
+    'image/jpeg':'jpg',
+    'image/png':'png',
+    'image/webp':'webp',
+    'image/gif':'gif',
+    'image/avif':'avif'
+  };
+
+  const ext = extensions[file.type];
+  if(!ext) throw new Error('Use JPG, PNG, WEBP, GIF or AVIF.');
+
+  const path = userId + '/' + Date.now() + '-' +
+    Math.random().toString(36).slice(2,10) + '.' + ext;
+
+  const {data,error} = await db.storage
+    .from('product-images')
+    .upload(path,file,{
+      cacheControl:'3600',
+      upsert:false,
+      contentType:file.type
+    });
+
+  if(error) throw error;
+
+  const result = db.storage
+    .from('product-images')
+    .getPublicUrl(data.path);
+
+  return result.data.publicUrl;
+}
+
+async function resolveProductImage(fileId,urlId,existingUrl,user){
+  const file = document.getElementById(fileId).files[0];
+  const typedUrl = document.getElementById(urlId).value.trim();
+
+  if(file){
+    return await uploadProductImage(file,user.id);
+  }
+
+  if(typedUrl){
+    const valid = safeUrl(typedUrl);
+    if(!valid) throw new Error('Enter a valid image URL.');
+    return valid;
+  }
+
+  if(existingUrl) return existingUrl;
+
+  throw new Error('Upload a picture or paste an image URL.');
+}
+
+function clearAdminProductForm(){
+  [
+    'adminProductId',
+    'adminProductName',
+    'adminProductPrice',
+    'adminProductCategory',
+    'adminProductLink',
+    'adminProductDescription',
+    'adminProductImageUrl'
+  ].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+
+  document.getElementById('adminProductImage').value='';
+  document.getElementById('adminProductCurrency').value='USD';
+  document.getElementById('adminProductActive').checked=true;
+
+  adminMessage('adminProductMessage','');
+}
+
+function editAdminProduct(id){
+  const p=allProducts.find(x=>String(x.id)===String(id));
+  if(!p)return;
+
+  document.getElementById('adminProductId').value=p.id;
+  document.getElementById('adminProductName').value=p.name||'';
+  document.getElementById('adminProductPrice').value=p.price??'';
+  document.getElementById('adminProductCurrency').value=p.currency||'USD';
+  document.getElementById('adminProductCategory').value=p.category||'';
+
+  document.getElementById('adminProductImage').value='';
+  document.getElementById('adminProductImageUrl').value=p.image_url||'';
+
+  document.getElementById('adminProductLink').value=p.affiliate_url||'';
+  document.getElementById('adminProductDescription').value=p.description||'';
+  document.getElementById('adminProductActive').checked=!!p.is_active;
+
+  document.getElementById('adminProductName').scrollIntoView({
+    behavior:'smooth',
+    block:'center'
+  });
+}
+
+async function saveAdminProduct(){
+  try{
+    await adminGuard();
+
+    const {data:{user},error:userError}=await db.auth.getUser();
+    if(userError) throw userError;
+    if(!user) throw new Error('Please sign in again.');
+
+    const name=document.getElementById('adminProductName').value.trim();
+    const price=Number(document.getElementById('adminProductPrice').value);
+    const link=safeUrl(document.getElementById('adminProductLink').value.trim());
+
+    if(!name || !Number.isFinite(price) || price<0){
+      throw new Error('Enter a product name and valid price.');
+    }
+
+    if(!link){
+      throw new Error('Enter a valid affiliate or supplier product link.');
+    }
+
+    const id=document.getElementById('adminProductId').value;
+    const oldProduct=id
+      ? allProducts.find(x=>String(x.id)===String(id))
+      : null;
+
+    const image=await resolveProductImage(
+      'adminProductImage',
+      'adminProductImageUrl',
+      oldProduct?.image_url,
+      user
+    );
+
+    const row={
+      name:name,
+      price:price,
+      currency:document.getElementById('adminProductCurrency').value,
+      category:document.getElementById('adminProductCategory').value.trim()||'Other',
+      image_url:image,
+      affiliate_url:link,
+      description:document.getElementById('adminProductDescription').value.trim(),
+      is_active:document.getElementById('adminProductActive').checked
+    };
+
+    const result=id
+      ? await db.from('products').update(row).eq('id',id)
+      : await db.from('products').insert(row);
+
+    if(result.error) throw result.error;
+
+    adminMessage('adminProductMessage',
+      id?'Product updated successfully.':'Product added successfully.'
+    );
+
+    clearAdminProductForm();
+    await loadProducts();
+    await loadAdminDashboard();
+    renderAdminProducts();
+
+  }catch(e){
+    adminMessage('adminProductMessage','Could not save: '+e.message);
+  }
+}
+
+async function deleteAdminProduct(id){
+  if(!confirm('Delete this product permanently?'))return;
+
+  try{
+    await adminGuard();
+
+    const {error}=await db.from('products').delete().eq('id',id);
+    if(error) throw error;
+
+    adminMessage('adminProductMessage','Product deleted.');
+
+    await loadProducts();
+    await loadAdminDashboard();
+    renderAdminProducts();
+
+  }catch(e){
+    adminMessage('adminProductMessage','Could not delete: '+e.message);
+  }
+}
+
 async function adminLoadTable(table,select,containerId,kind){
  const box=document.getElementById(containerId);
  try{
