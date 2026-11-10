@@ -473,7 +473,14 @@ main{max-width:1220px}
     <input id="supplierSearch" class="search" placeholder="Search suppliers by company, country or products…" oninput="renderSuppliers()">
     <div id="supplierList"><p class="small-note">Supplier directory will display approved supplier profiles here.</p></div>
     <h3>Become a supplier</h3><p class="small-note">Create a supplier application. RIANDERBLOG admin approval is required before public listing.</p>
-    <div class="form-grid"><input id="supplierCompany" placeholder="Company / business name"><input id="supplierCountry" placeholder="Country"><input id="supplierEmail" type="email" placeholder="Business email"><input id="supplierWebsite" placeholder="Website URL (optional)"><textarea id="supplierDescription" placeholder="Describe your products, shipping destinations and business"></textarea></div>
+    <div class="form-grid">
+  <input id="supplierCompany" placeholder="Company / business name">
+  <input id="supplierCountry" placeholder="Country">
+  <input id="supplierEmail" type="email" placeholder="Business email">
+  <input id="supplierPhone" type="tel" placeholder="Phone number (include country code)">
+  <input id="supplierWebsite" placeholder="Website URL (optional)">
+  <textarea id="supplierDescription" placeholder="Describe your products, shipping destinations and business"></textarea>
+    </div>
     <button class="primary" onclick="applySupplier()">Submit supplier application</button><p id="supplierMessage" class="small-note"></p>
     
 <div class="listing" style="margin-top:25px">
@@ -1949,17 +1956,21 @@ async function applySupplier(){
 
  try{
   const {data:{user},error:userError}=await db.auth.getUser();
-  if(userError) throw userError;
-
-  if(!user){
-   message.textContent='Please sign in first.';
-   return;
-  }
-
-  const row={
-   user_id:user.id,
-   business_name:document.getElementById('supplierCompany').value.trim(),
-   contact_name:user.user_metadata?.full_name||user.email||'',
+const row={
+  user_id:user.id,
+  business_name:document.getElementById('supplierCompany').value.trim(),
+  contact_name:user.user_metadata?.full_name||user.email||'',
+  country:document.getElementById('supplierCountry').value.trim(),
+  email:document.getElementById('supplierEmail').value.trim(),
+  phone:document.getElementById('supplierPhone').value.trim(),
+  website:safeUrl(document.getElementById('supplierWebsite').value),
+  fulfilment_details:document.getElementById('supplierDescription').value.trim(),
+  status:'pending'
+};
+   if(!row.business_name||!row.country||!row.email||!row.phone){
+  message.textContent='Enter company name, country, business email and phone number.';
+  return;
+   }
    country:document.getElementById('supplierCountry').value.trim(),
    email:document.getElementById('supplierEmail').value.trim(),
    website:safeUrl(document.getElementById('supplierWebsite').value),
