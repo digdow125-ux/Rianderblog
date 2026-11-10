@@ -475,7 +475,55 @@ main{max-width:1220px}
     <div class="form-grid"><input id="supplierCompany" placeholder="Company / business name"><input id="supplierCountry" placeholder="Country"><input id="supplierEmail" type="email" placeholder="Business email"><input id="supplierWebsite" placeholder="Website URL (optional)"><textarea id="supplierDescription" placeholder="Describe your products, shipping destinations and business"></textarea></div>
     <button class="primary" onclick="applySupplier()">Submit supplier application</button><p id="supplierMessage" class="small-note"></p>
   </section>
+<div class="listing" style="margin-top:25px">
+  <h3>📦 Supplier Workspace</h3>
+  <p class="small-note">
+    Manage your products after your supplier application is approved.
+  </p>
 
+  <p id="supplierWorkspaceStatus" class="small-note">
+    Sign in to check your supplier access.
+  </p>
+
+  <input id="supplierProductId" type="hidden">
+
+  <div class="form-grid">
+    <input id="supplierProductName" placeholder="Product name">
+
+    <input id="supplierProductPrice" type="number"
+      min="0.01" step="0.01" placeholder="Selling price">
+
+    <select id="supplierProductCurrency">
+      <option value="USD">USD</option>
+      <option value="MWK">MWK</option>
+      <option value="GBP">GBP</option>
+      <option value="EUR">EUR</option>
+      <option value="ZAR">ZAR</option>
+    </select>
+
+    <input id="supplierProductCategory" placeholder="Product category">
+    <input id="supplierProductImage" placeholder="Product image URL">
+    <input id="supplierProductLink" placeholder="Supplier product URL">
+
+    <textarea id="supplierProductDescription"
+      placeholder="Product description"></textarea>
+  </div>
+
+  <button class="primary" onclick="saveSupplierProduct()">
+    Submit Product for Review
+  </button>
+
+  <button class="secondary" onclick="clearSupplierProductForm()">
+    Clear Form
+  </button>
+
+  <p id="supplierProductMessage" class="small-note"></p>
+
+  <h3>My Products</h3>
+  <div id="supplierProductList">
+    Sign in to view your products.
+  </div>
+</div>
   <section id="affiliates" class="panel secondary-page">
     <h2>🤝 Affiliate Marketing Centre</h2><p>Discover company affiliate programmes and apply to promote products for commission.</p>
     <div id="programmeList"><p class="small-note">Approved affiliate programmes will appear here.</p></div>
