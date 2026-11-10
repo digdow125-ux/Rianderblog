@@ -463,6 +463,54 @@ main{max-width:1220px}
   .chat-sidebar{border-right:0;border-bottom:1px solid #e1e6ee}
   .chat-messages{min-height:260px}
               }
+ 
+/* Premium account and guest-shopping experience */
+.guest-welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0 22px;padding:22px 24px;border:1px solid #e8dfcc;border-radius:15px;background:linear-gradient(110deg,#fff 0%,#fbf7ee 100%);box-shadow:0 7px 22px rgba(16,33,62,.05)}
+.guest-kicker,.account-kicker,.paychangu-kicker{display:block;color:#a47a2e;font-size:10px;font-weight:800;letter-spacing:1.8px}
+.guest-welcome h3{margin:7px 0;color:#10213e;font-size:20px}
+.guest-welcome p{margin:0;color:#687589;font-size:13px;line-height:1.6;max-width:650px}
+.guest-welcome button{background:#10213e;color:white;padding:13px 18px;white-space:nowrap}
+.guest-welcome button span{color:#e0b95e;margin-left:8px}
+.signed-in-welcome{display:flex;align-items:center;gap:12px;margin:18px 0;padding:15px 18px;border:1px solid #dce9df;background:#f3faf5;border-radius:12px;color:#1e6338}
+.signed-in-welcome>span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#dcefe1;font-weight:900}
+.signed-in-welcome strong,.signed-in-welcome small{display:block}.signed-in-welcome small{margin-top:3px;color:#607568;font-size:12px}
+.account-page{padding:0;overflow:hidden;border:1px solid #e1e6ed;border-radius:18px}
+.account-hero{display:flex;align-items:center;gap:18px;padding:27px 30px;background:linear-gradient(115deg,#0c1a31,#203d64);color:#fff}
+.account-brand-mark{display:grid;place-items:center;flex:none;width:58px;height:58px;border:2px solid #d6ad55;border-radius:15px;color:#d6ad55;font-size:31px;font-weight:900}
+.account-hero h2{margin:7px 0;color:white;font-size:25px}.account-hero p{max-width:690px;margin:0;color:#d5deea;font-size:13px;line-height:1.6}
+.account-layout{display:grid;grid-template-columns:1fr minmax(280px,390px);gap:25px;padding:27px}
+.account-benefits h3{color:#10213e;margin:0 0 20px}
+.account-benefit{display:flex;gap:12px;align-items:flex-start;margin:17px 0}
+.account-benefit>span{display:grid;place-items:center;width:25px;height:25px;flex:none;border-radius:50%;background:#f5eddd;color:#9a712a;font-weight:900}
+.account-benefit strong,.account-benefit small{display:block}.account-benefit strong{color:#24334a;font-size:14px}.account-benefit small{margin-top:4px;color:#718095;font-size:12px;line-height:1.5}
+.account-free-note{margin-top:25px;color:#9a712a;font-weight:700;font-size:12px}
+.account-auth-card{padding:21px;border:1px solid #e5e8ee;border-radius:14px;background:#fbfcfe;box-shadow:0 7px 22px rgba(16,33,62,.06)}
+.account-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:#edf1f6;border-radius:9px;margin-bottom:20px}
+.account-tabs button{background:transparent;color:#637187;padding:11px}.account-tabs button.active{background:white;color:#10213e;box-shadow:0 2px 7px rgba(16,33,62,.09)}
+.account-auth-card label,.paychangu-fields label{display:block;margin:12px 0 5px;color:#34435a;font-size:12px;font-weight:700}
+.account-auth-card input{margin:0 0 7px;padding:13px;border-radius:8px;background:white}
+.account-submit,.google-account-button,.account-signout{width:100%;margin:12px 0 0;padding:13px;border-radius:8px}
+.account-submit{background:#10213e;color:white}.account-submit:hover{background:#29456f}
+.account-divider{display:flex;align-items:center;gap:10px;margin:17px 0;color:#8993a2;font-size:11px}.account-divider:before,.account-divider:after{content:"";height:1px;background:#e2e6ed;flex:1}
+.google-account-button{border:1px solid #dce2ea;background:white;color:#34435a}.google-account-button strong{font-size:17px;margin-right:9px;color:#4285f4}
+.account-message{margin:13px 0 0;padding:11px;border-radius:8px;background:#f2f5f9;color:#647187;font-size:12px;line-height:1.5}.account-message.success{background:#eef8f0;color:#27613b}
+.account-avatar{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 12px;border-radius:50%;background:#10213e;color:#d6ad55;font-size:24px;font-weight:800}
+#accountSignedIn{text-align:center}#accountSignedIn h3{margin:8px 0 4px;color:#10213e}#accountSignedIn .account-email{color:#718095;font-size:13px;overflow-wrap:anywhere}
+.account-signout{background:#edf1f6;color:#334258}
+.paychangu-checkout{margin-top:22px;padding:22px;border:1px solid #e1e6ee;border-radius:16px;background:#fff;box-shadow:0 9px 28px rgba(16,33,62,.07)}
+.paychangu-heading{display:flex;align-items:center;gap:13px;padding-bottom:17px;border-bottom:1px solid #edf0f4}
+.paychangu-lock{display:grid;place-items:center;width:43px;height:43px;flex:none;border-radius:12px;background:#edf4f8;color:#173b63;font-size:22px}
+.paychangu-heading h3{margin:4px 0;color:#10213e;font-size:20px}.paychangu-heading p{margin:0;color:#778397;font-size:12px}
+.paychangu-brand{margin-left:auto;color:#10213e;font-size:19px;font-weight:900;white-space:nowrap}.paychangu-brand span{color:#e18a2b}
+.paychangu-steps{display:flex;align-items:center;gap:9px;margin:18px 0 21px;color:#173b63;font-size:12px;font-weight:800}
+.paychangu-steps span{display:flex;align-items:center;gap:6px;white-space:nowrap}.paychangu-steps span:not(.current){color:#9aa4b2}.paychangu-steps small{font-size:10px;font-weight:600}.paychangu-steps i{height:1px;flex:1;background:#e2e7ed}
+.paychangu-fields input,.paychangu-fields textarea{margin:0 0 8px;padding:13px;border:1px solid #dce2ea;border-radius:8px;background:#fbfcfe}
+.paychangu-fields textarea{width:100%;min-height:95px;resize:vertical;font:inherit}
+.paychangu-assurance{display:flex;gap:11px;margin:12px 0 17px;padding:13px;border:1px solid #e4ebf1;border-radius:10px;background:#f7fafc}.paychangu-assurance>span{font-size:20px}.paychangu-assurance strong,.paychangu-assurance small{display:block}.paychangu-assurance strong{font-size:12px;color:#31445a}.paychangu-assurance small{margin-top:4px;color:#718095;font-size:11px;line-height:1.5}
+.paychangu-pay-button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:15px 18px;background:#10213e;color:#fff;border-radius:9px;font-size:14px}.paychangu-pay-button strong{color:#e0b95e;font-size:20px}
+.paychangu-footnote{text-align:center;color:#8a95a5;font-size:10px;margin:12px 0 0}
+@media(max-width:700px){.guest-welcome{align-items:stretch;flex-direction:column;padding:18px}.guest-welcome button{width:100%}.account-hero{padding:22px 18px;align-items:flex-start}.account-hero h2{font-size:20px}.account-layout{grid-template-columns:1fr;padding:18px;gap:12px}.account-benefits{padding-bottom:8px}.account-auth-card{padding:16px}.paychangu-checkout{padding:16px}.paychangu-heading{flex-wrap:wrap}.paychangu-brand{font-size:16px}.paychangu-steps{gap:5px}.paychangu-steps small{font-size:9px}}
+
 </style>
 </head>
 <body>
@@ -508,6 +556,11 @@ main{max-width:1220px}
   </section>
 
   <section id="products">
+    <div class="guest-welcome" id="guestSignupBanner">
+      <div><span class="guest-kicker">WELCOME TO RIANDERBLOG</span><h3>Discover products from global sellers.</h3><p>Browse freely as a guest. Create your free account to contact suppliers, manage your orders and check out securely.</p></div>
+      <button type="button" onclick="showSection('account');setAccountMode('signup')">Create free account <span>→</span></button>
+    </div>
+    <div class="signed-in-welcome" id="signedInWelcome" style="display:none"><span>✓</span><div><strong id="storeWelcomeText">Welcome back</strong><small>Your account is ready. Explore the latest products below.</small></div></div>
     <div class="section-head"><div><h2>Explore our products</h2><p>Choose a product to view its full details.</p></div></div>
     <div class="market-intro"><strong>Find what you love</strong><span class="market-promise">Great finds • Global sellers • New discoveries</span></div>
     <input class="search" id="search" placeholder="Search products, brands and categories..." aria-label="Search products">
@@ -530,38 +583,25 @@ main{max-width:1220px}
     <h3 id="cartTotal"></h3>
     <p id="cartNote"></p>
 
-    <div class="admin-tools" style="margin-top:20px">
-        <h3>🔒 Secure Checkout with PayChangu</h3>
-        <p class="small-note">
-            Sign in, provide your delivery details and continue to
-            PayChangu's secure payment page.
-        </p>
-
-        <input id="checkoutCustomerName"
-               type="text"
-               placeholder="Full name"
-               autocomplete="name"
-               required>
-
-        <input id="checkoutCustomerPhone"
-               type="tel"
-               placeholder="Phone number"
-               autocomplete="tel"
-               required>
-
-        <textarea id="checkoutShippingAddress"
-                  placeholder="Full delivery address"
-                  required
-                  style="width:100%;min-height:90px;padding:12px;border:1px solid #d8dee8;border-radius:7px;font:inherit"></textarea>
-
-        <button id="payChanguButton"
-                class="primary"
-                type="button"
-                onclick="startPayChanguCheckout()">
-            💳 Pay with PayChangu
-        </button>
-
-        <p id="checkoutMessage" class="small-note" aria-live="polite"></p>
+    <div class="paychangu-checkout">
+      <div class="paychangu-heading">
+        <div class="paychangu-lock">♙</div>
+        <div><span class="paychangu-kicker">SECURE PAYMENT</span><h3>Complete your order</h3><p>Your payment is processed securely by PayChangu.</p></div>
+        <div class="paychangu-brand">Pay<span>Changu</span></div>
+      </div>
+      <div class="paychangu-steps"><span class="current">1 <small>Delivery details</small></span><i></i><span>2 <small>Secure payment</small></span><i></i><span>3 <small>Confirmation</small></span></div>
+      <div class="paychangu-fields">
+        <label for="checkoutCustomerName">Full name</label>
+        <input id="checkoutCustomerName" type="text" placeholder="Name of the person receiving the order" autocomplete="name" required>
+        <label for="checkoutCustomerPhone">Phone number</label>
+        <input id="checkoutCustomerPhone" type="tel" placeholder="Include your country code" autocomplete="tel" required>
+        <label for="checkoutShippingAddress">Delivery address</label>
+        <textarea id="checkoutShippingAddress" placeholder="Country, city, area, street and any helpful delivery directions" required></textarea>
+      </div>
+      <div class="paychangu-assurance"><span>🔒</span><div><strong>Your payment details stay protected</strong><small>Card and payment credentials are entered only on PayChangu's secure checkout page. RIANDERBLOG never asks for your PIN or card password.</small></div></div>
+      <button id="payChanguButton" class="paychangu-pay-button" type="button" onclick="startPayChanguCheckout()"><span>Continue to secure payment</span><strong>→</strong></button>
+      <p class="paychangu-footnote">Payments powered by PayChangu · Secure checkout connection</p>
+      <p id="checkoutMessage" class="small-note" aria-live="polite"></p>
     </div>
   </section>
 
@@ -731,16 +771,46 @@ main{max-width:1220px}
     </div>
   </div>
 </section>
-  <section id="account" class="panel secondary-page">
-    <h2>Customer Account</h2>
-    <p>Create an account or sign in.</p>
-    <input id="email" type="email" placeholder="Email address" autocomplete="email">
-    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
-    <button class="primary" onclick="signUp()">Create Account</button>
-    <button class="primary" onclick="signIn()">Sign In</button>
-    <button class="primary" onclick="signInWithGoogle()">Sign in with Google</button>
-    <button class="secondary" onclick="signOut()">Sign Out</button>
-    <p id="message" class="notice">Not signed in yet.</p>
+  <section id="account" class="panel secondary-page account-page">
+    <div class="account-hero">
+      <div class="account-brand-mark">R</div>
+      <div>
+        <span class="account-kicker">YOUR RIANDERBLOG PROFILE</span>
+        <h2>Welcome to a world of discovery.</h2>
+        <p>Sign in or create your free account to manage orders, contact suppliers and enjoy a more personal shopping experience.</p>
+      </div>
+    </div>
+    <div class="account-layout">
+      <div class="account-benefits">
+        <h3>Your marketplace, all in one place</h3>
+        <div class="account-benefit"><span>✓</span><div><strong>Track your shopping</strong><small>Keep your orders and account activity together.</small></div></div>
+        <div class="account-benefit"><span>✓</span><div><strong>Talk to suppliers</strong><small>Send messages and discuss products directly.</small></div></div>
+        <div class="account-benefit"><span>✓</span><div><strong>Shop with confidence</strong><small>Use secure PayChangu checkout when placing an order.</small></div></div>
+        <p class="account-free-note">Creating an account is free.</p>
+      </div>
+      <div class="account-auth-card">
+        <div id="accountSignedOut">
+          <div class="account-tabs"><button type="button" id="accountSignInTab" class="active" onclick="setAccountMode('signin')">Sign in</button><button type="button" id="accountSignUpTab" onclick="setAccountMode('signup')">Create account</button></div>
+          <label for="email">Email address</label>
+          <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Enter your password" autocomplete="current-password">
+          <button id="accountSubmitButton" class="account-submit" type="button" onclick="submitAccountForm()">Sign in securely</button>
+          <div class="account-divider"><span>or continue with</span></div>
+          <button class="google-account-button" type="button" onclick="signInWithGoogle()"><strong>G</strong> Continue with Google</button>
+          <p id="message" class="account-message" aria-live="polite">You are browsing as a guest. Sign in or create an account to continue.</p>
+        </div>
+        <div id="accountSignedIn" style="display:none">
+          <div class="account-avatar" id="accountAvatar">R</div>
+          <span class="account-kicker">ACCOUNT CONNECTED</span>
+          <h3 id="accountWelcomeName">Welcome back</h3>
+          <p id="accountEmailDisplay" class="account-email"></p>
+          <p class="account-message success">Your RIANDERBLOG account is active.</p>
+          <button class="account-submit" type="button" onclick="showSection('dashboard')">Open my dashboard</button>
+          <button class="account-signout" type="button" onclick="signOut()">Sign out</button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="dashboard" class="panel secondary-page">
@@ -1968,6 +2038,18 @@ async function startPayChanguCheckout() {
         return;
     }
 
+    const {data:{user},error:authError}=await db.auth.getUser();
+    if(authError) {
+        message.textContent="Could not verify your account. Please try again.";
+        return;
+    }
+    if(!user) {
+        message.textContent="Please create a free RIANDERBLOG account or sign in before checkout.";
+        showSection("account");
+        setAccountMode("signup");
+        return;
+    }
+
     if (!customerName || !customerPhone || !shippingAddress) {
         message.textContent =
             "Please enter your name, phone number and delivery address.";
@@ -2081,6 +2163,7 @@ async function signUp() {
 
   document.getElementById("message").textContent =
     error ? error.message : "Account created. Check your email to confirm your account.";
+  if(!error)document.getElementById("message").classList.add("success");
 }
 
 async function signIn() {
@@ -2092,6 +2175,11 @@ async function signIn() {
   document.getElementById("message").textContent =
     error ? error.message : "You are signed in successfully!";
 
+  if(!error){
+    const {data:{user}}=await db.auth.getUser();
+    updateAccountExperience(user);
+    showSection("dashboard");
+  }
   await showDashboard();
 }
 
@@ -2114,6 +2202,10 @@ async function signOut() {
   document.getElementById("message").textContent =
     error ? error.message : "You are signed out.";
 
+  if(!error){
+    updateAccountExperience(null);
+    showSection("products");
+  }
   await showDashboard();
 }
 
@@ -2178,10 +2270,51 @@ async function showDashboard() {
 }
 
 
+function setAccountMode(mode){
+  const signup=mode==='signup';
+  document.getElementById('accountSignInTab')?.classList.toggle('active',!signup);
+  document.getElementById('accountSignUpTab')?.classList.toggle('active',signup);
+  const submit=document.getElementById('accountSubmitButton');
+  if(submit)submit.textContent=signup?'Create my free account':'Sign in securely';
+  const password=document.getElementById('password');
+  if(password)password.autocomplete=signup?'new-password':'current-password';
+}
+async function submitAccountForm(){
+  const signup=document.getElementById('accountSignUpTab')?.classList.contains('active');
+  if(signup)await signUp();else await signIn();
+}
+function updateAccountExperience(user){
+  const signedIn=!!user;
+  const guest=document.getElementById('guestSignupBanner');
+  const welcome=document.getElementById('signedInWelcome');
+  const signedOutPanel=document.getElementById('accountSignedOut');
+  const signedInPanel=document.getElementById('accountSignedIn');
+  if(guest)guest.style.display=signedIn?'none':'flex';
+  if(welcome)welcome.style.display=signedIn?'flex':'none';
+  if(signedOutPanel)signedOutPanel.style.display=signedIn?'none':'block';
+  if(signedInPanel)signedInPanel.style.display=signedIn?'block':'none';
+  if(signedIn){
+    const email=user.email||'RIANDERBLOG member';
+    const displayName=user.user_metadata?.full_name||user.user_metadata?.name||email.split('@')[0];
+    const name=document.getElementById('accountWelcomeName');
+    const emailBox=document.getElementById('accountEmailDisplay');
+    const avatar=document.getElementById('accountAvatar');
+    const storeText=document.getElementById('storeWelcomeText');
+    if(name)name.textContent='Welcome, '+displayName;
+    if(emailBox)emailBox.textContent=email;
+    if(avatar)avatar.textContent=(displayName.trim()[0]||'R').toUpperCase();
+    if(storeText)storeText.textContent='Welcome back, '+displayName;
+    const msg=document.getElementById('message');
+    if(msg)msg.textContent='You are signed in as '+email+'.';
+  }else{
+    const msg=document.getElementById('message');
+    if(msg)msg.textContent='You are browsing as a guest. Sign in or create a free account.';
+  }
+}
 db.auth.onAuthStateChange((event,session) => {
-  document.getElementById("message").textContent =
-    session ? "You are signed in." : "You are not signed in.";
-  updateAdminVisibility(session?.user || null);
+  const user=session?.user||null;
+  updateAccountExperience(user);
+  updateAdminVisibility(user);
   showDashboard();
 });
 
