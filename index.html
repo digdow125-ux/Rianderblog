@@ -2098,7 +2098,124 @@ const row={
   message.textContent='Could not submit: '+e.message;
  }
      }
-  
+let activeMarketplaceConversation = null;
+
+async function loadMarketplaceConversations(){
+  const list=document.getElementById('conversationList');
+  const area=document.getElementById('messageArea');
+  const composer=document.getElementById('messageComposer');
+
+  const {data:{user}}=await db.auth.getUser();
+
+  if(!user){
+    list.textContent='Please sign in to view messages.';
+    composer.style.display='none';
+    return;
+  }
+
+  list.textContent='Loading conversations...';
+
+  try{
+    const {data:supplier}=await db
+      .from('suppliers')
+      .select('id')
+      .eq('user_id',user.id)
+      .in('status',['active','approved'])
+      .maybeSingle();
+
+    let query=db.from('conversations').select('*');
+
+    query=supplier
+      ? query.or(`customer_id.eq.${user.id},supplier_id.eq.${supplier.id}`)
+      : query.eq('customer_id',user.id);
+
+    const {data:conversations,error}=await query
+      .order('created_at',{ascending:false});
+
+    if(error) throw error;
+
+    list.innerHTML='';
+
+    if(!conversations?.length){
+      list.textContent='No conversations yet.';
+      return;
+    }
+
+    conversations.forEach(c=>{
+      const button=document.createElement('button');
+      button.className='secondary';
+      button.style.display='block';
+      button.style.width='100%';
+      button.style.margin='6px 0';
+      button.textContent='Product conversation';
+      button.onclick=()=>openMarketplaceConversation(c.id);
+      list.appendChild(button);
+    });
+
+  }catch(e){
+    list.textContent='Could not load conversations: '+e.message;
+  }
+}
+
+async function openMarketplaceConversation(id){
+  activeMarketplaceConversation=id;
+
+  const area=document.getElementById('messageArea');
+  const composer=document.getElementById('messageComposer');
+
+  area.textContent='Loading messages...';
+  composer.style.display='block';
+
+  const {data,error}=await db
+    .from('messages')
+    .select('*')
+    .eq('conversation_id',id)
+    .order('created_at',{ascending:true});
+
+  if(error){
+    area.textContent='Could not load messages: '+error.message;
+    return;
+  }
+
+  const {data:{user}}=await db.auth.getUser();
+  area.innerHTML='';
+
+  (data||[]).forEach(m=>{
+    const p=document.createElement('p');
+    p.textContent=(m.sender_id===user.id?'You: ':'Other: ')+m.message_text;
+    area.appendChild(p);
+  });
+}
+
+async function sendMarketplaceMessage(){
+  const input=document.getElementById('messageInput');
+  const status=document.getElementById('messageStatus');
+  const message=input.value.trim();
+
+  if(!message||!activeMarketplaceConversation)return;
+
+  const {data:{user}}=await db.auth.getUser();
+
+  if(!user){
+    status.textContent='Please sign in first.';
+    return;
+  }
+
+  const {error}=await db.from('messages').insert({
+    conversation_id:activeMarketplaceConversation,
+    sender_id:user.id,
+    message_text:message
+  });
+
+  if(error){
+    status.textContent='Message not sent: '+error.message;
+    return;
+  }
+
+  input.value='';
+  status.textContent='Message sent.';
+  await openMarketplaceConversation(activeMarketplaceConversation);
+  }  
 let supplierProductsCache = [];
 let currentSupplierRecord = null;
 
