@@ -465,6 +465,16 @@ main{max-width:1220px}
               }
  
 /* Premium account and guest-shopping experience */
+.new-shop-guide{margin:16px 0 22px;padding:20px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(16,33,62,.045)}
+.new-shop-guide-heading h3{margin:5px 0 16px;color:#10213e;font-size:19px}
+.new-shop-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.new-shop-step{display:flex;align-items:flex-start;gap:10px;padding:13px;border-radius:10px;background:#f6f8fb}
+.new-shop-step>span{display:grid;place-items:center;flex:0 0 28px;height:28px;border-radius:50%;background:#10213e;color:#e0b95e;font-weight:800}
+.new-shop-step strong,.new-shop-step small{display:block}
+.new-shop-step strong{color:#10213e;font-size:13px}
+.new-shop-step small{margin-top:4px;color:#687589;font-size:12px;line-height:1.5}
+.new-shop-help{margin:14px 0 0;color:#687589;font-size:12px;line-height:1.5}
+@media(max-width:700px){.new-shop-guide{padding:16px}.new-shop-steps{grid-template-columns:1fr}.new-shop-step{padding:12px}}
 .guest-welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0 22px;padding:22px 24px;border:1px solid #e8dfcc;border-radius:15px;background:linear-gradient(110deg,#fff 0%,#fbf7ee 100%);box-shadow:0 7px 22px rgba(16,33,62,.05)}
 .guest-kicker,.account-kicker,.paychangu-kicker{display:block;color:#a47a2e;font-size:10px;font-weight:800;letter-spacing:1.8px}
 .guest-welcome h3{margin:7px 0;color:#10213e;font-size:20px}
@@ -525,18 +535,16 @@ main{max-width:1220px}
 <nav aria-label="Main navigation">
   <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰</button>
   <div class="nav-links" id="navLinks">
-    <a href="#products" onclick="showSection('products');closeMenu();return false">🏠 Home / Products</a>
-    <a href="#cart" onclick="showSection('cart');closeMenu();return false">🛒 My Cart (<span id="cartCount">0</span>)</a>
-    <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Currency</a>
-    <a href="#account" onclick="showSection('account');closeMenu();return false">👤 My Account</a>
-    <a href="#messages" onclick="showSection('messages');closeMenu();return false">💬 Messages</a>
-    <a href="#dashboard" onclick="showSection('dashboard');closeMenu();return false">📊 My Dashboard</a>
-    <a href="#suppliers" onclick="showSection('suppliers');closeMenu();return false">🏭 Discover Suppliers</a>
-<a href="#suppliers" onclick="showSection('suppliers');closeMenu();return false">📦 Supplier Centre</a>
-    <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate Centre</a>
-    <a href="#messages" onclick="showSection('messages');closeMenu();return false">💬 Messages</a>
-    <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment Information</a>
-    <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin Panel</a>
+    <a href="#products" onclick="showSection('products');closeMenu();return false">🏠 Home – Shop products</a>
+    <a href="#cart" onclick="showSection('cart');closeMenu();return false">🛒 My cart (<span id="cartCount">0</span>)</a>
+    <a href="#account" onclick="showSection('account');closeMenu();return false">👤 Sign in / My account</a>
+    <a href="#messages" onclick="showSection('messages');closeMenu();return false">💬 My messages</a>
+    <a href="#dashboard" onclick="showSection('dashboard');closeMenu();return false">📊 My orders & dashboard</a>
+    <a href="#suppliers" onclick="showSection('suppliers');closeMenu();return false">🏭 Suppliers & supplier centre</a>
+    <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate centre</a>
+    <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Change currency</a>
+    <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment help</a>
+    <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin panel</a>
   </div>
 </nav>
 <main>
@@ -561,6 +569,15 @@ main{max-width:1220px}
       <button type="button" onclick="showSection('account');setAccountMode('signup')">Create free account <span>→</span></button>
     </div>
     <div class="signed-in-welcome" id="signedInWelcome" style="display:none"><span>✓</span><div><strong id="storeWelcomeText">Welcome back</strong><small>Your account is ready. Explore the latest products below.</small></div></div>
+    <div class="new-shop-guide" id="newShopGuide">
+      <div class="new-shop-guide-heading"><span class="guest-kicker">NEW TO RIANDERBLOG?</span><h3>Shopping is simple. Just follow 3 steps.</h3></div>
+      <div class="new-shop-steps">
+        <div class="new-shop-step"><span>1</span><div><strong>Find a product</strong><small>Browse or search for something you like.</small></div></div>
+        <div class="new-shop-step"><span>2</span><div><strong>Add it to your cart</strong><small>Choose your product and check your cart.</small></div></div>
+        <div class="new-shop-step"><span>3</span><div><strong>Create an account and pay</strong><small>Sign up for free, enter delivery details and pay securely through PayChangu.</small></div></div>
+      </div>
+      <p class="new-shop-help">Need help before ordering? Sign in and use <strong>My messages</strong> to contact a supplier.</p>
+    </div>
     <div class="section-head"><div><h2>Explore our products</h2><p>Choose a product to view its full details.</p></div></div>
     <div class="market-intro"><strong>Find what you love</strong><span class="market-promise">Great finds • Global sellers • New discoveries</span></div>
     <input class="search" id="search" placeholder="Search products, brands and categories..." aria-label="Search products">
