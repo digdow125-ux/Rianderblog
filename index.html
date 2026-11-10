@@ -819,22 +819,13 @@ async function loadAdminOrdersTable() {
   }
 }
 
-                        onclick="adminApproveOrder('${escapeHTML(order.id)}')">
-                        Approve Order
-                       </button>`
-                    : escapeHTML(order.order_status || "—")
-                  }
-                </td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
   } catch (error) {
     box.textContent = "Could not load orders: " + error.message;
   }
 }
+
+// APPROVE A PAID CUSTOMER ORDER
+async function adminApproveOrder(orderId) {                        
 
 // APPROVE A PAID CUSTOMER ORDER
 async function adminApproveOrder(orderId) {
