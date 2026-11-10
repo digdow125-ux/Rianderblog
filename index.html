@@ -642,7 +642,13 @@ main{max-width:1220px}
         <input id="adminProductPrice" type="number" min="0" step="0.01" placeholder="Price">
         <input id="adminProductCurrency" value="USD" placeholder="Currency">
         <input id="adminProductCategory" placeholder="Category">
-        <input id="adminProductImage" placeholder="Product image URL">
+        <label for="adminProductImage">Upload Product Picture (Required)</label>
+<input
+  id="adminProductImage"
+  type="file"
+  accept="image/*"
+  required
+>
         <input id="adminProductLink" placeholder="Supplier / affiliate URL">
         <textarea id="adminProductDescription" placeholder="Product description"></textarea>
       </div>
