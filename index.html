@@ -654,6 +654,19 @@ main{max-width:1220px}
   <div id="supplierProductList">
     Sign in to view your products.
   </div>
+
+  <div class="listing" style="margin-top:24px">
+    <h3>📊 My Orders & Sales</h3>
+    <p class="small-note">Orders containing your products, with customer and delivery details.</p>
+    <p id="supplierOrdersStatus" class="small-note">Sign in as an approved supplier to view orders.</p>
+    <div id="supplierOrderSummary" class="form-grid"></div>
+    <div style="overflow-x:auto;margin-top:14px">
+      <table style="width:100%;min-width:900px;border-collapse:collapse">
+        <thead><tr><th>Order / Date</th><th>Customer</th><th>Product / Qty</th><th>Amount ordered</th><th>Payment</th><th>Order status</th><th>Delivery address</th></tr></thead>
+        <tbody id="supplierOrdersTable"><tr><td colspan="7">Orders will appear here.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
   </section>
   <section id="affiliates" class="panel secondary-page">
     <h2>🤝 Affiliate Marketing Centre</h2><p>Discover company affiliate programmes and apply to promote products for commission.</p>
@@ -2487,6 +2500,7 @@ async function loadSupplierWorkspace(){
     }
 
     await loadSupplierProducts(supplier.id);
+    await loadSupplierOrders(supplier.id);
   }catch(e){
     currentSupplierRecord=null;
     supplierProductsCache=[];
@@ -2543,6 +2557,59 @@ async function loadSupplierProducts(supplierId){
       </div>
     </div>
   `).join('');
+}
+
+async function loadSupplierOrders(supplierId){
+  const status=document.getElementById('supplierOrdersStatus');
+  const summary=document.getElementById('supplierOrderSummary');
+  const table=document.getElementById('supplierOrdersTable');
+  if(!table)return;
+  if(status)status.textContent='Loading your orders...';
+  if(summary)summary.innerHTML='';
+  table.innerHTML='<tr><td colspan="7">Loading orders...</td></tr>';
+  try{
+    const itemsResult=await db.from('order_items').select('id,order_id,product_name,quantity,unit_price,created_at').eq('supplier_id',supplierId).order('created_at',{ascending:false});
+    if(itemsResult.error)throw itemsResult.error;
+    const items=itemsResult.data||[];
+    if(!items.length){
+      if(status)status.textContent='No customer orders for your products yet.';
+      table.innerHTML='<tr><td colspan="7">No orders yet.</td></tr>';
+      return;
+    }
+    const orderIds=[...new Set(items.map(item=>item.order_id).filter(Boolean))];
+    const ordersResult=await db.from('orders').select('id,order_number,customer_name,customer_email,customer_phone,shipping_address,currency,payment_status,order_status,created_at').in('id',orderIds);
+    if(ordersResult.error)throw ordersResult.error;
+    const ordersById=new Map((ordersResult.data||[]).map(order=>[order.id,order]));
+    const rows=items.map(item=>({item,order:ordersById.get(item.order_id)})).filter(row=>row.order);
+    if(!rows.length){
+      if(status)status.textContent='Order records could not be matched to your products.';
+      table.innerHTML='<tr><td colspan="7">No matching order details were returned.</td></tr>';
+      return;
+    }
+    const totals={};
+    rows.forEach(({item,order})=>{
+      const currency=order.currency||'USD';
+      totals[currency]=(totals[currency]||0)+(Number(item.unit_price)||0)*(Number(item.quantity)||0);
+    });
+    if(summary){
+      summary.innerHTML=Object.entries(totals).map(([currency,amount])=>'<div class="listing"><strong>'+escapeHTML(currency)+' '+amount.toFixed(2)+'</strong><div class="small-note">Your product sales subtotal</div></div>').join('')+
+      '<div class="listing"><strong>'+rows.length+'</strong><div class="small-note">Order items</div></div>';
+    }
+    table.innerHTML=rows.map(({item,order})=>{
+      const date=order.created_at||item.created_at;
+      const amount=(Number(item.unit_price)||0)*(Number(item.quantity)||0);
+      const customer=[order.customer_name,order.customer_email,order.customer_phone].filter(Boolean).map(escapeHTML).join('<br>');
+      return '<tr><td>'+escapeHTML(order.order_number||order.id.slice(0,8))+'<br><span class="small-note">'+escapeHTML(date?new Date(date).toLocaleString():'—')+'</span></td>'+
+        '<td>'+(customer||'—')+'</td><td>'+escapeHTML(item.product_name||'Product')+'<br><span class="small-note">Quantity: '+Number(item.quantity||0)+'</span></td>'+
+        '<td>'+escapeHTML(order.currency||'USD')+' '+amount.toFixed(2)+'</td><td>'+escapeHTML(order.payment_status||'Unknown')+'</td>'+
+        '<td>'+escapeHTML(order.order_status||'Unknown')+'</td><td>'+escapeHTML(order.shipping_address||'Not provided')+'</td></tr>';
+    }).join('');
+    if(status)status.textContent='Showing '+rows.length+' order item(s) for your products.';
+  }catch(error){
+    if(status)status.textContent='Could not load supplier orders: '+(error?.message||String(error));
+    table.innerHTML='<tr><td colspan="7">Order information could not be loaded.</td></tr>';
+    console.error('Supplier orders:',error);
+  }
 }
 
 function editSupplierProduct(id){
