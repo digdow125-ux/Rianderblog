@@ -626,35 +626,72 @@ main{max-width:1220px}
       </div>
     </div>
   </div>
-  <div id="adminTab-products" class="admin-tab" style="display:none">
-    <div class="admin-tools">
-      <h3>Product management</h3>
-      <p class="small-note">Add products to your public catalogue or edit existing listings.</p>
 
+<div id="adminTab-products" class="admin-tab" style="display:none">
+  <div class="admin-tools">
+    <h3>🛍️ Product Management Centre</h3>
+    <p class="small-note">
+      Add, manage and publish products on the RIANDERBLOG marketplace.
+    </p>
+
+    <div class="listing">
+      <h3>➕ Add or Edit Product</h3>
       <input id="adminProductId" type="hidden">
 
       <div class="form-grid">
         <input id="adminProductName" placeholder="Product name">
-        <input id="adminProductPrice" type="number" min="0" step="0.01" placeholder="Price">
-        <input id="adminProductCurrency" value="USD" placeholder="Currency">
-        <input id="adminProductCategory" placeholder="Category">
-        <label>Product Picture</label>
-<input id="adminProductImage" type="file" accept="image/*">
-<input id="adminProductImageUrl" type="url" placeholder="Or paste an image URL">
+        <input id="adminProductPrice" type="number" min="0" step="0.01" placeholder="Product price">
+        <select id="adminProductCurrency">
+          <option value="USD">USD</option>
+          <option value="MWK">MWK</option>
+          <option value="GBP">GBP</option>
+          <option value="EUR">EUR</option>
+          <option value="ZAR">ZAR</option>
+        </select>
+        <input id="adminProductCategory" placeholder="Product category">
+
+        <div>
+          <label for="adminProductImage">Upload product picture</label>
+          <input id="adminProductImage" type="file" accept="image/*">
+        </div>
+
+        <div>
+          <label for="adminProductImageUrl">Or paste picture URL</label>
+          <input id="adminProductImageUrl" type="url" placeholder="https://example.com/image.jpg">
+        </div>
+
+        <div>
+          <label for="adminProductLink">Affiliate / Supplier Product Link</label>
+          <input id="adminProductLink" type="url" placeholder="Paste your affiliate or supplier link">
+        </div>
+
+        <div>
+          <label for="adminProductDescription">Product Description</label>
+          <textarea id="adminProductDescription" placeholder="Describe this product..."></textarea>
+        </div>
+      </div>
+
       <label>
         <input id="adminProductActive" type="checkbox" checked style="width:auto">
-        Active / visible in store
+        Active / visible in marketplace
       </label>
 
       <div class="admin-actions">
-        <button class="primary" onclick="saveAdminProduct()">Save product</button>
-        <button class="secondary" onclick="clearAdminProductForm()">Clear form</button>
+        <button class="primary" onclick="saveAdminProduct()">💾 Save Product</button>
+        <button class="secondary" onclick="clearAdminProductForm()">Clear Form</button>
       </div>
 
       <p id="adminProductMessage" class="small-note"></p>
-      <div id="adminProductList"></div>
+    </div>
+
+    <div class="listing">
+      <h3>📦 Your Product Catalogue</h3>
+      <p class="small-note">Edit or remove products and manage their visibility.</p>
+      <div id="adminProductList">Products will appear here.</div>
     </div>
   </div>
+</div>
+
 
   <div id="adminTab-support" class="admin-tab" style="display:none">
     <div class="admin-tools">
