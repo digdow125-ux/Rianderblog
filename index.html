@@ -540,38 +540,34 @@ main{max-width:1220px}
     <button onclick="adminShowTab('applications')">Applications</button>
   </div>
 
-  <div id="adminTab-overview" class="admin-tab">
+   <div id="adminTab-overview" class="admin-tab">
     <div class="admin-tools">
       <h3>Business overview</h3>
       <p class="small-note">Your marketplace activity and management tools.</p>
+      <button class="primary" onclick="loadAdminDashboard()">Update statistics</button>
+    </div>
+  </div>
+
+  <div id="adminTab-wallet" class="admin-tab" style="display:none">
+    <div class="admin-tools">
+      <h3>RIANDERBLOG Wallet</h3>
+      <p class="small-note">View your verified affiliate commissions and marketplace earnings.</p>
+      <button class="primary" onclick="loadAdminWallet()">Refresh Wallet</button>
+      <div id="adminWalletMessage" class="small-note">Wallet balances have not been loaded yet.</div>
+      <div id="adminWalletBalances" class="market-grid admin-stat-grid"></div>
+    </div>
+
+    <div class="admin-tools">
+      <h3>Recent Wallet Transactions</h3>
+      <div id="adminWalletTransactions" class="admin-table-wrap">
+        No transactions loaded.
+      </div>
+    </div>
+  </div>
+
   <div id="adminTab-orders" class="admin-tab" style="display:none">
     <div class="admin-tools">
       <h3>Customer orders</h3>
-      <div id="adminTab-wallet" class="admin-tab" style="display:none">
-  <div class="admin-tools">
-    <h3>RIANDERBLOG Wallet</h3>
-    <p class="small-note">
-      View your verified affiliate commissions and marketplace earnings.
-    </p>
-
-    <button class="primary" onclick="loadAdminWallet()">
-      Refresh Wallet
-    </button>
-
-    <div id="adminWalletMessage" class="small-note">
-      Wallet balances have not been loaded yet.
-    </div>
-
-    <div id="adminWalletBalances" class="market-grid admin-stat-grid"></div>
-  </div>
-
-  <div class="admin-tools">
-    <h3>Recent Wallet Transactions</h3>
-    <div id="adminWalletTransactions" class="admin-table-wrap">
-      No transactions loaded.
-    </div>
-  </div>
-      </div>
       <p class="small-note">Review customer details, order totals and payment status.</p>
       <button class="primary" onclick="loadAdminOrdersTable()">Refresh orders</button>
       <div id="adminOrderList" class="admin-table-wrap">
@@ -579,7 +575,6 @@ main{max-width:1220px}
       </div>
     </div>
   </div>
-
   <div id="adminTab-products" class="admin-tab" style="display:none">
     <div class="admin-tools">
       <h3>Product management</h3>
