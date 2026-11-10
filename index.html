@@ -744,6 +744,7 @@ function adminShowTab(tab) {
   if (tab === "support") loadAdminSupportInbox();
 }
 
+
 // LOAD CUSTOMER ORDERS
 async function loadAdminOrdersTable() {
   const box = document.getElementById("adminOrderList");
@@ -791,6 +792,7 @@ async function loadAdminOrdersTable() {
               ${available.map(([, label]) =>
                 `<th>${escapeHTML(label)}</th>`
               ).join("")}
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -809,6 +811,18 @@ async function loadAdminOrdersTable() {
 
                   return `<td>${escapeHTML(value ?? "—")}</td>`;
                 }).join("")}
+
+                <td>
+                  ${
+                    order.payment_status === "paid" &&
+                    order.order_status === "awaiting_admin_approval"
+                    ? `<button type="button" class="primary"
+                        onclick="adminApproveOrder('${escapeHTML(order.id)}')">
+                        Approve Order
+                       </button>`
+                    : escapeHTML(order.order_status || "—")
+                  }
+                </td>
               </tr>
             `).join("")}
           </tbody>
@@ -818,6 +832,38 @@ async function loadAdminOrdersTable() {
   } catch (error) {
     box.textContent = "Could not load orders: " + error.message;
   }
+}
+
+// APPROVE A PAID CUSTOMER ORDER
+async function adminApproveOrder(orderId) {
+  try {
+    await adminGuard();
+
+    if (!confirm("Approve this paid order?")) return;
+
+    const { data, error } = await db
+      .from("orders")
+      .update({ order_status: "processing" })
+      .eq("id", orderId)
+      .eq("payment_status", "paid")
+      .eq("order_status", "awaiting_admin_approval")
+      .select("id")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      throw new Error("Order was not updated. Refresh and check its status.");
+    }
+
+    alert("Order approved successfully!");
+    await loadAdminOrdersTable();
+
+  } catch (error) {
+    alert("Could not approve order: " + error.message);
+  }
+}
+
 }
 
 // ADMIN AI ASSISTANT
