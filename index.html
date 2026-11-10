@@ -797,7 +797,16 @@ function showSection(id){
   target.style.display=(id==="currencySettings")?"flex":"block";
   closeMenu();
   window.scrollTo({top:0,behavior:"auto"});
-  try{if(id==="cart"&&typeof updateCart==="function")updateCart();if(id==="dashboard"&&typeof showDashboard==="function")showDashboard();if(id==="suppliers"&&typeof renderSuppliers==="function")renderSuppliers();if(id==="affiliates"&&typeof loadProgrammes==="function")loadProgrammes();if(id==="adminPanel"&&typeof loadAdminDashboard==="function")loadAdminDashboard();}catch(err){console.error("RIANDERBLOG section error:",err);}
+try{
+  if(id==="cart"&&typeof updateCart==="function")updateCart();
+  if(id==="dashboard"&&typeof showDashboard==="function")showDashboard();
+  if(id==="suppliers"&&typeof renderSuppliers==="function")renderSuppliers();
+  if(id==="supplierWorkspace"&&typeof loadSupplierWorkspace==="function")loadSupplierWorkspace();
+  if(id==="affiliates"&&typeof loadProgrammes==="function")loadProgrammes();
+  if(id==="adminPanel"&&typeof loadAdminDashboard==="function")loadAdminDashboard();
+}catch(err){
+  console.error("RIANDERBLOG section error:",err);
+}
   return false;
 }
 // Make navigation work even if an inline menu link is changed later.
