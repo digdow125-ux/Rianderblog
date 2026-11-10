@@ -547,21 +547,33 @@ main{max-width:1220px}
     <button class="primary" onclick="applyAffiliate()">Apply to programme</button><p id="affiliateApplyMessage" class="small-note"></p>
   </section>
 <section id="messages" class="panel secondary-page">
-  <h2>💬 RIANDERBLOG Messages</h2>
-  <p>Chat with customers and suppliers directly on RIANDERBLOG.</p>
+  <h2>RIANDERBLOG Chat</h2>
+  <p>Connect directly with customers and suppliers.</p>
 
-  <div id="conversationList">
-    <p class="small-note">Sign in to view your conversations.</p>
-  </div>
+  <div class="chat-shell">
+    <aside class="chat-sidebar">
+      <div class="chat-sidebar-heading">Conversations</div>
+      <div id="conversationList">
+        <p class="small-note">Sign in to view your conversations.</p>
+      </div>
+    </aside>
 
-  <div id="messageArea">
-    <p class="small-note">Select a conversation to view messages.</p>
-  </div>
+    <div class="chat-main">
+      <div class="chat-header">
+        <strong id="chatContactName">RIANDERBLOG Messages</strong>
+        <span id="chatContactStatus">Select a conversation</span>
+      </div>
 
-  <div id="messageComposer" style="display:none">
-    <textarea id="messageInput" placeholder="Write your message..."></textarea>
-    <button class="primary" onclick="sendMarketplaceMessage()">Send Message</button>
-    <p id="messageStatus" class="small-note"></p>
+      <div id="messageArea" class="chat-messages">
+        <p class="small-note">Select a conversation to start chatting.</p>
+      </div>
+
+      <div id="messageComposer" class="chat-composer" style="display:none">
+        <textarea id="messageInput" placeholder="Type your message..."></textarea>
+        <button class="primary" onclick="sendMarketplaceMessage()">Send</button>
+        <p id="messageStatus" class="small-note"></p>
+      </div>
+    </div>
   </div>
 </section>
   <section id="account" class="panel secondary-page">
