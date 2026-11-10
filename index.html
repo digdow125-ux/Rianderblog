@@ -2343,9 +2343,21 @@ async function openMarketplaceConversation(id){
   area.innerHTML='';
 
   (data||[]).forEach(m=>{
-    const p=document.createElement('p');
-    p.textContent=(m.sender_id===user.id?'You: ':'Other: ')+m.message_text;
-    area.appendChild(p);
+    const bubble=document.createElement('div');
+    bubble.className='chat-bubble '+(m.sender_id===user.id?'mine':'theirs');
+
+    const message=document.createElement('div');
+    message.textContent=m.message_text;
+
+    const time=document.createElement('small');
+    time.textContent=new Date(m.created_at).toLocaleString([],{
+      dateStyle:'short',
+      timeStyle:'short'
+    });
+
+    bubble.appendChild(message);
+    bubble.appendChild(time);
+    area.appendChild(bubble);
   });
 }
 
