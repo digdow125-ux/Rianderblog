@@ -1056,12 +1056,12 @@ async function loadAdminDashboard() {
       ["statApplications", applicationCount],
       ["statOrders", orderCount]
     ];
-
-    stats.forEach(([id, result]) => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.textContent = result.error
-          ? "—"
+await adminLoadTable(
+  "supplier_applications",
+  "id,business_name,contact_name,country,email,status,created_at",
+  "adminSupplierList",
+  "supplier_application"
+);
           : (result.count ?? 0);
       }
     });
