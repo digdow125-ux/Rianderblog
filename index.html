@@ -1659,11 +1659,59 @@ async function renderSuppliers(){
  box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
 }
 async function applySupplier(){
- const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('supplierMessage').textContent='Please create an account or sign in first.';return;}
- const row={user_id:user.id,company_name:document.getElementById('supplierCompany').value.trim(),country:document.getElementById('supplierCountry').value.trim(),email:document.getElementById('supplierEmail').value.trim(),website:safeUrl(document.getElementById('supplierWebsite').value),description:document.getElementById('supplierDescription').value.trim(),status:'pending'};
- if(!row.company_name||!row.country||!row.email){document.getElementById('supplierMessage').textContent='Enter company name, country and business email.';return;}
- const {error}=await db.from('suppliers').insert(row);document.getElementById('supplierMessage').textContent=error?'Could not submit: '+error.message:'Application submitted. It will appear publicly after admin approval.';
-}
+ const message=document.getElementById('supplierMessage');
+
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();
+  if(userError) throw userError;
+
+  if(!user){
+   message.textContent='Please sign in first.';
+   return;
+  }
+
+  const row={
+   user_id:user.id,
+   business_name:document.getElementById('supplierCompany').value.trim(),
+   contact_name:user.user_metadata?.full_name||user.email||'',
+   country:document.getElementById('supplierCountry').value.trim(),
+   email:document.getElementById('supplierEmail').value.trim(),
+   website:safeUrl(document.getElementById('supplierWebsite').value),
+   fulfilment_details:document.getElementById('supplierDescription').value.trim(),
+   status:'pending'
+  };
+
+  if(!row.business_name||!row.country||!row.email){
+   message.textContent='Enter company name, country and business email.';
+   return;
+  }
+
+  const {data:existing,error:checkError}=await db
+   .from('supplier_applications')
+   .select('id,status')
+   .eq('user_id',user.id)
+   .in('status',['pending','approved'])
+   .limit(1);
+
+  if(checkError) throw checkError;
+
+  if(existing?.length){
+   message.textContent='You already have a pending or approved application.';
+   return;
+  }
+
+  const {error}=await db
+   .from('supplier_applications')
+   .insert(row);
+
+  if(error) throw error;
+
+  message.textContent='Application submitted. Waiting for RIANDERBLOG admin approval.';
+
+ }catch(e){
+  message.textContent='Could not submit: '+e.message;
+ }
+     }
 async function loadProgrammes(){
  const box=document.getElementById('programmeList');const {data,error}=await db.from('affiliate_programmes').select('id,company_name,commission_rate,website,terms').eq('status','approved').order('created_at',{ascending:false});
  if(error){box.innerHTML='<p class="small-note">Affiliate programme directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
