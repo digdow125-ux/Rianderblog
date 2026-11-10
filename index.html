@@ -746,56 +746,57 @@ function adminShowTab(tab) {
 
 
 
-// LOAD CUSTOMER ORDERS
-async function loadAdminOrdersTable() {
-  const box = document.getElementById("adminOrderList");
-  if (!box) return;
+  // LOAD CUSTOMER ORDERS
+  async function loadAdminOrdersTable() {
+    const box = document.getElementById("adminOrderList");
+    if (!box) return;
 
-  box.textContent = "Loading orders...";
+    box.textContent = "Loading orders...";
 
-  try {
-    await adminGuard();
+    try {
+      await adminGuard();
 
-    const { data, error } = await db
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
+      const { data, error } = await db
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    if (!data || data.length === 0) {
-      box.textContent = "No customer orders have been placed yet.";
-      return;
+      if (!data || data.length === 0) {
+        box.textContent = "No customer orders have been placed yet.";
+        return;
+      }
+
+      box.innerHTML = data.map(order => `
+        <div style="border:1px solid #ddd;padding:15px;border-radius:12px;margin-bottom:15px;background:white;color:#222;overflow-wrap:anywhere">
+          <h3>Order: ${escapeHTML(order.order_number || order.id)}</h3>
+          <p><b>Customer:</b> ${escapeHTML(order.customer_name || "—")}</p>
+          <p><b>Email:</b> ${escapeHTML(order.customer_email || "—")}</p>
+          <p><b>Phone:</b> ${escapeHTML(order.customer_phone || "—")}</p>
+          <p><b>Total:</b> ${escapeHTML(order.total_amount ?? "—")} ${escapeHTML(order.currency || "")}</p>
+          <p><b>Payment:</b> ${escapeHTML(order.payment_status || "—")}</p>
+          <p><b>Order status:</b> ${escapeHTML(order.order_status || "—")}</p>
+          <div style="background:#f1f5f9;padding:12px;border-left:4px solid #f36b25;margin:12px 0">
+            <b>DELIVERY ADDRESS</b>
+            <p style="white-space:pre-wrap">${escapeHTML(order.shipping_address || "Address not provided")}</p>
+          </div>
+          <p><b>Date:</b> ${escapeHTML(order.created_at ? new Date(order.created_at).toLocaleString() : "—")}</p>
+          ${
+            order.payment_status === "paid" &&
+            order.order_status === "awaiting_admin_approval"
+            ? `<button type="button" class="primary" onclick="adminApproveOrder('${escapeHTML(order.id)}')">Approve Order</button>`
+            : ""
+          }
+        </div>
+      `).join("");
+
+    } catch (error) {
+      box.textContent = "Could not load orders: " + error.message;
     }
+  }
 
-    box.innerHTML = `
-      <div style="display:grid;gap:15px">
-        ${data.map(order => `
-          <div style="border:1px solid #ddd;padding:15px;border-radius:12px;background:white;overflow-wrap:anywhere">
-
-            <h3>Order: ${escapeHTML(order.order_number || order.id)}</h3>
-
-            <p><b>Customer:</b> ${escapeHTML(order.customer_name || "—")}</p>
-            <p><b>Email:</b> ${escapeHTML(order.customer_email || "—")}</p>
-            <p><b>Phone:</b> ${escapeHTML(order.customer_phone || "—")}</p>
-
-            <p><b>Total:</b>
-              ${escapeHTML(order.total_amount ?? "—")}
-              ${escapeHTML(order.currency || "")}
-            </p>
-
-            <p><b>Payment:</b> ${escapeHTML(order.payment_status || "—")}</p>
-            <p><b>Order status:</b> ${escapeHTML(order.order_status || "—")}</p>
-
-            <div style="background:#f1f5f9;padding:12px;border-left:4px solid #f36b25;border-radius:6px;margin:12px 0">
-              <b>DELIVERY ADDRESS</b>
-              <p style="margin:7px 0 0;white-space:pre-wrap">
-                ${escapeHTML(order.shipping_address || "Address not provided")}
-              </p>
-            </div>
-
-            <p><b>Date:</b>
 
 // LOAD CUSTOMER ORDERS
 async function loadAdminOrdersTable() {
