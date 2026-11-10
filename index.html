@@ -1662,7 +1662,7 @@ function openDetails(id) {
         <p style="font-size:12px;color:#778195;line-height:1.5">Check the supplier's listing for shipping costs, availability and final price.</p>
         <div class="detail-actions">
           <button class="detail-add" onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">Add to Cart</button>
-          ${supplier ? `<a class="detail-buy" href="${supplier}" target="_blank" rel="noopener noreferrer">Visit Supplier</a>` : ""}
+          <button class="detail-buy" onclick="startSupplierConversation('${escapeHTML(p.id)}');closeDetails()">Message Supplier</button>
         </div>
       </div>
     </div>
