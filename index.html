@@ -2098,6 +2098,57 @@ const row={
   message.textContent='Could not submit: '+e.message;
  }
      }
+  async function startSupplierConversation(productId){
+  const {data:{user}}=await db.auth.getUser();
+
+  if(!user){
+    alert('Please sign in before contacting a supplier.');
+    showSection('account');
+    return;
+  }
+
+  const product=allProducts.find(p=>String(p.id)===String(productId));
+  if(!product||!product.supplier_id){
+    alert('Supplier information is not available for this product.');
+    return;
+  }
+
+  const {data:existing,error:findError}=await db
+    .from('conversations')
+    .select('id')
+    .eq('customer_id',user.id)
+    .eq('product_id',product.id)
+    .maybeSingle();
+
+  if(findError){
+    alert('Could not check conversation: '+findError.message);
+    return;
+  }
+
+  let conversationId=existing?.id;
+
+  if(!conversationId){
+    const {data,error}=await db
+      .from('conversations')
+      .insert({
+        customer_id:user.id,
+        supplier_id:product.supplier_id,
+        product_id:product.id
+      })
+      .select('id')
+      .single();
+
+    if(error){
+      alert('Could not start conversation: '+error.message);
+      return;
+    }
+
+    conversationId=data.id;
+  }
+
+  showSection('messages');
+  await openMarketplaceConversation(conversationId);
+  }
 let activeMarketplaceConversation = null;
 
 async function loadMarketplaceConversations(){
