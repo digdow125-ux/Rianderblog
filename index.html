@@ -757,6 +757,13 @@ main{max-width:1220px}
 #adminPanel #adminTab-suppliers .admin-table-wrap td button{white-space:nowrap;margin:2px;padding:7px 10px;font-size:11px}
 #adminPanel #adminTab-suppliers .supplier-control-summary{margin:16px 0 20px}
 @media(max-width:600px){#adminPanel #adminTab-suppliers .supplier-section-heading{align-items:flex-start;padding:15px;flex-direction:column}#adminPanel #adminTab-suppliers .admin-table-wrap{padding:0 9px 10px}}
+.supplier-centre-menu{display:flex;flex-direction:column;align-items:stretch;width:min(100%,360px);margin:16px 0 10px}
+.supplier-centre-menu>summary{list-style:none;cursor:pointer;padding:12px 15px;border:1px solid #dfe6ef;border-radius:9px;background:#f8fafc;color:#173b63;font-size:13px;font-weight:700}
+.supplier-centre-menu>summary::-webkit-details-marker{display:none}
+.supplier-centre-menu[open]>summary{background:#173b63;color:#fff}
+.supplier-centre-submenu{display:flex;flex-direction:column;gap:4px;margin-top:6px;padding:8px;border:1px solid #dfe6ef;border-left:3px solid #d6ad55;border-radius:0 10px 10px 0;background:#fff}
+.supplier-centre-submenu button{width:100%;padding:10px 12px;text-align:left;border:0;border-radius:7px;background:#fff;color:#34465e;font-size:12px}
+.supplier-centre-submenu button:hover{background:#f1f5f9;color:#173b63}
 </style>
 </head>
 <body>
@@ -891,16 +898,21 @@ main{max-width:1220px}
   </section>
 
   <section id="suppliers" class="panel secondary-page">
+    <div id="supplierDirectoryArea">
     <h2>🏭 Discover Suppliers</h2><p>Find businesses and manufacturers offering products to customers worldwide.</p>
     <input id="supplierSearch" class="search" placeholder="Search suppliers by company, country or products…" oninput="renderSuppliers()">
     <div id="supplierList"><p class="small-note">Supplier directory will display approved supplier profiles here.</p></div>
-    <div class="listing" style="margin-top:22px">
-      <h3>Supplier Centre</h3>
-      <p class="small-note">Choose the area you want to manage. Your application and product workspace are kept separate.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0">
-        <button id="supplierApplicationTab" class="primary" onclick="supplierShowTab('application')">Supplier application</button>
-        <button id="supplierProductsTab" class="secondary" onclick="supplierShowTab('workspace')">Products, orders & wallet</button>
+    </div>
+    <details class="supplier-centre-menu" id="supplierCentreMenu">
+      <summary>Supplier Centre menu <span aria-hidden="true">▾</span></summary>
+      <div class="supplier-centre-submenu">
+        <button type="button" onclick="supplierShowTab('application')">Supplier application</button>
+        <button type="button" onclick="supplierShowTab('workspace')">Products, orders & wallet</button>
       </div>
+    </details>
+    <div class="listing" id="supplierApplicationPage" style="margin-top:22px">
+      <h3>Supplier application</h3>
+      <p class="small-note">Submit or update your business application for RIANDERBLOG approval.</p>
       <div id="supplierApplicationPanel">
     <h3>Become a supplier</h3><p class="small-note">Create a supplier application. RIANDERBLOG admin approval is required before public listing.</p>
     <div class="form-grid">
@@ -2831,16 +2843,17 @@ function supplierNavigateTo(elementId){
   if(menu)menu.open=true;
 }
 function supplierShowTab(tab){
-  const application=document.getElementById('supplierApplicationPanel');
+  const directory=document.getElementById('supplierDirectoryArea');
+  const applicationPage=document.getElementById('supplierApplicationPage');
   const workspace=document.getElementById('supplierWorkspacePanel');
-  const appButton=document.getElementById('supplierApplicationTab');
-  const productsButton=document.getElementById('supplierProductsTab');
-  if(!application||!workspace)return;
+  const menu=document.getElementById('supplierCentreMenu');
   const showWorkspace=tab==='workspace';
-  application.style.display=showWorkspace?'none':'block';
-  workspace.style.display=showWorkspace?'block':'none';
-  if(appButton){appButton.className=showWorkspace?'secondary':'primary';}
-  if(productsButton){productsButton.className=showWorkspace?'primary':'secondary';}
+  if(directory)directory.style.display='none';
+  if(applicationPage)applicationPage.style.display=showWorkspace?'none':'block';
+  if(workspace)workspace.style.display=showWorkspace?'block':'none';
+  if(menu)menu.open=false;
+  const target=showWorkspace?workspace:applicationPage;
+  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function applySupplier(){
  const message=document.getElementById('supplierMessage');
