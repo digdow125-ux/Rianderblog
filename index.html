@@ -929,6 +929,7 @@ main{max-width:1220px}
       <button type="button" onclick="supplierNavigateTo('supplierWithdrawalWallet')">Withdrawals</button>
     </div>
   </details>
+  <div id="supplierProductsArea">
   <p class="small-note">
     Manage your products after your supplier application is approved.
   </p>
@@ -978,6 +979,8 @@ main{max-width:1220px}
     Sign in to view your products.
   </div>
 
+  </div>
+  <div id="supplierOrdersArea">
   <div class="listing" style="margin-top:24px">
     <h3>📊 My Orders & Sales</h3>
     <p class="small-note">Orders containing your products, with customer and delivery details.</p>
@@ -990,7 +993,11 @@ main{max-width:1220px}
       </table>
     </div>
   </div>
+  </div>
+  <div id="supplierFulfilmentArea">
   <div class="listing supplier-fulfilment-panel" style="margin-top:24px"><h3>🚚 Shipment & Delivery Steps</h3><p class="small-note">Submit shipment details first. After admin confirms, submit delivery proof. Each step appears here for tracking.</p><div id="supplierFulfilmentControls">Your shipment tasks will appear here.</div></div>
+  </div>
+  <div id="supplierWalletArea">
   <div class="listing" style="margin-top:24px">
     <h3>💳 My Supplier Wallet & Withdrawals</h3>
     <p class="small-note">Your approved supplier earnings appear here. Request a payout to Airtel Money, TNM Mpamba or a bank account.</p>
@@ -1019,6 +1026,7 @@ main{max-width:1220px}
     <p id="supplierWithdrawalMessage" class="small-note"></p>
     <h4>My withdrawal history</h4>
     <div id="supplierWithdrawalHistory" class="admin-table-wrap">No withdrawal requests yet.</div>
+  </div>
   </div>
   
 </div>
@@ -1482,13 +1490,20 @@ async function loadAdminSupplierApplications(){
  }catch(e){box.textContent='Could not load supplier applications: '+e.message;}
 }
 
-// Open the Suppliers workspace and jump to the selected sub-menu section.
+// Show only the selected supplier-management page.
 function adminOpenSupplierSection(sectionId) {
   adminShowTab('suppliers');
-  const target = document.getElementById(sectionId);
-  if (target) setTimeout(() => target.scrollIntoView({behavior:'smooth',block:'start'}), 80);
-  const menu = document.getElementById('adminSuppliersDropdown');
-  if (menu) menu.open = true;
+  const panel=document.getElementById('adminTab-suppliers');
+  if(!panel)return;
+  panel.querySelectorAll('.supplier-management-section').forEach(section=>{
+    section.style.display=section.id===sectionId?'block':'none';
+  });
+  const summary=panel.querySelector('.supplier-control-summary');
+  if(summary)summary.style.display='none';
+  const target=document.getElementById(sectionId);
+  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  const menu=document.getElementById('adminSuppliersDropdown');
+  if(menu)menu.open=true;
 }
 
 // ADMIN PANEL TABS
@@ -2796,9 +2811,24 @@ async function renderSuppliers(){
  box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
 }
 function supplierNavigateTo(elementId){
+  const groups={
+    supplierProductName:'supplierProductsArea',
+    supplierProductList:'supplierProductsArea',
+    supplierOrdersTable:'supplierOrdersArea',
+    supplierFulfilmentControls:'supplierFulfilmentArea',
+    supplierWalletBalances:'supplierWalletArea',
+    supplierWithdrawalWallet:'supplierWalletArea'
+  };
+  const selected=groups[elementId];
+  if(!selected)return;
+  ['supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{
+    const section=document.getElementById(id);
+    if(section)section.style.display=id===selected?'block':'none';
+  });
   const target=document.getElementById(elementId);
-  if(!target)return;
-  target.scrollIntoView({behavior:'smooth',block:'center'});
+  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  const menu=document.getElementById('supplierWorkspaceMenu');
+  if(menu)menu.open=true;
 }
 function supplierShowTab(tab){
   const application=document.getElementById('supplierApplicationPanel');
