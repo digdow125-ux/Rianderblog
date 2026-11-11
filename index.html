@@ -920,6 +920,17 @@ main{max-width:1220px}
 .install-app-btn:hover{background:#245b86}
 @media(max-width:520px){.header-actions{flex-wrap:wrap;justify-content:flex-end}.install-app-btn{font-size:11px;padding:9px 10px}}
 
+
+/* Clear product review status: pending/rejected listings stand out until approved. */
+.product-review-badge{display:inline-block;margin-top:7px;padding:6px 10px;border-radius:5px;font-size:11px;font-weight:900;letter-spacing:.45px}
+.review-approved{background:#e5f7ec;color:#176b39;border:1px solid #a8dfbb}
+.review-pending{background:#fff0c2;color:#855600;border:1px solid #f0ca68}
+.review-rejected{background:#ffe5e5;color:#a32222;border:1px solid #efaaaa}
+.product-needs-review{background:#fff9e9;border-left:5px solid #e0a323;padding-left:12px}
+.product-row-pending td{background:#fff8e5!important}
+.product-row-rejected td{background:#fff0f0!important}
+.product-unapproved-notice{margin-top:8px;padding:8px 10px;background:#fff0c2;border-left:4px solid #d99a13;border-radius:5px;color:#795000;font-size:12px;font-weight:800}
+.product-approved-notice{margin-top:8px;padding:8px 10px;background:#e5f7ec;border-left:4px solid #29965a;border-radius:5px;color:#176b39;font-size:12px;font-weight:800}
 </style>
 </head>
 <body>
@@ -2358,15 +2369,17 @@ async function loadAdminDashboard() {
     transactionsBox.textContent = "Wallet transactions could not be loaded.";
   }
       }
-function renderAdminProducts(){const box=document.getElementById('adminProductList');if(!box)return;box.innerHTML=allProducts.length?allProducts.map(p=>`<div class="admin-row"><div><strong>${escapeHTML(p.name)}</strong><div class="small-note">${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)} · ${p.is_active?'Active':'Hidden'}</div></div><div class="admin-actions"><button class="secondary" onclick="editAdminProduct('${escapeHTML(p.id)}')">Edit</button><button class="remove" onclick="deleteAdminProduct('${escapeHTML(p.id)}')">Delete</button></div></div>`).join(''):'No products available.';}
+function productReviewBadge(p){const status=p.review_status||'approved';const label=status==='approved'?'APPROVED':status==='rejected'?'REJECTED':'NOT APPROVED · PENDING';const cls=status==='approved'?'review-approved':status==='rejected'?'review-rejected':'review-pending';return '<span class="product-review-badge '+cls+'">'+label+'</span>';}
+function renderAdminProducts(){const box=document.getElementById('adminProductList');if(!box)return;box.innerHTML=allProducts.length?allProducts.map(p=>'<div class="admin-row '+((p.review_status||'approved')==='approved'?'':'product-needs-review')+'"><div><strong>'+escapeHTML(p.name)+'</strong><div class="small-note">'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+' · '+(p.is_active?'Visible to customers':'Not visible to customers')+'</div>'+productReviewBadge(p)+'</div><div class="admin-actions"><button class="secondary" onclick="editAdminProduct(\''+escapeHTML(p.id)+'\')">Edit</button><button class="remove" onclick="deleteAdminProduct(\''+escapeHTML(p.id)+'\')">Delete</button></div></div>').join(''):'No products available.';}
 async function loadPendingSupplierProducts(){
  const box=document.getElementById('pendingSupplierProductList');if(!box)return;box.textContent='Loading supplier product submissions...';
  try{
   await adminGuard();
-  const {data,error}=await db.from('products').select('id,name,description,price,currency,category,image_url,affiliate_url,created_at,supplier_id,review_status,is_active').not('supplier_id','is',null).eq('review_status','pending').order('created_at',{ascending:false});
-  if(error)throw error;if(!data?.length){box.textContent='No supplier products are waiting for approval.';return;}
-  box.innerHTML='<table class="admin-orders-table" style="min-width:850px"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Supplier link</th><th>Submitted</th><th>Review</th></tr></thead><tbody>'+data.map(p=>'<tr><td><div style="display:flex;align-items:center;gap:10px;min-width:180px">'+(safeUrl(p.image_url)?'<img src="'+escapeHTML(safeUrl(p.image_url))+'" alt="" style="width:52px;height:52px;object-fit:contain;border-radius:8px;background:#f5f7fa">':'')+'<div><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML((p.description||'').slice(0,100))+'</small></div></div></td><td>'+escapeHTML(p.category||'Other')+'</td><td>'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+'</td><td>'+(safeUrl(p.affiliate_url)?'<a href="'+escapeHTML(safeUrl(p.affiliate_url))+'" target="_blank" rel="noopener">Open link</a>':'Not provided')+'</td><td>'+escapeHTML(p.created_at?new Date(p.created_at).toLocaleDateString():'—')+'</td><td><button class="primary" onclick="adminReviewSupplierProduct(\''+p.id+'\',\'approved\')">Approve</button> <button class="secondary" onclick="adminReviewSupplierProduct(\''+p.id+'\',\'rejected\')">Reject</button></td></tr>').join('')+'</tbody></table>';
- }catch(e){box.textContent='Could not load pending products: '+e.message;}
+  const {data,error}=await db.from('products').select('id,name,description,price,currency,category,image_url,affiliate_url,created_at,supplier_id,review_status,is_active').not('supplier_id','is',null).order('created_at',{ascending:false});
+  if(error)throw error;if(!data?.length){box.textContent='No supplier products have been submitted yet.';return;}
+  const pending=data.filter(p=>(p.review_status||'pending')==='pending').length;
+  box.innerHTML='<p class="small-note"><strong>'+pending+'</strong> product(s) need review. Unapproved products are highlighted.</p><table class="admin-orders-table" style="min-width:900px"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Supplier link</th><th>Submitted</th><th>Status / Action</th></tr></thead><tbody>'+data.map(p=>{const st=p.review_status||'pending';const badge=productReviewBadge({...p,review_status:st});const actions=st==='pending'?'<button class="primary" onclick="adminReviewSupplierProduct(\''+p.id+'\',\'approved\')">Approve</button> <button class="secondary" onclick="adminReviewSupplierProduct(\''+p.id+'\',\'rejected\')">Reject</button>':st==='approved'?'<span class="small-note">Published</span>':'<button class="primary" onclick="adminReviewSupplierProduct(\''+p.id+'\',\'approved\')">Approve now</button>';return '<tr class="'+(st==='approved'?'':st==='rejected'?'product-row-rejected':'product-row-pending')+'"><td><div style="display:flex;align-items:center;gap:10px;min-width:180px">'+(safeUrl(p.image_url)?'<img src="'+escapeHTML(safeUrl(p.image_url))+'" alt="" style="width:52px;height:52px;object-fit:contain;border-radius:8px;background:#f5f7fa">':'')+'<div><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML((p.description||'').slice(0,100))+'</small></div></div></td><td>'+escapeHTML(p.category||'Other')+'</td><td>'+escapeHTML(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2)+'</td><td>'+(safeUrl(p.affiliate_url)?'<a href="'+escapeHTML(safeUrl(p.affiliate_url))+'" target="_blank" rel="noopener">Open link</a>':'Not provided')+'</td><td>'+escapeHTML(p.created_at?new Date(p.created_at).toLocaleDateString():'—')+'</td><td>'+badge+'<div style="margin-top:7px">'+actions+'</div></td></tr>';}).join('')+'</tbody></table>';
+ }catch(e){box.textContent='Could not load supplier products: '+e.message;}
 }
 
 async function adminReviewSupplierProduct(id,status){
@@ -3658,9 +3671,8 @@ async function loadSupplierProducts(supplierId){
         </div>
         <div class="small-note">Minimum order: ${Number(p.minimum_order_quantity||1)} unit(s)</div>
         <div class="small-note">In shop: ${Number(p.stock_quantity||0)} · Colours: ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')} · Delivery: ${Number(p.delivery_days||7)} day(s)</div>
-        <div class="small-note">
-          ${p.is_active?'Active':'Waiting for admin review'}
-        </div>
+        <div class="small-note">${productReviewBadge(p)}</div>
+        ${(p.review_status||'pending')!=='approved'?'<div class="product-unapproved-notice">NOT APPROVED — this product is highlighted and is not visible to customers yet.</div>':'<div class="product-approved-notice">APPROVED — product is published.</div>'}
       </div>
       <div class="admin-actions">
         <button class="secondary"
