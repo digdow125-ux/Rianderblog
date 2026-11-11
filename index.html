@@ -2351,6 +2351,7 @@ function openDetails(id) {
         <p><strong>Available in shop:</strong> ${Number(p.stock_quantity||0)} units</p>
         <p><strong>Colours:</strong> ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')}</p>
         <p><strong>Delivery:</strong> within ${Number(p.delivery_days||7)} day(s), maximum 7 days</p>
+        ${(p.available_colours||[]).length ? '<label for="chooseColour">Choose colour</label><select id="chooseColour">'+p.available_colours.map(c=>'<option value="'+escapeHTML(c)+'">'+escapeHTML(c)+'</option>').join('')+'</select>' : ''}
         <div class="detail-actions">
           <button class="detail-add" onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">Add to Cart</button>
           <button class="detail-buy" onclick="startSupplierConversation('${escapeHTML(p.id)}');closeDetails()">Message Supplier</button>
@@ -2377,26 +2378,15 @@ document.addEventListener("keydown",event => {
 });
 
 function addToCart(id) {
-  const p = allProducts.find(x => String(x.id) === String(id));
-  if (!p) return;
-
-  const existing = cart.find(x => String(x.id) === String(id));
-
-  if (existing) {
-    existing.quantity++;
-  } else {
-    cart.push({
-      id:p.id,
-      name:p.name,
-      price:Number(p.price || 0),
-      currency:p.currency || "USD",
-      image_url:p.image_url || "",
-      quantity:1
-    });
-  }
-
-  saveCart();
-  alert("Product added to your cart!");
+  const p=allProducts.find(x=>String(x.id)===String(id));
+  if(!p)return;
+  const colour=document.getElementById('chooseColour')?.value||'';
+  const existing=cart.find(x=>String(x.id)===String(id)&&(x.selected_colour||'')===colour);
+  const next=(existing?.quantity||0)+1;
+  if(next>Number(p.stock_quantity||0)){alert('Only '+Number(p.stock_quantity||0)+' unit(s) are available.');return;}
+  if(existing)existing.quantity++;
+  else cart.push({id:p.id,name:p.name,price:Number(p.price||0),currency:p.currency||'USD',image_url:p.image_url||'',quantity:1,selected_colour:colour,delivery_days:Number(p.delivery_days||7),stock_quantity:Number(p.stock_quantity||0)});
+  saveCart();alert('Product added to your cart!');
 }
 
 function changeQuantity(id,amount) {
@@ -2513,7 +2503,8 @@ async function startPayChanguCheckout() {
 
     const items = cart.map(item => ({
         product_id: Number(item.id),
-        quantity: Number(item.quantity)
+        quantity: Number(item.quantity),
+        selected_colour: item.selected_colour || null
     }));
 
     if (items.some(item =>
