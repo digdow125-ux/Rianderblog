@@ -2605,7 +2605,7 @@ async function loadNotifications(){
   }).join('');
   list.querySelectorAll('[data-notification-id]').forEach(button=>button.addEventListener('click',async()=>{
     const id=button.dataset.notificationId;
-    const allowed=['dashboard','adminPanel','adminOrders','adminSuppliers','adminApplications','messages','suppliers','affiliates','orderTracking','cart','products'];
+    const allowed=['dashboard','adminPanel','adminOrders','adminSuppliers','adminApplications','adminSupport','messages','suppliers','affiliates','orderTracking','cart','products'];
     const target=allowed.includes(button.dataset.targetSection)?button.dataset.targetSection:'dashboard';
     await db.from('notifications').update({is_read:true}).eq('id',id);
     await loadNotifications();
@@ -2613,9 +2613,10 @@ async function loadNotifications(){
     document.getElementById('notificationBell')?.setAttribute('aria-expanded','false');
     if(['adminPanel','adminOrders','adminSuppliers','adminApplications'].includes(target)){
       showSection('adminPanel');
-      const adminTab=target==='adminOrders'?'orders':target==='adminApplications'?'applications':target==='adminSuppliers'?'suppliers':'overview';
+      const adminTab=target==='adminOrders'?'orders':target==='adminApplications'?'applications':target==='adminSupport'?'support':target==='adminSuppliers'?'suppliers':'overview';
       if(typeof adminShowTab==='function')adminShowTab(adminTab);
       if(target==='adminSuppliers'&&typeof loadAdminFulfilmentReviews==='function')loadAdminFulfilmentReviews();
+      if(target==='adminSupport'&&typeof loadAdminSupport==='function')loadAdminSupport();
     }else{
       showSection(target);
       if(target==='orderTracking'&&typeof showCustomerOrderTracking==='function')showCustomerOrderTracking();
