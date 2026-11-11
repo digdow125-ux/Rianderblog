@@ -2855,7 +2855,12 @@ async function loadNotifications(){
       showSection('adminPanel');
       const adminTab=target==='adminOrders'?'orders':target==='adminApplications'?'applications':target==='adminSupport'?'support':target==='adminSuppliers'?'suppliers':'overview';
       if(typeof adminShowTab==='function')adminShowTab(adminTab);
-      if(target==='adminSuppliers'&&typeof loadAdminFulfilmentReviews==='function')loadAdminFulfilmentReviews();
+      const notificationType=button.dataset.notificationType||'';
+      if(target==='adminSuppliers'){
+        if(notificationType==='supplier_fulfilment'&&typeof adminOpenSupplierSection==='function')adminOpenSupplierSection('supplierFulfilmentSection');
+        else if(typeof loadAdminFulfilmentReviews==='function')loadAdminFulfilmentReviews();
+      }
+      if(target==='adminPanel'&&(notificationType==='new_order'||notificationType==='payment_received')&&typeof adminShowTab==='function')adminShowTab('orders');
     }else if(target==='suppliers'){
       showSection('suppliers');
       supplierShowMainPage('centre');
