@@ -781,6 +781,10 @@ main{max-width:1220px}
 #suppliers .supplier-centre-menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;width:100%;margin:14px 0 20px;padding:14px;position:static!important}
 #suppliers .supplier-centre-menu button{min-height:48px;white-space:normal;line-height:1.35}
 @media(max-width:560px){#suppliers .supplier-main-menu{grid-template-columns:1fr}#suppliers .supplier-centre-menu{grid-template-columns:1fr}}
+
+#suppliers .supplier-centre-menu,#suppliers .supplier-workspace-menu{position:static!important;float:none!important;transform:none!important;width:100%;max-width:none;}
+#suppliers #supplierApplicationPage,#suppliers #supplierWorkspacePanel{position:static!important;float:none!important;width:100%;}
+
 </style>
 </head>
 <body>
@@ -3908,10 +3912,7 @@ loadProgrammes();
 </body>
 </html>
 
-<style>
-#suppliers .supplier-centre-menu,#suppliers .supplier-workspace-menu{position:static!important;float:none!important;transform:none!important;width:100%;max-width:none;}
-#suppliers #supplierApplicationPage,#suppliers #supplierWorkspacePanel{position:static!important;float:none!important;width:100%;}
-</style>
+
 
 /* Discover Suppliers directory */
 #suppliers .supplier-directory{width:100%;}
