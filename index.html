@@ -785,6 +785,56 @@ main{max-width:1220px}
 #suppliers .supplier-centre-menu,#suppliers .supplier-workspace-menu{position:static!important;float:none!important;transform:none!important;width:100%;max-width:none;}
 #suppliers #supplierApplicationPage,#suppliers #supplierWorkspacePanel{position:static!important;float:none!important;width:100%;}
 
+/* Discover Suppliers directory */
+#suppliers .supplier-directory{width:100%;}
+.supplier-directory-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px;background:linear-gradient(115deg,#173b63,#245b86);border-radius:13px;color:#fff;margin-bottom:18px}
+.supplier-directory-heading h2{color:#fff;margin:7px 0;font-size:27px}
+.supplier-directory-heading p{color:#e0eaf4;margin:0;line-height:1.5;font-size:13px}
+.supplier-kicker{font-size:10px;letter-spacing:1.6px;font-weight:800;color:#ffd2a8}
+.supplier-directory-mark{display:grid;place-items:center;flex:none;width:62px;height:62px;border:2px solid #f36b25;border-radius:15px;color:#fff;font-weight:900;font-size:20px}
+.supplier-category-filters{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.supplier-category-filters button{background:#fff;border:1px solid #dce3ec;color:#34465e;border-radius:20px;padding:9px 14px;font-size:12px}
+.supplier-category-filters button.active{background:#173b63;color:#fff;border-color:#173b63}
+.supplier-directory-summary{font-size:12px;color:#718096;margin:12px 0}
+.supplier-directory-card{background:#fff;border:1px solid #e1e7ef;border-radius:13px;padding:17px;margin:12px 0;box-shadow:0 4px 15px rgba(23,59,99,.05)}
+.supplier-card-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.supplier-avatar{width:53px;height:53px;border-radius:12px;background:#173b63;color:#ffd08a;display:grid;place-items:center;font-weight:900;font-size:17px;flex:none}
+.supplier-card-identity{flex:1;min-width:130px;display:flex;flex-direction:column;gap:4px}
+.supplier-card-identity h3{margin:0;color:#173b63;font-size:17px}
+.supplier-location{font-size:12px;color:#687589}
+.supplier-approved{font-size:11px;color:#28734a;font-weight:700}
+.supplier-product-count{font-size:11px;color:#53647a;background:#f1f4f8;padding:7px 9px;border-radius:20px}
+.supplier-card-description{font-size:13px;line-height:1.55;color:#586579;margin:13px 0}
+.supplier-card-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.supplier-card-actions button,.supplier-card-actions a{font-size:12px;padding:11px 14px;border-radius:7px;text-decoration:none;font-weight:700}
+.supplier-card-actions a{background:#f1f4f8;color:#29425f}
+.supplier-profile-products{border-top:1px solid #e8edf3;margin-top:15px;padding-top:14px}
+.supplier-profile-products h4{margin:0 0 12px;color:#173b63}
+.supplier-product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px}
+.supplier-product-card{border:1px solid #e5eaf0;border-radius:10px;overflow:hidden;background:#fff;min-width:0}
+.supplier-product-card>img,.supplier-product-placeholder{width:100%;height:135px;object-fit:contain;background:#f7f9fb}
+.supplier-product-placeholder{display:grid;place-items:center;color:#b1bdcc;font-weight:900;font-size:22px}
+.supplier-product-info{display:flex;flex-direction:column;gap:7px;padding:11px}
+.supplier-product-info strong{font-size:13px;color:#243b58;line-height:1.35}
+.supplier-product-category{font-size:11px;color:#718096}
+.supplier-product-info b{font-size:14px;color:#173b63}
+.supplier-chat-button{background:#f36b25;color:#fff;padding:10px;font-size:11px}
+.supplier-no-products{padding:10px;background:#f7f9fb;border-radius:8px}
+.supplier-empty{padding:28px 16px;text-align:center;border:1px dashed #cbd5e1;border-radius:12px;background:#fafbfd;color:#42536a}
+.supplier-empty p{font-size:13px;color:#718096}
+@media(max-width:560px){.supplier-directory-heading{padding:17px}.supplier-directory-heading h2{font-size:23px}.supplier-directory-mark{width:48px;height:48px}.supplier-product-grid{grid-template-columns:1fr 1fr}.supplier-product-card>img,.supplier-product-placeholder{height:105px}}
+
+/* Verified supplier reviews */
+.supplier-review-summary{font-size:12px;font-weight:700;color:#a45b18;margin-top:11px}
+.supplier-reviews-panel{border-top:1px solid #e8edf3;margin-top:18px;padding-top:15px}
+.supplier-review-item{padding:11px 0;border-bottom:1px solid #edf0f4}
+.supplier-review-stars{color:#d18a22;letter-spacing:2px;font-size:15px}
+.supplier-review-item p{font-size:13px;color:#475569;margin:5px 0;white-space:pre-wrap}
+.supplier-review-item small{font-size:10px;color:#8994a3}
+.supplier-review-form{display:grid;gap:9px;padding:13px;background:#f6f8fb;border-radius:10px;margin-top:12px}
+.supplier-review-form strong{color:#173b63;font-size:13px}
+.supplier-review-form select,.supplier-review-form textarea{width:100%;padding:10px;border:1px solid #dbe2eb;border-radius:7px;background:#fff;color:#25364c}
+.supplier-review-form textarea{min-height:75px;resize:vertical}
 </style>
 </head>
 <body>
@@ -3911,56 +3961,3 @@ loadProgrammes();
 </script>
 </body>
 </html>
-
-
-
-/* Discover Suppliers directory */
-#suppliers .supplier-directory{width:100%;}
-.supplier-directory-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px;background:linear-gradient(115deg,#173b63,#245b86);border-radius:13px;color:#fff;margin-bottom:18px}
-.supplier-directory-heading h2{color:#fff;margin:7px 0;font-size:27px}
-.supplier-directory-heading p{color:#e0eaf4;margin:0;line-height:1.5;font-size:13px}
-.supplier-kicker{font-size:10px;letter-spacing:1.6px;font-weight:800;color:#ffd2a8}
-.supplier-directory-mark{display:grid;place-items:center;flex:none;width:62px;height:62px;border:2px solid #f36b25;border-radius:15px;color:#fff;font-weight:900;font-size:20px}
-.supplier-category-filters{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-.supplier-category-filters button{background:#fff;border:1px solid #dce3ec;color:#34465e;border-radius:20px;padding:9px 14px;font-size:12px}
-.supplier-category-filters button.active{background:#173b63;color:#fff;border-color:#173b63}
-.supplier-directory-summary{font-size:12px;color:#718096;margin:12px 0}
-.supplier-directory-card{background:#fff;border:1px solid #e1e7ef;border-radius:13px;padding:17px;margin:12px 0;box-shadow:0 4px 15px rgba(23,59,99,.05)}
-.supplier-card-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.supplier-avatar{width:53px;height:53px;border-radius:12px;background:#173b63;color:#ffd08a;display:grid;place-items:center;font-weight:900;font-size:17px;flex:none}
-.supplier-card-identity{flex:1;min-width:130px;display:flex;flex-direction:column;gap:4px}
-.supplier-card-identity h3{margin:0;color:#173b63;font-size:17px}
-.supplier-location{font-size:12px;color:#687589}
-.supplier-approved{font-size:11px;color:#28734a;font-weight:700}
-.supplier-product-count{font-size:11px;color:#53647a;background:#f1f4f8;padding:7px 9px;border-radius:20px}
-.supplier-card-description{font-size:13px;line-height:1.55;color:#586579;margin:13px 0}
-.supplier-card-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-.supplier-card-actions button,.supplier-card-actions a{font-size:12px;padding:11px 14px;border-radius:7px;text-decoration:none;font-weight:700}
-.supplier-card-actions a{background:#f1f4f8;color:#29425f}
-.supplier-profile-products{border-top:1px solid #e8edf3;margin-top:15px;padding-top:14px}
-.supplier-profile-products h4{margin:0 0 12px;color:#173b63}
-.supplier-product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px}
-.supplier-product-card{border:1px solid #e5eaf0;border-radius:10px;overflow:hidden;background:#fff;min-width:0}
-.supplier-product-card>img,.supplier-product-placeholder{width:100%;height:135px;object-fit:contain;background:#f7f9fb}
-.supplier-product-placeholder{display:grid;place-items:center;color:#b1bdcc;font-weight:900;font-size:22px}
-.supplier-product-info{display:flex;flex-direction:column;gap:7px;padding:11px}
-.supplier-product-info strong{font-size:13px;color:#243b58;line-height:1.35}
-.supplier-product-category{font-size:11px;color:#718096}
-.supplier-product-info b{font-size:14px;color:#173b63}
-.supplier-chat-button{background:#f36b25;color:#fff;padding:10px;font-size:11px}
-.supplier-no-products{padding:10px;background:#f7f9fb;border-radius:8px}
-.supplier-empty{padding:28px 16px;text-align:center;border:1px dashed #cbd5e1;border-radius:12px;background:#fafbfd;color:#42536a}
-.supplier-empty p{font-size:13px;color:#718096}
-@media(max-width:560px){.supplier-directory-heading{padding:17px}.supplier-directory-heading h2{font-size:23px}.supplier-directory-mark{width:48px;height:48px}.supplier-product-grid{grid-template-columns:1fr 1fr}.supplier-product-card>img,.supplier-product-placeholder{height:105px}}
-
-/* Verified supplier reviews */
-.supplier-review-summary{font-size:12px;font-weight:700;color:#a45b18;margin-top:11px}
-.supplier-reviews-panel{border-top:1px solid #e8edf3;margin-top:18px;padding-top:15px}
-.supplier-review-item{padding:11px 0;border-bottom:1px solid #edf0f4}
-.supplier-review-stars{color:#d18a22;letter-spacing:2px;font-size:15px}
-.supplier-review-item p{font-size:13px;color:#475569;margin:5px 0;white-space:pre-wrap}
-.supplier-review-item small{font-size:10px;color:#8994a3}
-.supplier-review-form{display:grid;gap:9px;padding:13px;background:#f6f8fb;border-radius:10px;margin-top:12px}
-.supplier-review-form strong{color:#173b63;font-size:13px}
-.supplier-review-form select,.supplier-review-form textarea{width:100%;padding:10px;border:1px solid #dbe2eb;border-radius:7px;background:#fff;color:#25364c}
-.supplier-review-form textarea{min-height:75px;resize:vertical}
