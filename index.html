@@ -2005,7 +2005,7 @@ async function resolveProductImages(fileId,urlId,existingImages,existingUrl,user
   const input=document.getElementById(fileId);
   const files=Array.from(input.files||[]);
   const typed=document.getElementById(urlId).value.trim();
-  const urls=typed?typed.split(/[\\n,]+/).map(x=>x.trim()).filter(Boolean):[];
+  const urls=typed?typed.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean):[];
   if(files.length>10)throw new Error('Upload no more than 10 new pictures at once.');
   if(files.some(file=>file.size>5*1024*1024))throw new Error('Each picture must be 5 MB or smaller.');
   if(files.length+urls.length>10)throw new Error('A product can have a maximum of 10 pictures.');
