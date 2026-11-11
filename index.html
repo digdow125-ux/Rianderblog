@@ -768,9 +768,9 @@ main{max-width:1220px}
 .supplier-main-menu button{width:100%;text-align:left;padding:12px 14px;border-radius:9px;font-weight:700}
 .has-unread-notification{background:#8b572b!important;border-color:#8b572b!important;color:#fff!important;box-shadow:0 0 0 2px rgba(139,87,43,.16);font-weight:800!important}
 .has-unread-notification:hover,.has-unread-notification:focus{background:#70421f!important;color:#fff!important}
-.supplier-centre-menu,.supplier-workspace-menu{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:min(100%,420px);margin:14px 0;padding:10px;border:1px solid #dfe6ef;border-left:3px solid #d6ad55;border-radius:10px;background:#f8fafc}
-.supplier-centre-menu button,.supplier-workspace-menu button{width:100%;display:block;text-align:left;padding:11px 13px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;color:#263c58;font-size:13px;font-weight:650}
-.supplier-centre-menu button.primary,.supplier-workspace-menu button.primary{background:#173b63;color:#fff}
+.supplier-centre-menu,.supplier-workspace-menu{position:static!important;float:none!important;transform:none!important;display:flex;flex-direction:column;align-items:stretch;gap:7px;width:100%;max-width:none;margin:14px 0 20px;padding:12px;border:1px solid #dfe6ef;border-left:4px solid #d6ad55;border-radius:12px;background:#f8fafc;box-sizing:border-box}
+.supplier-centre-menu button,.supplier-workspace-menu button{position:static!important;float:none!important;transform:none!important;width:100%;display:block;text-align:left;padding:13px 15px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;color:#263c58;font-size:13px;font-weight:650;box-shadow:none}
+.supplier-centre-menu button.primary,.supplier-workspace-menu button.primary{background:#173b63;border-color:#173b63;color:#fff}
 .supplier-centre-menu button:hover,.supplier-workspace-menu button:hover{background:#edf2f8;color:#173b63}
 </style>
 </head>
@@ -916,8 +916,15 @@ main{max-width:1220px}
       <button type="button" id="supplierCentreButton" class="secondary" onclick="supplierShowMainPage('centre')">⚙️ Supplier Centre</button>
     </div>
     <div id="supplierCentrePage" style="display:none">
-    <div class="supplier-centre-intro">
-      <p class="small-note">Apply as a supplier and manage your products, orders, deliveries and wallet from this page.</p>
+    <div class="supplier-centre-intro"><p class="small-note">Choose a section below. Each option opens its own page within Supplier Centre.</p></div>
+    <div class="supplier-centre-menu" id="supplierCentreMenu" aria-label="Supplier Centre navigation">
+      <button type="button" class="primary" data-supplier-page="application" onclick="supplierNavigateTo('application')">📝 Supplier application</button>
+      <button type="button" data-supplier-page="add-product" onclick="supplierNavigateTo('supplierProductName')">➕ Add / manage products</button>
+      <button type="button" data-supplier-page="my-products" onclick="supplierNavigateTo('supplierProductList')">🛍️ My products</button>
+      <button type="button" data-supplier-page="orders" onclick="supplierNavigateTo('supplierOrdersTable')">📊 My orders & sales</button>
+      <button type="button" data-supplier-page="fulfilment" onclick="supplierNavigateTo('supplierFulfilmentControls')">🚚 Shipment & delivery</button>
+      <button type="button" data-supplier-page="wallet" onclick="supplierNavigateTo('supplierWalletBalances')">💳 Wallet & transactions</button>
+      <button type="button" data-supplier-page="withdrawals" onclick="supplierNavigateTo('supplierWithdrawalWallet')">🏦 Withdrawals</button>
     </div>
     <div class="listing" id="supplierApplicationPage" style="margin-top:22px">
       <h3>Supplier application</h3>
@@ -936,17 +943,10 @@ main{max-width:1220px}
     
       </div>
     </div>
-<div id="supplierWorkspacePanel" style="display:block">
+<div id="supplierWorkspacePanel" style="display:none">
 <div class="listing" style="margin-top:0">
   <h3>📦 Supplier Workspace</h3>
-  <div class="supplier-workspace-menu" id="supplierWorkspaceMenu" aria-label="Supplier workspace pages">
-    <button type="button" onclick="supplierNavigateTo('supplierProductName')">➕ Add / manage products</button>
-    <button type="button" onclick="supplierNavigateTo('supplierProductList')">🛍️ My products</button>
-    <button type="button" onclick="supplierNavigateTo('supplierOrdersTable')">📊 My orders & sales</button>
-    <button type="button" onclick="supplierNavigateTo('supplierFulfilmentControls')">🚚 Shipment & delivery</button>
-    <button type="button" onclick="supplierNavigateTo('supplierWalletBalances')">💳 Wallet & transactions</button>
-    <button type="button" onclick="supplierNavigateTo('supplierWithdrawalWallet')">🏦 Withdrawals</button>
-  </div>
+
   <div id="supplierProductsArea">
   <p class="small-note">
     Manage your products after your supplier application is approved.
@@ -2848,50 +2848,35 @@ async function renderSuppliers(){
 }
 function supplierNavigateTo(elementId){
   const groups={
-    supplierProductName:'supplierProductsArea',
-    supplierProductList:'supplierProductsArea',
-    supplierOrdersTable:'supplierOrdersArea',
-    supplierFulfilmentControls:'supplierFulfilmentArea',
-    supplierWalletBalances:'supplierWalletArea',
-    supplierWithdrawalWallet:'supplierWalletArea'
+    supplierProductName:{group:'supplierProductsArea',page:'add-product'},
+    supplierProductList:{group:'supplierProductsArea',page:'my-products'},
+    supplierOrdersTable:{group:'supplierOrdersArea',page:'orders'},
+    supplierFulfilmentControls:{group:'supplierFulfilmentArea',page:'fulfilment'},
+    supplierWalletBalances:{group:'supplierWalletArea',page:'wallet'},
+    supplierWithdrawalWallet:{group:'supplierWalletArea',page:'withdrawals'}
   };
-  const selected=groups[elementId];
-  if(!selected)return;
-  supplierShowTab('workspace');
+  const application=document.getElementById('supplierApplicationPage');
+  const workspace=document.getElementById('supplierWorkspacePanel');
+  const menu=document.getElementById('supplierCentreMenu');
+  const appOnly=elementId==='application', selected=groups[elementId];
+  if(!appOnly&&!selected)return;
+  supplierShowMainPage('centre');
+  if(application)application.style.display=appOnly?'block':'none';
+  if(workspace)workspace.style.display=appOnly?'none':'block';
   ['supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{
     const section=document.getElementById(id);
-    if(section)section.style.display=id===selected?'block':'none';
+    if(section)section.style.display=selected&&selected.group===id?'block':'none';
   });
-  const target=document.getElementById(elementId);
-  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function supplierShowMainPage(page){
-  const directory=document.getElementById('supplierDirectoryArea');
-  const centre=document.getElementById('supplierCentrePage');
-  const directoryButton=document.getElementById('supplierDirectoryButton');
-  const centreButton=document.getElementById('supplierCentreButton');
-  const showCentre=page==='centre';
-  if(directory)directory.style.display=showCentre?'none':'block';
-  if(centre)centre.style.display=showCentre?'block':'none';
-  if(directoryButton)directoryButton.className=showCentre?'secondary':'primary';
-  if(centreButton)centreButton.className=showCentre?'primary':'secondary';
-  if(!showCentre){
-    const application=document.getElementById('supplierApplicationPage');
-    const workspace=document.getElementById('supplierWorkspacePanel');
-    if(application)application.style.display='block';
-    if(workspace)workspace.style.display='none';
-  }
-  const target=showCentre?centre:directory;
+  if(menu)menu.querySelectorAll('button[data-supplier-page]').forEach(button=>{
+    const active=button.dataset.supplierPage===(appOnly?'application':selected.page);
+    button.classList.toggle('primary',active);
+    button.setAttribute('aria-current',active?'page':'false');
+  });
+  const target=appOnly?application:document.getElementById(selected.group);
   if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function supplierShowTab(tab){
-  const application=document.getElementById('supplierApplicationPage');
-  const workspace=document.getElementById('supplierWorkspacePanel');
-  supplierShowMainPage('centre');
-  if(application)application.style.display='block';
-  if(workspace)workspace.style.display='block';
-  const target=tab==='workspace'?workspace:application;
-  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  supplierNavigateTo(tab==='workspace'?'supplierProductName':'application');
 }
 async function applySupplier(){
  const message=document.getElementById('supplierMessage');
