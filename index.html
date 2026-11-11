@@ -614,6 +614,19 @@ main{max-width:1220px}
 #orderTracking .customer-track-cancelled{padding:12px;border-radius:9px;background:#fff4f2;color:#9b4942;font-size:12px}
 #orderTracking .customer-orders-empty{padding:28px;text-align:center;border:1px dashed #d5e0eb;border-radius:14px;background:#fafcff}
 #orderTracking .customer-orders-empty p{color:#7b8b9c;font-size:13px}
+#adminPanel .admin-orders-table-scroll{width:100%;overflow-x:auto;border:1px solid #e3e9f0;border-radius:12px;background:#fff}
+#adminPanel .admin-orders-table{width:100%;min-width:950px;border-collapse:separate;border-spacing:0;text-align:left;font-size:12px}
+#adminPanel .admin-orders-table th{position:sticky;top:0;padding:14px 12px;background:#102943;color:#fff;font-size:10px;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap}
+#adminPanel .admin-orders-table td{padding:13px 12px;border-bottom:1px solid #edf1f5;vertical-align:top;color:#34485e}
+#adminPanel .admin-orders-table tbody tr:hover{background:#f8fafc}
+#adminPanel .admin-orders-table td strong,#adminPanel .admin-orders-table td small{display:block}
+#adminPanel .admin-orders-table td small{margin-top:4px;color:#8190a1;font-size:10px;overflow-wrap:anywhere}
+#adminPanel .admin-orders-table .admin-order-amount{font-weight:800;white-space:nowrap;color:#183957}
+#adminPanel .admin-order-pill{display:inline-block;padding:5px 8px;border-radius:20px;background:#edf3f8;color:#365875;font-size:10px;font-weight:700}
+#adminPanel .admin-order-manage summary{cursor:pointer;padding:8px 10px;border:1px solid #dce5ef;border-radius:7px;color:#21496f;font-weight:700;white-space:nowrap}
+#adminPanel .admin-order-manage[open] summary{margin-bottom:10px;background:#f4f7fb}
+#adminPanel .admin-order-manage .admin-order-track-fields{min-width:245px;max-width:300px;grid-template-columns:1fr}
+#adminPanel .admin-order-manage .admin-order-track-note{grid-column:auto}
 #adminPanel .admin-order-track-card{padding:17px;margin:12px 0;border:1px solid #dfe7f0;border-radius:13px;background:#fff}
 #adminPanel .admin-order-track-summary{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;padding-bottom:13px;border-bottom:1px solid #edf1f5}
 #adminPanel .admin-order-track-summary>div{display:grid;gap:4px}
@@ -1319,30 +1332,31 @@ async function loadAdminOrdersTable() {
     if (error) throw error;
     if (!data || data.length === 0) { box.textContent = "No customer orders found."; return; }
     box.innerHTML = `
-      <div class="admin-order-track-list">
-      ${data.map(order => `
-        <article class="admin-order-track-card">
-          <div class="admin-order-track-summary">
-            <div><span>ORDER</span><h4>${escapeHTML(order.order_number||order.id)}</h4><small>${escapeHTML(order.customer_name||'Customer')} · ${escapeHTML(order.customer_email||'')}</small></div>
-            <div><strong>${escapeHTML(order.currency||'')} ${escapeHTML(Number(order.total_amount||0).toFixed(2))}</strong><small>Payment: ${escapeHTML(order.payment_status||'unknown')}</small></div>
-            <span class="customer-order-status">${escapeHTML(orderStatusLabel(order.order_status))}</span>
-          </div>
-          <div class="admin-order-track-fields">
-            <label>Update order status
-              <select id="trackStatus-${escapeHTML(order.id)}">
-                ${[['awaiting_admin_approval','Payment confirmed / awaiting approval'],['processing','Processing'],['shipped','Shipped / in transit'],['delivered','Delivered'],['cancelled','Cancelled']].map(([v,l])=>'<option value="'+v+'" '+(order.order_status===v?'selected':'')+'>'+l+'</option>').join('')}
-              </select>
-            </label>
-            <label>Delivery company / carrier<input id="trackCarrier-${escapeHTML(order.id)}" placeholder="e.g. DHL, courier company"></label>
-            <label>Tracking number<input id="trackNumber-${escapeHTML(order.id)}" placeholder="Enter shipment tracking number"></label>
-            <label class="admin-order-track-note">Message to customer<textarea id="trackNote-${escapeHTML(order.id)}" rows="2" placeholder="e.g. Your parcel has left our warehouse."></textarea></label>
-          </div>
-          <div class="admin-order-track-footer">
-            <small>Delivery address: ${escapeHTML(order.shipping_address||'Not provided')}</small>
-            <button class="primary" type="button" onclick="adminSaveOrderTracking('${escapeHTML(order.id)}')">Save tracking update</button>
-          </div>
-        </article>
-      `).join('')}
+      <div class="admin-orders-table-scroll">
+        <table class="admin-orders-table">
+          <thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Order status</th><th>Date</th><th>Manage / tracking</th></tr></thead>
+          <tbody>
+            ${data.map(order => `
+              <tr>
+                <td><strong>${escapeHTML(order.order_number||order.id)}</strong><small>${escapeHTML(order.currency||'')}</small></td>
+                <td><strong>${escapeHTML(order.customer_name||'Customer')}</strong><small>${escapeHTML(order.customer_email||'')}</small></td>
+                <td class="admin-order-amount">${escapeHTML(order.currency||'')} ${escapeHTML(Number(order.total_amount||0).toFixed(2))}</td>
+                <td><span class="admin-order-pill">${escapeHTML(order.payment_status||'unknown')}</span></td>
+                <td><span class="customer-order-status">${escapeHTML(orderStatusLabel(order.order_status))}</span></td>
+                <td>${order.created_at?escapeHTML(new Date(order.created_at).toLocaleDateString()):'—'}</td>
+                <td><details class="admin-order-manage"><summary>Update order</summary>
+                  <div class="admin-order-track-fields">
+                    <label>Order status<select id="trackStatus-${escapeHTML(order.id)}">${[['awaiting_admin_approval','Payment confirmed / awaiting approval'],['processing','Processing'],['shipped','Shipped / in transit'],['delivered','Delivered'],['cancelled','Cancelled']].map(([v,l])=>'<option value="'+v+'" '+(order.order_status===v?'selected':'')+'>'+l+'</option>').join('')}</select></label>
+                    <label>Delivery company / carrier<input id="trackCarrier-${escapeHTML(order.id)}" placeholder="e.g. DHL, courier company"></label>
+                    <label>Tracking number<input id="trackNumber-${escapeHTML(order.id)}" placeholder="Enter shipment tracking number"></label>
+                    <label class="admin-order-track-note">Message to customer<textarea id="trackNote-${escapeHTML(order.id)}" rows="2" placeholder="e.g. Your parcel has left our warehouse."></textarea></label>
+                    <small>Delivery address: ${escapeHTML(order.shipping_address||'Not provided')}</small>
+                    <button class="primary" type="button" onclick="adminSaveOrderTracking('${escapeHTML(order.id)}')">Save tracking update</button>
+                  </div>
+                </details></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
       </div>`;
   } catch (error) {
     box.textContent = "Could not load orders: " + error.message;
