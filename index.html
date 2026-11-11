@@ -460,6 +460,7 @@ main{max-width:1220px}
 .google-account-button{border:1px solid #dce2ea;background:white;color:#34435a}.google-account-button strong{font-size:17px;margin-right:9px;color:#4285f4}
 .account-message{margin:13px 0 0;padding:11px;border-radius:8px;background:#f2f5f9;color:#647187;font-size:12px;line-height:1.5}.account-message.success{background:#eef8f0;color:#27613b}
 .account-avatar{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 12px;border-radius:50%;background:#10213e;color:#d6ad55;font-size:24px;font-weight:800}
+.profile-photo-label{display:inline-block;margin:0 auto 6px;padding:9px 13px;border-radius:20px;background:#f1f4f8;color:#173b63;font-size:12px;font-weight:700;cursor:pointer}.profile-photo-label:hover{background:#e5edf6}#profilePhotoMessage{margin:4px 0 12px}
 #accountSignedIn{text-align:center}#accountSignedIn h3{margin:8px 0 4px;color:#10213e}#accountSignedIn .account-email{color:#718095;font-size:13px;overflow-wrap:anywhere}
 .account-signout{background:#edf1f6;color:#334258}
 .paychangu-checkout{margin-top:22px;padding:22px;border:1px solid #e1e6ee;border-radius:16px;background:#fff;box-shadow:0 9px 28px rgba(16,33,62,.07)}
@@ -1084,18 +1085,20 @@ main{max-width:1220px}
       <h3>Supplier application</h3>
       <p class="small-note">Submit or update your business application for RIANDERBLOG approval.</p>
       <div id="supplierApplicationPanel">
-    <h3>Become a supplier</h3><p class="small-note">Create a supplier application. RIANDERBLOG admin approval is required before public listing.</p>
+    <h3>Become a supplier</h3><p class="small-note">Just a few details to apply. We will use your account email. Approval is required before your shop is listed.</p>
     <div class="form-grid">
-  <input id="supplierCompany" placeholder="Company / business name">
-  <input id="supplierCountry" placeholder="Country">
-  <input id="supplierEmail" type="email" placeholder="Business email">
-  <input id="supplierPhone" type="tel" placeholder="Phone number (include country code)">
-  <input id="supplierWebsite" placeholder="Website URL (optional)">
-  <label for="supplierPlannedProductCount">Number of different products you plan to list</label>
-  <input id="supplierPlannedProductCount" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 25" required>
-  <textarea id="supplierDescription" placeholder="Describe your products, shipping destinations and business"></textarea>
+      <input id="supplierCompany" placeholder="Shop / business name" autocomplete="organization" required>
+      <input id="supplierCountry" placeholder="Country" autocomplete="country-name" required>
+      <input id="supplierPhone" type="tel" placeholder="WhatsApp / phone number" autocomplete="tel" required>
+      <select id="supplierMainCategory" aria-label="Main product category">
+        <option value="">Main product category (choose one)</option>
+        <option>Fashion</option><option>Electronics</option><option>Home & Living</option>
+        <option>Beauty</option><option>Health</option><option>Food & Grocery</option>
+        <option>Automotive</option><option>Other</option>
+      </select>
+      <input id="supplierPlannedProductCount" type="number" min="1" step="1" inputmode="numeric" placeholder="How many products will you list? (e.g. 10)" required>
     </div>
-    <button class="primary" onclick="applySupplier()">Submit supplier application</button><p id="supplierMessage" class="small-note"></p>
+    <button class="primary" onclick="applySupplier()">Send application</button><p id="supplierMessage" class="small-note"></p>
     
       </div>
     </div>
@@ -1282,6 +1285,9 @@ main{max-width:1220px}
         </div>
         <div id="accountSignedIn" style="display:none">
           <div class="account-avatar" id="accountAvatar">R</div>
+          <label class="profile-photo-label" for="profilePhotoInput">📷 Add / change profile picture</label>
+          <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="uploadProfilePhoto(this)">
+          <p id="profilePhotoMessage" class="small-note" aria-live="polite">Your photo appears on your account.</p>
           <span class="account-kicker">ACCOUNT CONNECTED</span>
           <h3 id="accountWelcomeName">Welcome back</h3>
           <p id="accountEmailDisplay" class="account-email"></p>
@@ -2904,10 +2910,45 @@ function updateAccountExperience(user){
     if(msg)msg.textContent='You are browsing as a guest. Sign in or create a free account.';
   }
 }
+async function uploadProfilePhoto(input){
+ const message=document.getElementById('profilePhotoMessage');
+ const file=input?.files?.[0];
+ if(!file)return;
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();
+  if(userError)throw userError;
+  if(!user)throw new Error('Sign in to add a profile picture.');
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Choose a JPG, PNG or WEBP image.');
+  if(file.size>5*1024*1024)throw new Error('Photo must be 5 MB or smaller.');
+  if(message)message.textContent='Uploading photo…';
+  const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+  const path=user.id+'/profile.'+ext;
+  const {data,error}=await db.storage.from('avatars').upload(path,file,{upsert:true,cacheControl:'3600',contentType:file.type});
+  if(error)throw error;
+  const {data:publicData}=db.storage.from('avatars').getPublicUrl(data.path);
+  const photoUrl=publicData.publicUrl+'?v='+Date.now();
+  const {error:profileError}=await db.from('profiles').upsert({id:user.id,avatar_url:photoUrl},{onConflict:'id'});
+  if(profileError)throw profileError;
+  const avatar=document.getElementById('accountAvatar');
+  if(avatar){avatar.textContent='';avatar.style.backgroundImage='url("'+photoUrl+'")';avatar.style.backgroundSize='cover';avatar.style.backgroundPosition='center';}
+  if(message)message.textContent='Profile picture updated.';
+ }catch(e){if(message)message.textContent='Photo upload failed: '+(e?.message||'Please try again.');}
+ finally{if(input)input.value='';}
+}
+async function loadProfilePhoto(user){
+ const avatar=document.getElementById('accountAvatar');
+ if(!user||!avatar)return;
+ try{
+  const {data,error}=await db.from('profiles').select('avatar_url').eq('id',user.id).maybeSingle();
+  if(error)throw error;
+  if(data?.avatar_url){avatar.textContent='';avatar.style.backgroundImage='url("'+String(data.avatar_url).replace(/["\\]/g,'')+'")';avatar.style.backgroundSize='cover';avatar.style.backgroundPosition='center';}
+ }catch(e){console.warn('Could not load profile picture:',e.message);}
+}
 let notificationChannel=null;
 db.auth.onAuthStateChange((event,session) => {
   const user=session?.user||null;
   updateAccountExperience(user);
+  if(user)loadProfilePhoto(user);
   updateAdminVisibility(user);
   startNotifications(user);
   showDashboard();
@@ -3235,56 +3276,45 @@ function supplierShowTab(tab){
 }
 async function applySupplier(){
  const message=document.getElementById('supplierMessage');
-
+ const button=document.querySelector('#supplierApplicationPanel button.primary');
  try{
   const {data:{user},error:userError}=await db.auth.getUser();
-const row={
-  user_id:user.id,
-  business_name:document.getElementById('supplierCompany').value.trim(),
-  contact_name:user.user_metadata?.full_name||user.email||'',
-  country:document.getElementById('supplierCountry').value.trim(),
-  email:document.getElementById('supplierEmail').value.trim(),
-  phone:document.getElementById('supplierPhone').value.trim(),
-  website:safeUrl(document.getElementById('supplierWebsite').value),
-  planned_product_count:Math.floor(Number(document.getElementById('supplierPlannedProductCount').value)),
-  fulfilment_details:document.getElementById('supplierDescription').value.trim(),
-  status:'pending'
-};
-   if(!row.business_name||!row.country||!row.email||!row.phone){
-  message.textContent='Enter company name, country, business email and phone number.';
-  return;
-   }
-   if(!Number.isSafeInteger(row.planned_product_count)||row.planned_product_count<1){
-  message.textContent='Enter the total number of different products you plan to list (at least 1).';
-  return;
-   }
-
-  const {data:existing,error:checkError}=await db
-   .from('supplier_applications')
-   .select('id,status')
-   .eq('user_id',user.id)
-   .in('status',['pending','approved'])
-   .limit(1);
-
-  if(checkError) throw checkError;
-
-  if(existing?.length){
-   message.textContent='You already have a pending or approved application.';
-   return;
+  if(userError)throw userError;
+  if(!user){message.textContent='Please sign in before applying.';showSection('account');return;}
+  const businessName=document.getElementById('supplierCompany').value.trim();
+  const country=document.getElementById('supplierCountry').value.trim();
+  const phone=document.getElementById('supplierPhone').value.trim();
+  const category=document.getElementById('supplierMainCategory').value;
+  const count=Math.floor(Number(document.getElementById('supplierPlannedProductCount').value));
+  if(!businessName||!country||!phone||!category||!Number.isSafeInteger(count)||count<1){
+    message.textContent='Please complete the five short fields above.';return;
   }
-
-  const {error}=await db
-   .from('supplier_applications')
-   .insert(row);
-
-  if(error) throw error;
-
-  message.textContent='Application submitted. Waiting for RIANDERBLOG admin approval.';
-
+  if(button){button.disabled=true;button.textContent='Sending…';}
+  const {data:existing,error:checkError}=await db.from('supplier_applications')
+    .select('id,status').eq('user_id',user.id).in('status',['pending','approved']).limit(1);
+  if(checkError)throw checkError;
+  if(existing?.length){message.textContent='You already have a pending or approved application.';return;}
+  const row={
+    user_id:user.id,
+    business_name:businessName,
+    contact_name:user.user_metadata?.full_name||user.user_metadata?.name||user.email||'',
+    country,
+    email:user.email||'',
+    phone,
+    product_categories:[category],
+    planned_product_count:count,
+    fulfilment_details:'',
+    status:'pending'
+  };
+  const {error}=await db.from('supplier_applications').insert(row);
+  if(error)throw error;
+  message.textContent='Application sent! We will review it and update your RIANDERBLOG account.';
  }catch(e){
-  message.textContent='Could not submit: '+e.message;
+  message.textContent='Could not submit: '+(e?.message||'Please try again.');
+ }finally{
+  if(button){button.disabled=false;button.textContent='Send application';}
  }
-     }
+}
   async function startSupplierConversation(productId){
   const {data:{user}}=await db.auth.getUser();
 
