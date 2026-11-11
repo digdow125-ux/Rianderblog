@@ -1006,6 +1006,8 @@ main{max-width:1220px}
   <input id="supplierEmail" type="email" placeholder="Business email">
   <input id="supplierPhone" type="tel" placeholder="Phone number (include country code)">
   <input id="supplierWebsite" placeholder="Website URL (optional)">
+  <label for="supplierPlannedProductCount">Number of different products you plan to list</label>
+  <input id="supplierPlannedProductCount" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 25" required>
   <textarea id="supplierDescription" placeholder="Describe your products, shipping destinations and business"></textarea>
     </div>
     <button class="primary" onclick="applySupplier()">Submit supplier application</button><p id="supplierMessage" class="small-note"></p>
@@ -1580,9 +1582,9 @@ async function loadAdminSupplierApplications(){
  const box=document.getElementById('adminSupplierList');if(!box)return;box.textContent='Loading supplier applications...';
  try{
   await adminGuard();
-  const {data,error}=await db.from('supplier_applications').select('id,business_name,contact_name,country,email,status,created_at').order('created_at',{ascending:false}).limit(100);
+  const {data,error}=await db.from('supplier_applications').select('id,business_name,contact_name,country,email,planned_product_count,status,created_at').order('created_at',{ascending:false}).limit(100);
   if(error)throw error;if(!data?.length){box.textContent='No supplier applications found.';return;}
-  box.innerHTML='<table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Business</th><th>Contact person</th><th>Country</th><th>Email</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody>'+data.map(x=>'<tr><td><strong>'+escapeHTML(x.business_name||'—')+'</strong></td><td>'+escapeHTML(x.contact_name||'—')+'</td><td>'+escapeHTML(x.country||'—')+'</td><td>'+escapeHTML(x.email||'—')+'</td><td>'+escapeHTML(x.created_at?new Date(x.created_at).toLocaleDateString():'—')+'</td><td><span class="admin-order-pill">'+escapeHTML(x.status||'pending')+'</span></td><td>'+(x.status==='pending'?'<button class="primary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'approved\')">Approve</button> <button class="secondary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'rejected\')">Reject</button>':'—')+'</td></tr>').join('')+'</tbody></table>';
+  box.innerHTML='<table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Business</th><th>Contact person</th><th>Country</th><th>Email</th><th>Planned products</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody>'+data.map(x=>'<tr><td><strong>'+escapeHTML(x.business_name||'—')+'</strong></td><td>'+escapeHTML(x.contact_name||'—')+'</td><td>'+escapeHTML(x.country||'—')+'</td><td>'+escapeHTML(x.email||'—')+'</td><td><strong>'+Number(x.planned_product_count||1).toLocaleString()+'</strong></td><td>'+escapeHTML(x.created_at?new Date(x.created_at).toLocaleDateString():'—')+'</td><td><span class="admin-order-pill">'+escapeHTML(x.status||'pending')+'</span></td><td>'+(x.status==='pending'?'<button class="primary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'approved\')">Approve</button> <button class="secondary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'rejected\')">Reject</button>':'—')+'</td></tr>').join('')+'</tbody></table>';
  }catch(e){box.textContent='Could not load supplier applications: '+e.message;}
 }
 
@@ -3159,11 +3161,16 @@ const row={
   email:document.getElementById('supplierEmail').value.trim(),
   phone:document.getElementById('supplierPhone').value.trim(),
   website:safeUrl(document.getElementById('supplierWebsite').value),
+  planned_product_count:Math.floor(Number(document.getElementById('supplierPlannedProductCount').value)),
   fulfilment_details:document.getElementById('supplierDescription').value.trim(),
   status:'pending'
 };
    if(!row.business_name||!row.country||!row.email||!row.phone){
   message.textContent='Enter company name, country, business email and phone number.';
+  return;
+   }
+   if(!Number.isSafeInteger(row.planned_product_count)||row.planned_product_count<1){
+  message.textContent='Enter the total number of different products you plan to list (at least 1).';
   return;
    }
 
