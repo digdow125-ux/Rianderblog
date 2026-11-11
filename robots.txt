@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://digdow125-ux.github.io/Rianderblog/sitemap.xml
