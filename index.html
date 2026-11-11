@@ -1348,8 +1348,8 @@ async function adminSaveOrderTracking(orderId){
     const {data:order,error:orderError}=await db.from('orders').select('id,payment_status').eq('id',orderId).maybeSingle();
     if(orderError)throw orderError;
     if(!order)throw new Error('Order not found.');
-    if(['processing','shipped','delivered'].includes(status)&&order.payment_status!=='paid'){
-      throw new Error('This order must be paid before it can move to processing or delivery.');
+    if(order.payment_status!=='paid' && status!=='cancelled'){
+      throw new Error('This order must have confirmed payment before it can move into fulfilment or delivery.');
     }
     const {data:updated,error:updateError}=await db.from('orders').update({order_status:status}).eq('id',orderId).select('id').maybeSingle();
     if(updateError)throw updateError;
