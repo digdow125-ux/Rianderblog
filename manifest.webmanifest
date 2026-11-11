@@ -1,0 +1,19 @@
+{
+  "name": "RIANDERBLOG Marketplace",
+  "short_name": "RIANDERBLOG",
+  "description": "Discover products and shop with suppliers on RIANDERBLOG.",
+  "start_url": "./?source=app",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f6f9",
+  "theme_color": "#10213e",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
