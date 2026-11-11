@@ -1160,7 +1160,7 @@ main{max-width:1220px}
 <div id="supplierProductGalleryPreview" class="supplier-gallery-preview"></div>
 <textarea id="supplierProductImageUrl" placeholder="Optional: paste image URLs, one per line (each URL counts as one picture)"></textarea>
 <div id="supplierExistingGallery" class="small-note"></div>
-    <input id="supplierProductLink" type="url" placeholder="Supplier product URL (optional)">
+    <p class="small-note">Supplier product-page links are used only to find matching product pictures. Customers purchase directly through RIANDERBLOG; no affiliate redirects are used.</p>
 
     <textarea id="supplierProductDescription"
       placeholder="Product description"></textarea>
@@ -2116,7 +2116,6 @@ async function saveAdminProduct(){
       category:document.getElementById('adminProductCategory').value.trim()||'Other',
       image_url:image,
       product_image_urls:images,
-      affiliate_url:link,
       description:document.getElementById('adminProductDescription').value.trim(),
       is_active:document.getElementById('adminProductActive').checked
     };
@@ -3624,7 +3623,6 @@ function clearSupplierProductForm(){
     'supplierProductMinimumOrder',
     'supplierProductColours',
     'supplierProductImageUrl',
-    'supplierProductLink',
     'supplierProductDescription'
   ].forEach(id=>{
     const el=document.getElementById(id);
@@ -3716,6 +3714,7 @@ async function loadSupplierProducts(supplierId){
         ${(p.review_status||'pending')!=='approved'?'<div class="product-unapproved-notice">NOT APPROVED — this product is highlighted and is not visible to customers yet.</div>':'<div class="product-approved-notice">APPROVED — product is published.</div>'}
       </div>
       <div class="admin-actions">
+        <button class="secondary" onclick="importSupplierProductImages('${escapeHTML(p.id)}')">Import product pictures</button>
         <button class="secondary"
           onclick="editSupplierProduct('${escapeHTML(p.id)}')">Edit</button>
         <button class="remove"
@@ -4103,7 +4102,6 @@ function editSupplierProduct(id){
   document.getElementById('supplierExistingGallery').textContent='Existing pictures kept: '+oldGallery.length+'. Add more pictures below if needed.';
   document.getElementById('supplierProductGalleryPreview').innerHTML=oldGallery.map(src=>'<img src="'+escapeHTML(src)+'" alt="Existing product picture">').join('');
 
-  document.getElementById('supplierProductLink').value=p.affiliate_url||'';
   document.getElementById('supplierProductDescription').value=p.description||'';
 
   document.getElementById('supplierProductName').scrollIntoView({
@@ -4125,8 +4123,6 @@ async function saveSupplierProduct(){
     const minimumOrder=Number(document.getElementById('supplierProductMinimumOrder').value||1);
     const colours=document.getElementById('supplierProductColours').value.split(',').map(x=>x.trim()).filter(Boolean);
     const deliveryDays=Number(document.getElementById('supplierProductDeliveryDays').value);
-    const linkText=document.getElementById('supplierProductLink').value.trim();
-    const link=linkText?safeUrl(linkText):'';
 
     if(!name||!Number.isFinite(price)||price<=0){
       throw new Error('Enter a product name and a valid price above zero.');
@@ -4137,9 +4133,6 @@ async function saveSupplierProduct(){
     if(stock>0&&minimumOrder>stock) throw new Error('Minimum order cannot be greater than available stock.');
     if(!Number.isInteger(deliveryDays)||deliveryDays<1||deliveryDays>7) throw new Error('Delivery must be within 1 to 7 days.');
     if(colours.length>20||colours.some(c=>c.length>40)) throw new Error('Enter up to 20 colour names, each under 40 characters.');
-    if(linkText&&!link){
-      throw new Error('Enter a valid supplier product URL, or leave it blank.');
-    }
 
     const id=document.getElementById('supplierProductId').value;
     const oldProduct=id
@@ -4196,6 +4189,25 @@ async function saveSupplierProduct(){
 
   }catch(e){
     adminMessage('supplierProductMessage','Could not submit product: '+e.message);
+  }
+}
+
+async function importSupplierProductImages(id){
+  try{
+    await adminGuard();
+    const product=supplierProductsCache.find(p=>String(p.id)===String(id));
+    if(!product)throw new Error('Product not found. Refresh your supplier product list and try again.');
+    const productUrl=prompt('Paste the normal supplier product-page link for "'+(product.name||'this product')+'". This link is only used to find pictures; customers will not be redirected.');
+    if(!productUrl)return;
+    if(!safeUrl(productUrl.trim()))throw new Error('Enter a valid HTTP or HTTPS product-page link.');
+    adminMessage('supplierProductMessage','Finding matching product pictures...');
+    const {data,error}=await db.functions.invoke('import-product-images',{body:{productId:String(id),productUrl:productUrl.trim()}});
+    if(error)throw error;
+    if(!data||!data.success)throw new Error(data?.error||'No product pictures were imported.');
+    adminMessage('supplierProductMessage','Imported '+data.count+' pictures for '+data.productName+'. Product remains pending approval.');
+    await loadSupplierProducts(currentSupplierRecord.id);
+  }catch(e){
+    adminMessage('supplierProductMessage','Picture import failed: '+(e.message||'Unknown error'));
   }
 }
 
