@@ -1042,6 +1042,10 @@ main{max-width:1220px}
     </select>
 
     <input id="supplierProductCategory" placeholder="Product category">
+<input id="supplierProductStock" type="number" min="0" step="1" placeholder="Quantity available in your shop">
+<input id="supplierProductColours" placeholder="Available colours, separated by commas">
+<label for="supplierProductDeliveryDays">Delivery time (maximum 7 days)</label>
+<select id="supplierProductDeliveryDays"><option value="1">1 day</option><option value="2">2 days</option><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7" selected>7 days</option></select>
 <label>Product Picture</label>
 <input id="supplierProductImage" type="file" accept="image/*">
 <input id="supplierProductImageUrl" type="url" placeholder="Or paste an image URL">
@@ -2307,6 +2311,7 @@ function displayProducts() {
       ${safeUrl(p.image_url) ? `<img src="${safeUrl(p.image_url)}" alt="${escapeHTML(p.name)}" loading="lazy">` : ""}
       <h3>${escapeHTML(p.name)}</h3>
       <p class="product-desc">${escapeHTML(p.description || "Explore this product for more information.")}</p>
+      <p class="small-note">Available: ${Number(p.stock_quantity||0)} · Colours: ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')} · Delivery: ${Number(p.delivery_days||7)} day(s)</p>
       <p class="price">${formatPrice(p.price,p.currency || "USD")}</p>
       <div class="product-actions">
         <button class="details-btn" onclick="openDetails('${escapeHTML(p.id)}')">View Details</button>
@@ -2343,7 +2348,9 @@ function openDetails(id) {
         <h2>${escapeHTML(p.name)}</h2>
         <div class="detail-price">${formatPrice(p.price,p.currency || "USD")}</div>
         <p class="detail-description">${escapeHTML(p.description || "More product information will be added soon.")}</p>
-        <p style="font-size:12px;color:#778195;line-height:1.5">Check the supplier's listing for shipping costs, availability and final price.</p>
+        <p><strong>Available in shop:</strong> ${Number(p.stock_quantity||0)} units</p>
+        <p><strong>Colours:</strong> ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')}</p>
+        <p><strong>Delivery:</strong> within ${Number(p.delivery_days||7)} day(s), maximum 7 days</p>
         <div class="detail-actions">
           <button class="detail-add" onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">Add to Cart</button>
           <button class="detail-buy" onclick="startSupplierConversation('${escapeHTML(p.id)}');closeDetails()">Message Supplier</button>
@@ -3375,6 +3382,8 @@ function clearSupplierProductForm(){
     'supplierProductName',
     'supplierProductPrice',
     'supplierProductCategory',
+    'supplierProductStock',
+    'supplierProductColours',
     'supplierProductImageUrl',
     'supplierProductLink',
     'supplierProductDescription'
@@ -3388,6 +3397,8 @@ function clearSupplierProductForm(){
 
   const currency=document.getElementById('supplierProductCurrency');
   if(currency) currency.value='USD';
+  const delivery=document.getElementById('supplierProductDeliveryDays');
+  if(delivery) delivery.value='7';
 
   adminMessage('supplierProductMessage','');
 }
@@ -3454,6 +3465,7 @@ async function loadSupplierProducts(supplierId){
           ${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)}
           · ${escapeHTML(p.category||'Other')}
         </div>
+        <div class="small-note">In shop: ${Number(p.stock_quantity||0)} · Colours: ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')} · Delivery: ${Number(p.delivery_days||7)} day(s)</div>
         <div class="small-note">
           ${p.is_active?'Active':'Waiting for admin review'}
         </div>
@@ -3814,6 +3826,9 @@ function editSupplierProduct(id){
   document.getElementById('supplierProductPrice').value=p.price??'';
   document.getElementById('supplierProductCurrency').value=p.currency||'USD';
   document.getElementById('supplierProductCategory').value=p.category||'';
+  document.getElementById('supplierProductStock').value=p.stock_quantity??0;
+  document.getElementById('supplierProductColours').value=(p.available_colours||[]).join(', ');
+  document.getElementById('supplierProductDeliveryDays').value=String(p.delivery_days||7);
 
   document.getElementById('supplierProductImage').value='';
   document.getElementById('supplierProductImageUrl').value=p.image_url||'';
@@ -3836,6 +3851,9 @@ async function saveSupplierProduct(){
 
     const name=document.getElementById('supplierProductName').value.trim();
     const price=Number(document.getElementById('supplierProductPrice').value);
+    const stock=Number(document.getElementById('supplierProductStock').value);
+    const colours=document.getElementById('supplierProductColours').value.split(',').map(x=>x.trim()).filter(Boolean);
+    const deliveryDays=Number(document.getElementById('supplierProductDeliveryDays').value);
     const linkText=document.getElementById('supplierProductLink').value.trim();
     const link=linkText?safeUrl(linkText):'';
 
@@ -3843,6 +3861,9 @@ async function saveSupplierProduct(){
       throw new Error('Enter a product name and a valid price above zero.');
     }
 
+    if(!Number.isInteger(stock)||stock<0) throw new Error('Enter a valid available quantity (zero or more).');
+    if(!Number.isInteger(deliveryDays)||deliveryDays<1||deliveryDays>7) throw new Error('Delivery must be within 1 to 7 days.');
+    if(colours.length>20||colours.some(c=>c.length>40)) throw new Error('Enter up to 20 colour names, each under 40 characters.');
     if(linkText&&!link){
       throw new Error('Enter a valid supplier product URL, or leave it blank.');
     }
@@ -3868,6 +3889,9 @@ async function saveSupplierProduct(){
       price:price,
       currency:document.getElementById('supplierProductCurrency').value,
       category:document.getElementById('supplierProductCategory').value.trim()||'Other',
+      stock_quantity:stock,
+      available_colours:colours,
+      delivery_days:deliveryDays,
       image_url:image,
       affiliate_url:link,
       description:document.getElementById('supplierProductDescription').value.trim(),
