@@ -829,7 +829,7 @@ main{max-width:1220px}
 <label>Product Picture</label>
 <input id="supplierProductImage" type="file" accept="image/*">
 <input id="supplierProductImageUrl" type="url" placeholder="Or paste an image URL">
-    <input id="supplierProductLink" placeholder="Supplier product URL">
+    <input id="supplierProductLink" type="url" placeholder="Supplier product URL (optional)">
 
     <textarea id="supplierProductDescription"
       placeholder="Product description"></textarea>
@@ -3399,14 +3399,15 @@ async function saveSupplierProduct(){
 
     const name=document.getElementById('supplierProductName').value.trim();
     const price=Number(document.getElementById('supplierProductPrice').value);
-    const link=safeUrl(document.getElementById('supplierProductLink').value.trim());
+    const linkText=document.getElementById('supplierProductLink').value.trim();
+    const link=linkText?safeUrl(linkText):'';
 
     if(!name||!Number.isFinite(price)||price<=0){
       throw new Error('Enter a product name and a valid price above zero.');
     }
 
-    if(!link){
-      throw new Error('Enter a valid supplier product URL.');
+    if(linkText&&!link){
+      throw new Error('Enter a valid supplier product URL, or leave it blank.');
     }
 
     const id=document.getElementById('supplierProductId').value;
