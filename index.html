@@ -1416,6 +1416,7 @@ main{max-width:1220px}
   <section id="supplierApplicationsSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>01 / ONBOARDING</span><h3>Supplier applications & business profiles</h3><p>Review submitted business details and approve or reject applications.</p></div><button class="secondary" onclick="loadAdminSupplierApplications()">↻ Refresh</button></div><div id="adminSupplierList" class="admin-table-wrap">Supplier applications will appear here.</div></section>
   <section id="supplierProductsSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>02 / CATALOGUE REVIEW</span><h3>Supplier product submissions</h3><p>Check product information and supplier links before publishing.</p></div><button class="secondary" onclick="loadPendingSupplierProducts()">↻ Refresh</button></div><div id="pendingSupplierProductList" class="admin-table-wrap">Supplier products will appear here.</div></section>
   <section id="supplierFulfilmentSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>03 / ORDER OPERATIONS</span><h3>Shipment & delivery approvals</h3><p>Review supplier evidence and confirm each fulfilment step.</p></div><button class="secondary" onclick="loadAdminFulfilmentReviews()">↻ Refresh</button></div><div id="adminFulfilmentReviews" class="admin-table-wrap">Pending submissions will appear here.</div></section>
+  <section id="supplierDisputesSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>04 / CUSTOMER PROTECTION</span><h3>Wrong / damaged item reports</h3><p>Customers keep the item while you investigate. Supplier funds stay on hold while a report is open.</p></div><button class="secondary" onclick="loadAdminItemDisputes()">↻ Refresh</button></div><div id="adminItemDisputes" class="admin-table-wrap">Customer reports will appear here.</div></section>
   <section id="supplierWithdrawalsSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>04 / FINANCE</span><h3>Supplier withdrawals & payouts</h3><p>Verify payout destination, make the transfer, then record the provider reference.</p></div><button class="secondary" onclick="loadAdminWithdrawals()">↻ Refresh</button></div><p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p><div id="adminWithdrawalsTable" class="admin-table-wrap">Withdrawal requests will appear here.</div></section>
   <section id="supplierLedgerSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>05 / ACCOUNTING</span><h3>Supplier wallet & transaction history</h3><p>Review supplier earnings, debits, available balances and payout records.</p></div><button class="secondary" onclick="loadAdminSupplierLedger()">↻ Refresh</button></div><div id="adminSupplierLedger" class="admin-table-wrap">Supplier wallet transactions will appear here.</div></section>
 </div>
@@ -1585,7 +1586,37 @@ async function loadAdminSupplierApplications(){
 }
 
 // Show only the selected supplier-management page.
+async function loadAdminItemDisputes(){
+ const box=document.getElementById('adminItemDisputes');if(!box)return;
+ box.textContent='Loading customer reports...';
+ const {data,error}=await db.from('supplier_item_disputes').select('id,order_item_id,order_id,supplier_id,customer_id,reason,customer_note,status,customer_keeps_item,admin_note,created_at').order('created_at',{ascending:false});
+ if(error){box.textContent='Could not load reports: '+error.message;return;}
+ if(!data?.length){box.textContent='No customer item reports.';return;}
+ const ids=[...new Set(data.map(x=>x.order_id))];
+ const [orders,items]=await Promise.all([
+  db.from('orders').select('id,order_number,customer_name,customer_phone').in('id',ids),
+  db.from('order_items').select('id,product_name,quantity').in('id',data.map(x=>x.order_item_id))
+ ]);
+ const om=new Map((orders.data||[]).map(x=>[x.id,x])),im=new Map((items.data||[]).map(x=>[x.id,x]));
+ box.innerHTML='<table class="admin-table"><thead><tr><th>Order / Customer</th><th>Item / Issue</th><th>Customer note</th><th>Status / Action</th></tr></thead><tbody>'+data.map(d=>{
+  const o=om.get(d.order_id)||{},i=im.get(d.order_item_id)||{};
+  const actions=d.status==='open'?'<button class="primary" onclick="resolveItemDispute(\''+d.id+'\',\'resolved_supplier\')">Resolve for supplier</button><button class="secondary" onclick="resolveItemDispute(\''+d.id+'\',\'resolved_customer\')">Resolve for customer</button>':'Reviewed';
+  return '<tr><td>'+escapeHTML(o.order_number||d.order_id)+'<br>'+escapeHTML(o.customer_name||'Customer')+'<br>'+escapeHTML(o.customer_phone||'')+'</td><td>'+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'<br>'+escapeHTML(d.reason.replace(/_/g,' '))+'</td><td>'+escapeHTML(d.customer_note||'No note')+'<br><small>Customer keeps item during review</small></td><td>'+escapeHTML(d.status.replace(/_/g,' '))+'<br>'+actions+(d.admin_note?'<p>'+escapeHTML(d.admin_note)+'</p>':'')+'</td></tr>';
+ }).join('')+'</tbody></table>';
+}
+async function resolveItemDispute(id,resolution){
+ const note=prompt('Add an admin decision note (required for your records):','');
+ if(note===null)return;
+ try{
+  const {error}=await db.rpc('admin_resolve_item_dispute',{p_dispute_id:id,p_resolution:resolution,p_admin_note:note});
+  if(error)throw error;
+  alert('Report decision saved. '+(resolution==='resolved_supplier'?'The customer must still confirm receipt before supplier funds can be released.':'Keep supplier funds on hold and handle any customer remedy manually.'));
+  await loadAdminItemDisputes();
+ }catch(e){alert('Could not resolve report: '+e.message);}
+}
+
 function adminOpenSupplierSection(sectionId) {
+ if(sectionId==='supplierDisputesSection') loadAdminItemDisputes();
   adminShowTab('suppliers');
   const panel=document.getElementById('adminTab-suppliers');
   if(!panel)return;
@@ -1617,7 +1648,7 @@ function adminShowTab(tab) {
   if (selected) selected.style.display = "block";
 
   if (tab === "orders") loadAdminOrdersTable();
-  if (tab === "suppliers") { loadAdminSupplierApplications(); loadPendingSupplierProducts(); loadAdminFulfilmentReviews(); loadAdminWithdrawals(); loadAdminSupplierLedger(); }
+  if (tab === "suppliers") { loadAdminSupplierApplications(); loadPendingSupplierProducts(); loadAdminFulfilmentReviews(); loadAdminItemDisputes(); loadAdminWithdrawals(); loadAdminSupplierLedger(); }
   if (tab === "products") renderAdminProducts();
   if (tab === "wallet") {
     loadAdminWallet();
@@ -3552,10 +3583,28 @@ async function loadCustomerFulfilmentConfirmations(){
   const ids=(orders||[]).map(x=>x.id);if(!ids.length){box.innerHTML='';return;}
   const {data:items,error:ie}=await db.from('order_items').select('id,order_id,product_name,quantity').in('order_id',ids);if(ie)throw ie;
   const itemIds=(items||[]).map(x=>x.id);if(!itemIds.length){box.innerHTML='';return;}
-  const {data:fs,error:fe}=await db.from('supplier_item_fulfilments').select('*').in('order_item_id',itemIds);if(fe)throw fe;
-  const im=new Map(items.map(x=>[x.id,x]));const ready=(fs||[]).filter(f=>f.status==='delivered_approved');
-  box.innerHTML=ready.length?'<div class="customer-order-card"><h3>Confirm delivered goods</h3>'+ready.map(f=>{const i=im.get(f.order_item_id)||{};return '<div class="listing"><strong>'+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</strong><p>RIANDERBLOG admin has approved this delivery. Confirm only if you have received it.</p><button class="primary" onclick="customerConfirmItemReceived(\''+f.id+'\')">Confirm goods received</button></div>';}).join('')+'</div>':'';
+  const [fr,dr]=await Promise.all([db.from('supplier_item_fulfilments').select('*').in('order_item_id',itemIds),db.from('supplier_item_disputes').select('order_item_id,status').in('order_item_id',itemIds)]);
+  if(fr.error)throw fr.error;if(dr.error)throw dr.error;
+  const im=new Map(items.map(x=>[x.id,x])),dm=new Map((dr.data||[]).map(x=>[x.order_item_id,x]));
+  const ready=(fr.data||[]).filter(f=>f.status==='delivered_approved');
+  box.innerHTML=ready.length?'<div class="customer-order-card"><h3>Confirm delivered goods</h3>'+ready.map(f=>{
+   const i=im.get(f.order_item_id)||{},d=dm.get(f.order_item_id);
+   const issue=d?'<p class="small-note">Your report is '+escapeHTML(d.status.replace(/_/g,' '))+'. Keep the item until RIANDERBLOG completes its review.</p>':'<button class="secondary" onclick="customerReportItemIssue('+f.order_item_id+')">Report wrong / damaged goods</button>';
+   return '<div class="listing"><strong>'+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</strong><p>RIANDERBLOG admin has approved this delivery. Confirm only if you received the correct goods.</p>'+issue+'<button class="primary" onclick="customerConfirmItemReceived(\''+f.id+'\')">Confirm goods received</button></div>';
+  }).join('')+'</div>':'';
  }catch(e){box.textContent='Could not load delivery confirmations: '+e.message;}
+}
+async function customerReportItemIssue(orderItemId){
+ const reason=prompt('Choose issue type: wrong_item, damaged_item, missing_item or other','wrong_item');
+ if(!reason)return;
+ const note=prompt('Describe the problem. Keep the item and its packaging while RIANDERBLOG reviews it.','');
+ if(note===null)return;
+ try{
+  const {error}=await db.rpc('customer_report_wrong_item',{p_order_item_id:orderItemId,p_reason:reason.trim(),p_note:note.slice(0,1500)});
+  if(error)throw error;
+  alert('Report submitted. Keep the item and packaging. The supplier funds are held while the administrator reviews your case.');
+  await loadCustomerFulfilmentConfirmations();
+ }catch(e){alert('Could not submit your report: '+e.message);}
 }
 async function customerConfirmItemReceived(id){
  if(!confirm('Confirm that you received these goods? This releases the supplier funds once all their items in this order are confirmed.'))return;
