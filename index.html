@@ -640,6 +640,85 @@ main{max-width:1220px}
 #adminPanel .admin-order-track-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 #adminPanel .admin-order-track-footer small{font-size:10px;color:#8291a2;max-width:70%;overflow-wrap:anywhere}
 @media(max-width:600px){#dashboard .customer-account-summary{grid-template-columns:1fr}#orderTracking .customer-order-top{flex-direction:column}#orderTracking .customer-track-steps{gap:3px}#orderTracking .customer-track-step small{font-size:9px}#adminPanel .admin-order-track-fields{grid-template-columns:1fr}#adminPanel .admin-order-track-note{grid-column:auto}#adminPanel .admin-order-track-footer small{max-width:100%}}
+ 
+/* RIANDERBLOG unified professional workspace system */
+:root{--rb-navy:#10213e;--rb-navy2:#1b3558;--rb-gold:#d6ad55;--rb-line:#e4e9f0;--rb-muted:#718096}
+.panel.secondary-page{padding:clamp(15px,2.5vw,27px);border:1px solid #e1e7ef;border-radius:16px;background:#f8fafc;box-shadow:0 8px 25px rgba(16,33,62,.055)}
+.panel.secondary-page>h2{margin:2px 0 7px;color:var(--rb-navy);font-size:clamp(21px,3vw,27px);letter-spacing:-.45px}
+.panel.secondary-page>h2+p{margin:0 0 20px;color:var(--rb-muted);font-size:13px;line-height:1.65}
+.panel.secondary-page h3{color:#1b3558}
+.panel.secondary-page .small-note{color:#78879a;font-size:12px;line-height:1.6}
+.panel.secondary-page .listing,.panel.secondary-page .admin-tools{padding:clamp(14px,2vw,21px);margin:14px 0;border:1px solid #e2e8f0;border-radius:13px;background:#fff;box-shadow:0 4px 14px rgba(16,33,62,.035)}
+.panel.secondary-page .listing>h3,.panel.secondary-page .admin-tools>h3{margin:0 0 8px;font-size:16px;letter-spacing:-.2px}
+.panel.secondary-page .form-grid{gap:12px}
+.panel.secondary-page .form-grid input,.panel.secondary-page .form-grid select,.panel.secondary-page .form-grid textarea{min-width:0;border-color:#dce3ec;border-radius:9px;background:#fbfcfe;font-size:13px}
+.panel.secondary-page button.primary,.panel.secondary-page button.secondary{min-height:39px;padding:10px 15px;border-radius:8px}
+.panel.secondary-page button.primary{background:var(--rb-navy);color:#fff}
+.panel.secondary-page button.primary:hover{background:#29496f}
+.panel.secondary-page button.secondary{background:#edf1f6;color:#33465f}
+#adminPanel{border:1px solid #dfe6ef;background:#f5f7fa}
+#adminPanel .admin-heading{background:linear-gradient(115deg,#0c1c34,#1c3b61 72%,#294d70);border:1px solid rgba(214,173,85,.35);border-radius:15px}
+#adminPanel .admin-kicker{color:#e8c77e;border-color:rgba(214,173,85,.38);background:rgba(214,173,85,.09)}
+#adminPanel .admin-heading button{background:var(--rb-gold);color:#17243a;border:0}
+#adminPanel .admin-stat-grid .market-card:before{background:var(--rb-gold)}
+#adminPanel .admin-stat-grid h3{color:var(--rb-navy)}
+#adminPanel .admin-navigation{position:sticky;top:6px;z-index:20;border-color:#dfe6ef;background:rgba(255,255,255,.97);backdrop-filter:blur(8px)}
+#adminPanel .admin-navigation button{white-space:nowrap}
+#adminPanel .admin-navigation button:hover,#adminPanel .admin-navigation button:focus{background:var(--rb-navy);color:#fff}
+#adminPanel .admin-tools{border-color:#e1e7ef;box-shadow:0 4px 15px rgba(16,33,62,.04)}
+#adminPanel .admin-tools h3{color:var(--rb-navy)}
+#adminPanel .admin-overview-intro{border-color:#e1e7ef}
+#adminPanel .admin-quick-card:hover{border-color:var(--rb-gold)}
+#adminPanel .admin-quick-card b{color:#9b742d}
+#adminPanel .admin-products-head{background:linear-gradient(120deg,#fffdf8,#f4f7fb);border-color:#e6e0d3}
+#adminPanel .admin-products-head h2{color:var(--rb-navy)}
+#adminPanel .admin-products-step{background:#f5efdf;color:#8b6827}
+#adminPanel .admin-products-tag{background:#f8f2e5;color:#8b6827}
+#adminPanel .admin-products-publish{background:#fbfaf6}
+#adminPanel .admin-table-wrap{max-width:100%;overflow:auto;border:1px solid #e1e7ef;border-radius:11px}
+#adminPanel .admin-table-wrap table{width:100%;border-collapse:separate;border-spacing:0}
+#adminPanel .admin-table-wrap th{background:#172e4d;color:#f8fafc;padding:12px 13px;text-align:left;white-space:nowrap}
+#adminPanel .admin-table-wrap td{padding:11px 13px;border-bottom:1px solid #edf0f4;vertical-align:middle}
+#adminPanel .admin-table-wrap tr:last-child td{border-bottom:0}
+#adminPanel .admin-table-wrap tr:nth-child(even) td{background:#f8fafc}
+#suppliers #supplierList{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:13px}
+#suppliers #supplierApplicationPanel{padding:18px;border:1px solid #e5eaf1;border-radius:12px;background:#fff}
+#suppliers #supplierWorkspacePanel>.listing{margin-top:0!important}
+#suppliers #supplierWorkspacePanel>.listing>h3:first-child{font-size:19px}
+#suppliers #supplierApplicationTab,#suppliers #supplierProductsTab{min-width:155px}
+#suppliers #supplierWorkspacePanel #supplierProductList{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+#suppliers #supplierWorkspacePanel .listing .listing{background:#fbfcfe}
+#suppliers #supplierWorkspacePanel table{width:100%;border-collapse:separate!important;border-spacing:0;min-width:850px}
+#suppliers #supplierWorkspacePanel table th{position:sticky;top:0;background:#172e4d;color:#fff;padding:12px;text-align:left;font-size:11px;white-space:nowrap}
+#suppliers #supplierWorkspacePanel table td{padding:11px 12px;border-bottom:1px solid #e9edf2;font-size:12px;vertical-align:middle}
+#suppliers .admin-table-wrap{overflow:auto;border:1px solid #e1e7ef;border-radius:10px}
+#affiliates>#programmeList{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:13px;margin-bottom:20px}
+#affiliates>h3{margin:22px 0 12px;padding-top:18px;border-top:1px solid #e6ebf1;font-size:16px}
+#affiliates>.form-grid{padding:17px;border:1px solid #e2e8f0;border-radius:12px;background:#fff}
+#affiliates>button.primary{margin-top:10px}
+#dashboard #dashboardDetails{padding:4px 0}
+#dashboard .customer-account-summary>div{background:#fff;border-color:#e2e8f0;box-shadow:0 3px 12px rgba(16,33,62,.035)}
+#orderTracking #customerOrderTrackingList,#orderTracking #customerFulfilmentConfirmations{display:grid;gap:12px}
+#messages .chat-shell{border:1px solid #e1e7ef;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 5px 18px rgba(16,33,62,.04)}
+#messages>h2{margin-bottom:7px}
+#messages .chat-sidebar{background:#f7f9fc;border-right:1px solid #e7ecf2}
+#messages .chat-sidebar-heading,#messages .chat-header{color:#183451}
+#messages .chat-header{background:#fff;border-bottom:1px solid #e7ecf2}
+#messages .chat-composer{background:#fff;border-top:1px solid #e7ecf2}
+#messages .chat-composer textarea{border:1px solid #dce3ec;border-radius:9px}
+#account.panel.secondary-page{background:#fff}
+#account .account-auth-card{border:1px solid #e3e8ef;box-shadow:0 8px 25px rgba(16,33,62,.06)}
+#orderTracking .customer-order-card{border-color:#e1e7ef;box-shadow:0 4px 15px rgba(16,33,62,.04)}
+@media(max-width:650px){
+ .panel.secondary-page{padding:14px;border-radius:12px}
+ #adminPanel .admin-navigation{top:0;gap:4px}
+ #adminPanel .admin-navigation button{padding:9px 11px}
+ #suppliers #supplierWorkspacePanel table{min-width:780px}
+ #dashboard .customer-account-summary{grid-template-columns:1fr 1fr}
+ #orderTracking .customer-order-meta{gap:15px;flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){#adminPanel .admin-tab{animation:none}.admin-quick-card{transition:none}}
+
 </style>
 </head>
 <body>
