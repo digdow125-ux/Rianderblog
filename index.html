@@ -3164,15 +3164,30 @@ async function loadSupplierFulfilments(supplierId){
 }
 function openSupplierFulfilmentForm(id,action){
  const box=document.getElementById('supplierFulfilmentForm');if(!box)return;const ship=action==='shipped';box.dataset.itemId=id;box.dataset.action=action;
- box.innerHTML='<h4>Submit '+(ship?'shipment':'delivery')+'</h4><p class="small-note">'+(ship?'Enter courier and tracking number.':'Enter delivery proof or reference.')+'</p>'+(ship?'<label>Courier / delivery company</label><input id="supplierFulfilmentCarrier" placeholder="Courier name"><label>Tracking number</label><input id="supplierFulfilmentTracking" placeholder="Tracking number">':'<label>Delivery proof / reference</label><input id="supplierFulfilmentEvidence" placeholder="Photo link, signed receipt or proof reference">')+'<label>Note (optional)</label><textarea id="supplierFulfilmentNote" rows="2" placeholder="Short update"></textarea><div class="fulfilment-form-actions"><button class="primary" onclick="submitSupplierFulfilmentForm()">Submit for admin confirmation</button><button class="secondary" onclick="closeSupplierFulfilmentForm()">Cancel</button><span id="supplierFulfilmentFormMessage"></span></div>';
+ box.innerHTML='<h4>Submit '+(ship?'shipment':'delivery')+'</h4><p class="small-note">'+(ship?'Enter courier and tracking number.':'Provide either the customer phone number or a photo showing the customer receiving the goods. Get the customer’s permission before taking or uploading a photo.')+'</p>'+(ship?'<label>Courier / delivery company</label><input id="supplierFulfilmentCarrier" placeholder="Courier name"><label>Tracking number</label><input id="supplierFulfilmentTracking" placeholder="Tracking number">':'<label>Customer phone number</label><input id="supplierFulfilmentPhone" type="tel" inputmode="tel" placeholder="Phone number used to confirm delivery"><p class="small-note">OR upload a delivery photo</p><label>Photo of customer with goods (with permission)</label><input id="supplierFulfilmentPhoto" type="file" accept="image/jpeg,image/png,image/webp"><p class="small-note">Maximum photo size: 5 MB. Choose either the phone number or photo.</p>')+'<label>Note (optional)</label><textarea id="supplierFulfilmentNote" rows="2" placeholder="Short update"></textarea><div class="fulfilment-form-actions"><button class="primary" onclick="submitSupplierFulfilmentForm()">Submit for admin confirmation</button><button class="secondary" onclick="closeSupplierFulfilmentForm()">Cancel</button><span id="supplierFulfilmentFormMessage"></span></div>';
  box.style.display='block';box.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function closeSupplierFulfilmentForm(){const b=document.getElementById('supplierFulfilmentForm');if(b){b.style.display='none';b.innerHTML='';}}
 async function submitSupplierFulfilmentForm(){
- const b=document.getElementById('supplierFulfilmentForm');if(!b)return;const id=Number(b.dataset.itemId),action=b.dataset.action,carrier=document.getElementById('supplierFulfilmentCarrier')?.value.trim()||'',tracking=document.getElementById('supplierFulfilmentTracking')?.value.trim()||'',proof=document.getElementById('supplierFulfilmentEvidence')?.value.trim()||'',note=document.getElementById('supplierFulfilmentNote')?.value.trim()||'',msg=document.getElementById('supplierFulfilmentFormMessage');
- if(action==='shipped'&&(!carrier||!tracking)){msg.textContent='Enter courier and tracking number.';return;}if(action==='delivered'&&proof.length<5){msg.textContent='Enter delivery proof or reference.';return;}
- try{const {error}=await db.rpc('supplier_submit_item_fulfilment',{p_order_item_id:id,p_action:action,p_carrier:action==='shipped'?carrier:null,p_tracking_number:action==='shipped'?tracking:null,p_supplier_note:note,p_delivery_evidence_url:action==='delivered'?proof:null});if(error)throw error;alert('Submitted. Waiting for admin confirmation.');if(currentSupplierRecord)await loadSupplierFulfilments(currentSupplierRecord.id);}
- catch(e){msg.textContent='Could not submit: '+e.message;}
+ const b=document.getElementById('supplierFulfilmentForm');if(!b)return;const id=Number(b.dataset.itemId),action=b.dataset.action,carrier=document.getElementById('supplierFulfilmentCarrier')?.value.trim()||'',tracking=document.getElementById('supplierFulfilmentTracking')?.value.trim()||'',phone=document.getElementById('supplierFulfilmentPhone')?.value.trim()||'',photo=document.getElementById('supplierFulfilmentPhoto')?.files?.[0]||null,note=document.getElementById('supplierFulfilmentNote')?.value.trim()||'',msg=document.getElementById('supplierFulfilmentFormMessage');
+ if(action==='shipped'&&(!carrier||!tracking)){msg.textContent='Enter courier and tracking number.';return;}
+ if(action==='delivered'&&(!phone&&!photo)){msg.textContent='Enter the customer phone number or upload a delivery photo.';return;}
+ if(action==='delivered'&&phone&&photo){msg.textContent='Choose only one: phone number OR photo.';return;}
+ try{
+  let proof=null;
+  if(action==='delivered'&&photo){
+   if(!photo.type||!['image/jpeg','image/png','image/webp'].includes(photo.type))throw new Error('Use a JPG, PNG or WEBP photo.');
+   if(photo.size>5*1024*1024)throw new Error('Photo must be 5 MB or smaller.');
+   const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
+   const ext=photo.type==='image/jpeg'?'jpg':photo.type==='image/png'?'png':'webp';
+   const path=user.id+'/delivery-proof-'+Date.now()+'.'+ext;
+   const {data:uploaded,error:uploadError}=await db.storage.from('product-images').upload(path,photo,{cacheControl:'3600',upsert:false,contentType:photo.type});
+   if(uploadError)throw uploadError;
+   proof=db.storage.from('product-images').getPublicUrl(uploaded.path).data.publicUrl;
+  }else if(action==='delivered'&&phone){proof='Customer phone number: '+phone;}
+  const {error}=await db.rpc('supplier_submit_item_fulfilment',{p_order_item_id:id,p_action:action,p_carrier:action==='shipped'?carrier:null,p_tracking_number:action==='shipped'?tracking:null,p_supplier_note:note,p_delivery_evidence_url:action==='delivered'?proof:null});
+  if(error)throw error;alert('Submitted. Waiting for admin confirmation.');if(currentSupplierRecord)await loadSupplierFulfilments(currentSupplierRecord.id);
+ }catch(e){msg.textContent='Could not submit: '+(e?.message||String(e));}
 }
 async function loadAdminFulfilmentReviews(){
  const box=document.getElementById('adminFulfilmentReviews');if(!box)return;box.textContent='Loading pending submissions...';
@@ -3184,7 +3199,7 @@ async function loadAdminFulfilmentReviews(){
   if(ir.error)throw ir.error;if(or.error)throw or.error;if(sr.error)throw sr.error;
   const im=new Map((ir.data||[]).map(x=>[x.id,x])),om=new Map((or.data||[]).map(x=>[x.id,x])),sm=new Map((sr.data||[]).map(x=>[x.id,x]));
   box.innerHTML='<h4>Pending supplier confirmations ('+data.length+')</h4><div class="admin-table-wrap"><table class="fulfilment-table"><thead><tr><th>Order / customer</th><th>Supplier / product</th><th>Step</th><th>Courier / proof</th><th>Decision</th></tr></thead><tbody>'+data.map(f=>{
-   const o=om.get(f.order_id)||{},i=im.get(f.order_item_id)||{},sp=sm.get(f.supplier_id)||{},ship=f.status==='shipped_submitted',proof=ship?escapeHTML(f.carrier||'')+' · '+escapeHTML(f.tracking_number||''):(f.delivery_evidence_url?'<a href="'+escapeHTML(safeUrl(f.delivery_evidence_url)||'#')+'" target="_blank" rel="noopener">View proof</a>':'No proof');
+   const o=om.get(f.order_id)||{},i=im.get(f.order_item_id)||{},sp=sm.get(f.supplier_id)||{},ship=f.status==='shipped_submitted',evidenceUrl=safeUrl(f.delivery_evidence_url||''),proof=ship?escapeHTML(f.carrier||'')+' · '+escapeHTML(f.tracking_number||''):(evidenceUrl?'<a href="'+escapeHTML(evidenceUrl)+'" target="_blank" rel="noopener">View delivery photo</a>':escapeHTML(f.delivery_evidence_url||'No proof'));
    return '<tr><td>'+escapeHTML(o.order_number||f.order_id)+'<small>'+escapeHTML(o.customer_name||'Customer')+'</small></td><td>'+escapeHTML(sp.business_name||sp.company_name||'Supplier')+'<small>'+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</small></td><td>'+ (ship?'Shipment submitted':'Delivery submitted')+'<small>'+escapeHTML(f.supplier_note||'')+'</small></td><td>'+proof+'</td><td><button class="primary" onclick="adminReviewItemFulfilment(\''+f.id+'\',\''+(ship?'approve_shipment':'approve_delivery')+'\')">Confirm</button> <button class="secondary" onclick="adminReviewItemFulfilment(\''+f.id+'\',\'reject\')">Reject</button></td></tr>';
   }).join('')+'</tbody></table></div>';
  }catch(e){box.textContent='Could not load confirmations: '+e.message;}
