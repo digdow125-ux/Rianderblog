@@ -573,6 +573,60 @@ main{max-width:1220px}
 #adminPanel #pendingSupplierProductList .admin-row,#adminPanel #adminProductList .admin-row{padding:14px 0;border-bottom:1px solid #edf1f5}
 @media(max-width:850px){#adminPanel .admin-products-workspace{grid-template-columns:1fr}#adminPanel .admin-products-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}#adminPanel .admin-products-side .admin-products-panel{margin-bottom:0}}
 @media(max-width:560px){#adminPanel .admin-products-head{align-items:flex-start;flex-direction:column;padding:19px}#adminPanel .admin-products-head h2{font-size:21px}#adminPanel .admin-products-panel{padding:15px}#adminPanel .admin-products-fields{grid-template-columns:1fr}#adminPanel .admin-products-field-wide{grid-column:auto}#adminPanel .admin-products-side{grid-template-columns:1fr}#adminPanel .admin-products-publish{align-items:flex-start;flex-direction:column}#adminPanel .admin-products-section-title{align-items:flex-start}#adminPanel .admin-products-tag{display:none}}
+
+/* Customer order tracking */
+#dashboard .customer-account-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 28px}
+#dashboard .customer-account-summary>div{padding:15px;border:1px solid #e2e9f1;border-radius:12px;background:#f8fafc;min-width:0}
+#dashboard .customer-account-summary small,#dashboard .customer-orders-heading>div>span{display:block;font-size:10px;font-weight:800;letter-spacing:1px;color:#8291a2;margin-bottom:6px}
+#dashboard .customer-account-summary strong{display:block;overflow-wrap:anywhere;color:#203a56;font-size:13px}
+#dashboard .customer-orders-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0 16px}
+#dashboard .customer-orders-heading h3{margin:0 0 5px;color:#173452;font-size:22px}
+#dashboard .customer-orders-heading p{margin:0;color:#74859a;font-size:13px}
+#dashboard .customer-orders-count{padding:7px 11px;border-radius:20px;background:#edf3fa;color:#31577c;font-size:12px;font-weight:700;white-space:nowrap}
+#dashboard .customer-order-card{margin:14px 0;padding:20px;border:1px solid #dfe7f0;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(20,45,75,.04)}
+#dashboard .customer-order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+#dashboard .customer-order-kicker{font-size:9px;font-weight:800;letter-spacing:1.2px;color:#a77b31}
+#dashboard .customer-order-top h3{margin:5px 0;color:#193957;font-size:17px;overflow-wrap:anywhere}
+#dashboard .customer-order-top small{font-size:11px;color:#8794a3}
+#dashboard .customer-order-status{display:inline-block;padding:7px 10px;border-radius:20px;background:#edf3fa;color:#315a82;font-size:11px;font-weight:700}
+#dashboard .customer-order-status.is-done{background:#e8f6ee;color:#28734b}
+#dashboard .customer-order-status.is-cancelled{background:#fff0ef;color:#a23f39}
+#dashboard .customer-order-meta{display:flex;gap:35px;margin:18px 0;padding:13px 0;border-top:1px solid #edf1f5;border-bottom:1px solid #edf1f5}
+#dashboard .customer-order-meta div{display:grid;gap:5px}
+#dashboard .customer-order-meta small{color:#8291a2;font-size:10px}
+#dashboard .customer-order-meta strong{color:#29435d;font-size:13px}
+#dashboard .customer-track-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:20px 0}
+#dashboard .customer-track-step{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;color:#9aa7b5;position:relative}
+#dashboard .customer-track-step span{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;border:2px solid #dce4ed;background:#fff;font-size:11px;font-weight:800}
+#dashboard .customer-track-step.complete span{border-color:#2d9364;background:#2d9364;color:#fff}
+#dashboard .customer-track-step.current span{box-shadow:0 0 0 4px #e3f3eb}
+#dashboard .customer-track-step small{font-size:10px;line-height:1.35}
+#dashboard .customer-track-step.complete small{color:#397254;font-weight:700}
+#dashboard .customer-track-history{margin-top:18px;padding:15px;border-radius:11px;background:#f8fafc}
+#dashboard .customer-track-history h4{margin:0 0 12px;color:#27435f;font-size:13px}
+#dashboard .customer-track-update{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid #e8edf3}
+#dashboard .customer-track-update:last-child{border-bottom:0}
+#dashboard .customer-track-dot{width:9px;height:9px;flex:0 0 9px;margin-top:5px;border-radius:50%;background:#b58b42}
+#dashboard .customer-track-update strong{font-size:12px;color:#314c68}
+#dashboard .customer-track-update p{margin:4px 0;color:#61748a;font-size:12px}
+#dashboard .customer-track-update small{display:block;margin-top:4px;color:#8795a5;font-size:10px}
+#dashboard .customer-order-address{margin:13px 0 0;color:#66788c;font-size:12px}
+#dashboard .customer-track-cancelled{padding:12px;border-radius:9px;background:#fff4f2;color:#9b4942;font-size:12px}
+#dashboard .customer-orders-empty{padding:28px;text-align:center;border:1px dashed #d5e0eb;border-radius:14px;background:#fafcff}
+#dashboard .customer-orders-empty p{color:#7b8b9c;font-size:13px}
+#adminPanel .admin-order-track-card{padding:17px;margin:12px 0;border:1px solid #dfe7f0;border-radius:13px;background:#fff}
+#adminPanel .admin-order-track-summary{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;padding-bottom:13px;border-bottom:1px solid #edf1f5}
+#adminPanel .admin-order-track-summary>div{display:grid;gap:4px}
+#adminPanel .admin-order-track-summary>div>span{font-size:9px;font-weight:800;letter-spacing:1px;color:#a77b31}
+#adminPanel .admin-order-track-summary h4{margin:0;color:#193957}
+#adminPanel .admin-order-track-summary small{font-size:11px;color:#8291a2}
+#adminPanel .admin-order-track-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+#adminPanel .admin-order-track-fields label{display:grid;gap:6px;font-size:11px;font-weight:700;color:#465b72}
+#adminPanel .admin-order-track-fields input,#adminPanel .admin-order-track-fields select,#adminPanel .admin-order-track-fields textarea{box-sizing:border-box;width:100%;min-width:0;padding:10px;border:1px solid #d9e2ec;border-radius:8px;background:#fbfcfe;font:inherit;font-size:12px}
+#adminPanel .admin-order-track-note{grid-column:1/-1}
+#adminPanel .admin-order-track-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+#adminPanel .admin-order-track-footer small{font-size:10px;color:#8291a2;max-width:70%;overflow-wrap:anywhere}
+@media(max-width:600px){#dashboard .customer-account-summary{grid-template-columns:1fr}#dashboard .customer-order-top{flex-direction:column}#dashboard .customer-track-steps{gap:3px}#dashboard .customer-track-step small{font-size:9px}#adminPanel .admin-order-track-fields{grid-template-columns:1fr}#adminPanel .admin-order-track-note{grid-column:auto}#adminPanel .admin-order-track-footer small{max-width:100%}}
 </style>
 </head>
 <body>
@@ -1245,83 +1299,69 @@ function adminShowTab(tab) {
 async function loadAdminOrdersTable() {
   const box = document.getElementById("adminOrderList");
   if (!box) return;
-
   box.textContent = "Loading orders...";
-
   try {
     await adminGuard();
-
-    const { data, error } = await db
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
-
+    const { data, error } = await db.from("orders").select("*").order("created_at", { ascending: false }).limit(100);
     if (error) throw error;
-
-    if (!data || data.length === 0) {
-      box.textContent = "No customer orders found.";
-      return;
-    }
-
-    const columns = [
-      ["order_number", "Order number"],
-      ["customer_name", "Customer"],
-      ["customer_email", "Email"],
-      ["customer_phone", "Phone"],
-      ["total_amount", "Total"],
-      ["currency", "Currency"],
-      ["payment_status", "Payment"],
-      ["order_status", "Order status"],
-      ["shipping_address", "Delivery address"],
-      ["created_at", "Date"]
-    ];
-
+    if (!data || data.length === 0) { box.textContent = "No customer orders found."; return; }
     box.innerHTML = `
-      <div style="overflow-x:auto;width:100%">
-        <table style="width:100%;min-width:1100px;border-collapse:collapse;background:white;color:#222">
-          <thead>
-            <tr>
-              ${columns.map(col =>
-                `<th style="padding:12px;border:1px solid #ddd;text-align:left;background:#10213b;color:white">${col[1]}</th>`
-              ).join("")}
-              <th style="padding:12px;border:1px solid #ddd;background:#10213b;color:white">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.map(order => `
-              <tr>
-                ${columns.map(col => {
-                  let value = order[col[0]];
-
-                  if (col[0] === "created_at" && value) {
-                    value = new Date(value).toLocaleString();
-                  }
-
-                  return `<td style="padding:10px;border:1px solid #ddd;vertical-align:top;max-width:250px;overflow-wrap:anywhere">
-                    ${escapeHTML(value ?? "—")}
-                  </td>`;
-                }).join("")}
-                <td style="padding:10px;border:1px solid #ddd">
-                  ${
-                    order.payment_status === "paid" &&
-                    order.order_status === "awaiting_admin_approval"
-                    ? `<button type="button" class="primary" onclick="adminApproveOrder('${escapeHTML(order.id)}')">Approve</button>`
-                    : "—"
-                  }
-                </td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-
+      <div class="admin-order-track-list">
+      ${data.map(order => `
+        <article class="admin-order-track-card">
+          <div class="admin-order-track-summary">
+            <div><span>ORDER</span><h4>${escapeHTML(order.order_number||order.id)}</h4><small>${escapeHTML(order.customer_name||'Customer')} · ${escapeHTML(order.customer_email||'')}</small></div>
+            <div><strong>${escapeHTML(order.currency||'')} ${escapeHTML(Number(order.total_amount||0).toFixed(2))}</strong><small>Payment: ${escapeHTML(order.payment_status||'unknown')}</small></div>
+            <span class="customer-order-status">${escapeHTML(orderStatusLabel(order.order_status))}</span>
+          </div>
+          <div class="admin-order-track-fields">
+            <label>Update order status
+              <select id="trackStatus-${escapeHTML(order.id)}">
+                ${[['awaiting_admin_approval','Payment confirmed / awaiting approval'],['processing','Processing'],['shipped','Shipped / in transit'],['delivered','Delivered'],['cancelled','Cancelled']].map(([v,l])=>'<option value="'+v+'" '+(order.order_status===v?'selected':'')+'>'+l+'</option>').join('')}
+              </select>
+            </label>
+            <label>Delivery company / carrier<input id="trackCarrier-${escapeHTML(order.id)}" placeholder="e.g. DHL, courier company"></label>
+            <label>Tracking number<input id="trackNumber-${escapeHTML(order.id)}" placeholder="Enter shipment tracking number"></label>
+            <label class="admin-order-track-note">Message to customer<textarea id="trackNote-${escapeHTML(order.id)}" rows="2" placeholder="e.g. Your parcel has left our warehouse."></textarea></label>
+          </div>
+          <div class="admin-order-track-footer">
+            <small>Delivery address: ${escapeHTML(order.shipping_address||'Not provided')}</small>
+            <button class="primary" type="button" onclick="adminSaveOrderTracking('${escapeHTML(order.id)}')">Save tracking update</button>
+          </div>
+        </article>
+      `).join('')}
+      </div>`;
   } catch (error) {
     box.textContent = "Could not load orders: " + error.message;
   }
 }
-
+async function adminSaveOrderTracking(orderId){
+  try{
+    await adminGuard();
+    const status=document.getElementById('trackStatus-'+orderId)?.value;
+    const carrier=document.getElementById('trackCarrier-'+orderId)?.value.trim()||null;
+    const trackingNumber=document.getElementById('trackNumber-'+orderId)?.value.trim()||null;
+    const note=document.getElementById('trackNote-'+orderId)?.value.trim()||null;
+    if(!status)throw new Error('Choose an order status.');
+    const {data:{user},error:userError}=await db.auth.getUser();
+    if(userError)throw userError;
+    const {data:order,error:orderError}=await db.from('orders').select('id,payment_status').eq('id',orderId).maybeSingle();
+    if(orderError)throw orderError;
+    if(!order)throw new Error('Order not found.');
+    if(['processing','shipped','delivered'].includes(status)&&order.payment_status!=='paid'){
+      throw new Error('This order must be paid before it can move to processing or delivery.');
+    }
+    const {data:updated,error:updateError}=await db.from('orders').update({order_status:status}).eq('id',orderId).select('id').maybeSingle();
+    if(updateError)throw updateError;
+    if(!updated)throw new Error('Order status was not updated. Check administrator access.');
+    const {error:historyError}=await db.from('order_tracking_updates').insert({
+      order_id:orderId,status,note,carrier,tracking_number:trackingNumber,created_by:user.id
+    });
+    if(historyError)throw new Error('Order status changed, but the tracking message could not be saved: '+historyError.message);
+    await loadAdminOrdersTable();
+    alert('Order tracking updated. The customer can now see this update in their dashboard.');
+  }catch(e){alert('Could not save tracking update: '+e.message);}
+}
 
 // APPROVE A PAID CUSTOMER ORDER
 async function adminApproveOrder(orderId) {
@@ -2306,66 +2346,106 @@ async function signOut() {
   await showDashboard();
 }
 
+function orderStatusLabel(status){
+  const labels={
+    awaiting_payment:'Awaiting payment',
+    awaiting_admin_approval:'Payment received — awaiting confirmation',
+    processing:'Processing your order',
+    shipped:'Shipped / in transit',
+    delivered:'Delivered',
+    cancelled:'Cancelled'
+  };
+  return labels[status]||String(status||'Status unavailable').replace(/_/g,' ');
+}
+function orderStatusRank(status){
+  return ['awaiting_admin_approval','processing','shipped','delivered'].indexOf(status);
+}
+function renderCustomerOrderTracking(order,updates){
+  const status=order.order_status||'awaiting_payment';
+  const steps=[
+    ['awaiting_admin_approval','Payment confirmed'],
+    ['processing','Preparing your order'],
+    ['shipped','Shipped / in transit'],
+    ['delivered','Delivered']
+  ];
+  const rank=orderStatusRank(status);
+  const cancelled=status==='cancelled';
+  const timeline=updates.length?updates.map(update=>`
+    <div class="customer-track-update">
+      <span class="customer-track-dot"></span>
+      <div><strong>${escapeHTML(orderStatusLabel(update.status))}</strong>
+      <p>${escapeHTML(update.note||'Order status updated.')}</p>
+      ${update.carrier?'<small>Carrier: '+escapeHTML(update.carrier)+'</small>':''}
+      ${update.tracking_number?'<small>Tracking number: '+escapeHTML(update.tracking_number)+'</small>':''}
+      <small>${escapeHTML(new Date(update.created_at).toLocaleString())}</small></div>
+    </div>`).join(''):`<div class="customer-track-update"><span class="customer-track-dot"></span><div><strong>${escapeHTML(orderStatusLabel(status))}</strong><p>Your latest order status.</p><small>${escapeHTML(new Date(order.updated_at||order.created_at).toLocaleString())}</small></div></div>`;
+  return `
+    <article class="customer-order-card">
+      <div class="customer-order-top">
+        <div><span class="customer-order-kicker">ORDER REFERENCE</span><h3>${escapeHTML(order.order_number||order.id)}</h3><small>Placed ${escapeHTML(new Date(order.created_at).toLocaleString())}</small></div>
+        <span class="customer-order-status ${status==='delivered'?'is-done':status==='cancelled'?'is-cancelled':''}">${escapeHTML(orderStatusLabel(status))}</span>
+      </div>
+      <div class="customer-order-meta">
+        <div><small>Order total</small><strong>${escapeHTML(order.currency||'')} ${escapeHTML(Number(order.total_amount||0).toFixed(2))}</strong></div>
+        <div><small>Payment</small><strong>${escapeHTML(String(order.payment_status||'Unknown').replace(/_/g,' '))}</strong></div>
+      </div>
+      ${cancelled?'<p class="customer-track-cancelled">This order has been cancelled. Please contact customer support if you need help.</p>':`
+      <div class="customer-track-steps">${steps.map(([key,label],index)=>`
+        <div class="customer-track-step ${rank>=index?'complete':''} ${status===key?'current':''}">
+          <span>${rank>=index?'✓':index+1}</span><small>${label}</small>
+        </div>`).join('')}</div>`}
+      <div class="customer-track-history"><h4>Tracking updates</h4>${timeline}</div>
+      ${order.shipping_address?'<p class="customer-order-address"><strong>Delivery address:</strong> '+escapeHTML(order.shipping_address)+'</p>':''}
+    </article>`;
+}
 async function showDashboard() {
   const status = document.getElementById("dashboardStatus");
   const details = document.getElementById("dashboardDetails");
-
+  if(!status||!details)return;
   status.textContent = "Checking your account...";
   details.textContent = "";
-
   try {
     const { data, error } = await db.auth.getSession();
     if (error) throw error;
-
     const user = data.session?.user;
     updateAdminVisibility(user);
-
     if (!user) {
       status.textContent = "You are not signed in.";
-      details.textContent = "Please sign in using the My Account section.";
+      details.innerHTML = 'Please sign in using the My Account section.';
       return;
     }
-
     status.textContent = "Welcome to RIANDERBLOG!";
-
     const { data: orders, error: ordersError } = await db
       .from("orders")
-      .select("*")
+      .select("id,order_number,total_amount,currency,payment_status,order_status,shipping_address,created_at,updated_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-
     if (ordersError) throw ordersError;
-
+    let updatesByOrder={};
+    if(orders?.length){
+      const ids=orders.map(order=>order.id);
+      const {data:updates,error:updatesError}=await db.from('order_tracking_updates')
+        .select('id,order_id,status,note,carrier,tracking_number,created_at')
+        .in('order_id',ids).order('created_at',{ascending:false});
+      if(updatesError)throw updatesError;
+      (updates||[]).forEach(update=>{
+        (updatesByOrder[update.order_id] ||= []).push(update);
+      });
+    }
     details.innerHTML = `
-      <p><strong>Email:</strong> ${escapeHTML(user.email)}</p>
-      <p><strong>Account status:</strong> ${user.email_confirmed_at ? "Verified" : "Not verified"}</p>
-      <p><strong>Member since:</strong> ${new Date(user.created_at).toLocaleDateString()}</p>
-
-      <h3>📦 My Orders</h3>
-
-      ${
-        !orders || orders.length === 0
-        ? "<p>You have not placed any orders yet.</p>"
-        : orders.map(order => `
-          <div class="admin-tools" style="margin:12px 0">
-            <h4>Order: ${escapeHTML(order.order_number || order.id)}</h4>
-            <p><strong>Total:</strong> ${escapeHTML(order.total_amount)} ${escapeHTML(order.currency)}</p>
-            <p><strong>Payment:</strong> ${escapeHTML(order.payment_status)}</p>
-            <p><strong>Order progress:</strong> ${escapeHTML(order.order_status)}</p>
-            <p><strong>Delivery address:</strong><br>
-              ${escapeHTML(order.shipping_address || "Address not available")}
-            </p>
-            <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
-          </div>
-        `).join("")
-      }
+      <div class="customer-account-summary">
+        <div><small>ACCOUNT EMAIL</small><strong>${escapeHTML(user.email||'')}</strong></div>
+        <div><small>ACCOUNT STATUS</small><strong>${user.email_confirmed_at ? "Verified" : "Not verified"}</strong></div>
+        <div><small>MEMBER SINCE</small><strong>${escapeHTML(new Date(user.created_at).toLocaleDateString())}</strong></div>
+      </div>
+      <div class="customer-orders-heading"><div><span>YOUR PURCHASES</span><h3>Order tracking</h3><p>Follow each order's progress and read the latest delivery updates.</p></div><span class="customer-orders-count">${orders?.length||0} orders</span></div>
+      ${!orders?.length?'<div class="customer-orders-empty"><strong>No orders yet</strong><p>Your purchases and tracking updates will appear here after checkout.</p><button class="primary" onclick="showSection(\'products\')">Explore products</button></div>':orders.map(order=>renderCustomerOrderTracking(order,updatesByOrder[order.id]||[])).join('')}
     `;
   } catch (error) {
     status.textContent = "Could not load your account.";
     details.textContent = error.message;
   }
 }
-
 
 function setAccountMode(mode){
   const signup=mode==='signup';
