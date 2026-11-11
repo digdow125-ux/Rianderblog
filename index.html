@@ -652,7 +652,8 @@ main{max-width:1220px}
     <a href="#cart" onclick="showSection('cart');closeMenu();return false">🛒 My cart (<span id="cartCount">0</span>)</a>
     <a href="#account" onclick="showSection('account');closeMenu();return false">👤 Sign in / My account</a>
     <a href="#messages" onclick="showSection('messages');closeMenu();return false">💬 My messages</a>
-    <a href="#dashboard" onclick="showSection('dashboard');closeMenu();return false">📊 My orders & dashboard</a>
+    <a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();closeMenu();return false">📦 Track my orders</a>
+    <a href="#dashboard" onclick="showSection('dashboard');closeMenu();return false">📊 My dashboard</a>
     <a href="#suppliers" onclick="showSection('suppliers');closeMenu();return false">🏭 Suppliers & supplier centre</a>
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Change currency</a>
@@ -954,7 +955,13 @@ main{max-width:1220px}
     <p id="dashboardStatus">Checking your account...</p>
     <div id="dashboardDetails"></div>
     <button class="primary" onclick="showDashboard()">Refresh Dashboard</button>
+    <p><a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();return false">Track my orders →</a></p>
     <p><a href="#cart">Go to My Shopping Cart</a></p>
+  </section>
+  <section id="orderTracking" class="panel secondary-page">
+    <div class="customer-orders-heading"><div><span>YOUR PURCHASES</span><h2>📦 Track my orders</h2><p>Follow your orders from payment to delivery.</p></div><button class="secondary" onclick="showCustomerOrderTracking()">↻ Refresh</button></div>
+    <p id="orderTrackingStatus">Sign in to view your orders and delivery updates.</p>
+    <div id="customerOrderTrackingList"></div>
   </section>
 
 
@@ -2405,52 +2412,44 @@ function renderCustomerOrderTracking(order,updates){
     </article>`;
 }
 async function showDashboard() {
-  const status = document.getElementById("dashboardStatus");
-  const details = document.getElementById("dashboardDetails");
+  const status=document.getElementById("dashboardStatus");
+  const details=document.getElementById("dashboardDetails");
   if(!status||!details)return;
-  status.textContent = "Checking your account...";
-  details.textContent = "";
-  try {
-    const { data, error } = await db.auth.getSession();
-    if (error) throw error;
-    const user = data.session?.user;
+  status.textContent="Checking your account...";
+  details.textContent="";
+  try{
+    const {data,error}=await db.auth.getSession();
+    if(error)throw error;
+    const user=data.session?.user;
     updateAdminVisibility(user);
-    if (!user) {
-      status.textContent = "You are not signed in.";
-      details.innerHTML = 'Please sign in using the My Account section.';
-      return;
-    }
-    status.textContent = "Welcome to RIANDERBLOG!";
-    const { data: orders, error: ordersError } = await db
-      .from("orders")
-      .select("id,order_number,total_amount,currency,payment_status,order_status,shipping_address,created_at,updated_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-    if (ordersError) throw ordersError;
+    if(!user){status.textContent="You are not signed in.";details.innerHTML='Please sign in using the My Account section.';return;}
+    status.textContent="Welcome to RIANDERBLOG!";
+    const name=user.user_metadata?.full_name||user.user_metadata?.name||user.email||"Customer";
+    details.innerHTML='<div class="customer-account-summary"><div><small>ACCOUNT EMAIL</small><strong>'+escapeHTML(user.email||"")+'</strong></div><div><small>ACCOUNT STATUS</small><strong>'+(user.email_confirmed_at?"Verified":"Not verified")+'</strong></div><div><small>MEMBER SINCE</small><strong>'+escapeHTML(new Date(user.created_at).toLocaleDateString())+'</strong></div></div><p>Welcome, '+escapeHTML(name)+'. Manage your profile and use the menu to track your purchases.</p>';
+  }catch(error){status.textContent="Could not load your account.";details.textContent=error.message;}
+}
+async function showCustomerOrderTracking(){
+  const status=document.getElementById("orderTrackingStatus");
+  const box=document.getElementById("customerOrderTrackingList");
+  if(!status||!box)return;
+  status.textContent="Loading your orders...";box.textContent="";
+  try{
+    const {data,error}=await db.auth.getSession();
+    if(error)throw error;
+    const user=data.session?.user;
+    if(!user){status.textContent="Please sign in to track your orders.";box.innerHTML='<button class="primary" onclick="showSection(\'account\')">Sign in / Create account</button>';return;}
+    const {data:orders,error:ordersError}=await db.from("orders").select("id,order_number,total_amount,currency,payment_status,order_status,shipping_address,created_at,updated_at").eq("user_id",user.id).order("created_at",{ascending:false});
+    if(ordersError)throw ordersError;
     let updatesByOrder={};
     if(orders?.length){
       const ids=orders.map(order=>order.id);
-      const {data:updates,error:updatesError}=await db.from('order_tracking_updates')
-        .select('id,order_id,status,note,carrier,tracking_number,created_at')
-        .in('order_id',ids).order('created_at',{ascending:false});
+      const {data:updates,error:updatesError}=await db.from("order_tracking_updates").select("id,order_id,status,note,carrier,tracking_number,created_at").in("order_id",ids).order("created_at",{ascending:false});
       if(updatesError)throw updatesError;
-      (updates||[]).forEach(update=>{
-        (updatesByOrder[update.order_id] ||= []).push(update);
-      });
+      (updates||[]).forEach(update=>{(updatesByOrder[update.order_id] ||= []).push(update);});
     }
-    details.innerHTML = `
-      <div class="customer-account-summary">
-        <div><small>ACCOUNT EMAIL</small><strong>${escapeHTML(user.email||'')}</strong></div>
-        <div><small>ACCOUNT STATUS</small><strong>${user.email_confirmed_at ? "Verified" : "Not verified"}</strong></div>
-        <div><small>MEMBER SINCE</small><strong>${escapeHTML(new Date(user.created_at).toLocaleDateString())}</strong></div>
-      </div>
-      <div class="customer-orders-heading"><div><span>YOUR PURCHASES</span><h3>Order tracking</h3><p>Follow each order's progress and read the latest delivery updates.</p></div><span class="customer-orders-count">${orders?.length||0} orders</span></div>
-      ${!orders?.length?'<div class="customer-orders-empty"><strong>No orders yet</strong><p>Your purchases and tracking updates will appear here after checkout.</p><button class="primary" onclick="showSection(\'products\')">Explore products</button></div>':orders.map(order=>renderCustomerOrderTracking(order,updatesByOrder[order.id]||[])).join('')}
-    `;
-  } catch (error) {
-    status.textContent = "Could not load your account.";
-    details.textContent = error.message;
-  }
+    status.textContent="Showing "+(orders?.length||0)+" order(s).";
+    box.innerHTML=!orders?.length?'<div class="customer-orders-empty"><strong>No orders yet</strong><p>Your purchases and tracking updates will appear here after checkout.</p><button class="primary" onclick="showSection(\'products\')">Explore products</button></div>':(orders||[]).map(order=>renderCustomerOrderTracking(order,updatesByOrder[order.id]||[])).join("");
+  }catch(error){status.textContent="Could not load your orders: "+error.message;}
 }
 
 function setAccountMode(mode){
