@@ -1253,6 +1253,7 @@ main{max-width:1220px}
         <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierApplicationsSection')">Applications & profiles</button>
         <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierProductsSection')">Product submissions</button>
         <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierFulfilmentSection')">Shipment & delivery</button>
+        <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierDisputesSection')">Wrong / damaged item reports</button>
         <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierWithdrawalsSection')">Withdrawals & payouts</button>
         <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierLedgerSection')">Wallet & transactions</button>
       </div>
@@ -2886,7 +2887,8 @@ async function loadNotifications(){
       if(typeof adminShowTab==='function')adminShowTab(adminTab);
       const notificationType=button.dataset.notificationType||'';
       if(target==='adminSuppliers'){
-        if(notificationType==='supplier_fulfilment'&&typeof adminOpenSupplierSection==='function')adminOpenSupplierSection('supplierFulfilmentSection');
+        if(notificationType==='item_dispute'&&typeof adminOpenSupplierSection==='function')adminOpenSupplierSection('supplierDisputesSection');
+        else if(notificationType==='supplier_fulfilment'&&typeof adminOpenSupplierSection==='function')adminOpenSupplierSection('supplierFulfilmentSection');
         else if(typeof loadAdminFulfilmentReviews==='function')loadAdminFulfilmentReviews();
       }
       if(target==='adminPanel'&&(notificationType==='new_order'||notificationType==='payment_received')&&typeof adminShowTab==='function')adminShowTab('orders');
