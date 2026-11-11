@@ -3041,13 +3041,14 @@ function supplierShowMainPage(page){
     centreButton.setAttribute('aria-current',isCentre?'page':'false');
   }
   if(isCentre){
+    // Supplier Centre opens as a navigation page first; detail panels appear only after a menu choice.
     const application=document.getElementById('supplierApplicationPage');
     const workspace=document.getElementById('supplierWorkspacePanel');
-    if(application)application.style.display='block';
-    if(workspace)workspace.style.display='block';
+    if(application)application.style.display='none';
+    if(workspace)workspace.style.display='none';
     ['supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{
       const section=document.getElementById(id);
-      if(section)section.style.display='block';
+      if(section)section.style.display='none';
     });
     const menu=document.getElementById('supplierCentreMenu');
     if(menu)menu.querySelectorAll('button[data-supplier-page]').forEach(button=>{
