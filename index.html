@@ -2899,7 +2899,7 @@ async function loadNotifications(){
       const type=button.dataset.notificationType||'';
       const destination=type==='supplier_product_status'?'supplierProductList':
         type==='customer_received_order'?'supplierOrdersTable':
-        (type==='shipment_approved'||type==='delivery_approved'||type==='supplier_fulfilment')?'supplierFulfilmentControls':
+        (type==='shipment_approved'||type==='delivery_approved'||type==='supplier_fulfilment'||type==='supplier_dispute')?'supplierFulfilmentControls':
         type==='wallet_activity'?'supplierWalletBalances':
         type==='withdrawal_status'?'supplierWithdrawalWallet':null;
       if(destination&&typeof supplierNavigateTo==='function')supplierNavigateTo(destination);
