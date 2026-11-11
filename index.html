@@ -2414,8 +2414,8 @@ function addToCart(id) {
   if(!p)return;
   const colour=document.getElementById('chooseColour')?.value||'';
   const existing=cart.find(x=>String(x.id)===String(id)&&(x.selected_colour||'')===colour);
-  const next=(existing?.quantity||0)+1;
-  if(next>Number(p.stock_quantity||0)){alert('Only '+Number(p.stock_quantity||0)+' unit(s) are available.');return;}
+  const totalAlready=cart.filter(x=>String(x.id)===String(id)).reduce((sum,x)=>sum+Number(x.quantity||0),0);
+  if(totalAlready+1>Number(p.stock_quantity||0)){alert('Only '+Number(p.stock_quantity||0)+' unit(s) are available across all colours.');return;}
   if(existing)existing.quantity++;
   else cart.push({id:p.id,name:p.name,price:Number(p.price||0),currency:p.currency||'USD',image_url:p.image_url||'',quantity:1,selected_colour:colour,delivery_days:Number(p.delivery_days||7),stock_quantity:Number(p.stock_quantity||0)});
   saveCart();alert('Product added to your cart!');
@@ -2460,6 +2460,7 @@ function updateCart() {
       <div class="cart-info">
         <strong>${escapeHTML(item.name)}</strong>
         <p>${escapeHTML(item.currency)} ${Number(item.price).toFixed(2)}</p>
+        ${item.selected_colour?'<p>Colour: '+escapeHTML(item.selected_colour)+'</p>':''}
         <p>Subtotal: ${escapeHTML(item.currency)} ${(item.price * item.quantity).toFixed(2)}</p>
       </div>
       <button onclick="changeQuantity('${escapeHTML(item.id)}',-1)">−</button>
