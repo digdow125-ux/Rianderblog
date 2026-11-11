@@ -2598,7 +2598,13 @@ async function loadNotifications(){
     await loadNotifications();
     document.getElementById('notificationPanel').style.display='none';
     document.getElementById('notificationBell')?.setAttribute('aria-expanded','false');
-    showSection(target);
+    if(target==='adminPanel'){
+      showSection('adminPanel');
+      if(typeof adminShowTab==='function')adminShowTab('suppliers');
+      if(typeof loadAdminFulfilmentReviews==='function')loadAdminFulfilmentReviews();
+    }else{
+      showSection(target);
+    }
   }));
 }
 document.addEventListener('click',event=>{
