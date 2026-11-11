@@ -3436,6 +3436,7 @@ async function saveSupplierProduct(){
       description:document.getElementById('supplierProductDescription').value.trim(),
       supplier_id:supplier.id,
       created_by:user.id,
+      review_status:'pending',
       is_active:false
     };
 
