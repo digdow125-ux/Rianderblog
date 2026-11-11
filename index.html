@@ -3595,7 +3595,8 @@ async function loadCustomerFulfilmentConfirmations(){
   box.innerHTML=ready.length?'<div class="customer-order-card"><h3>Confirm delivered goods</h3>'+ready.map(f=>{
    const i=im.get(f.order_item_id)||{},d=dm.get(f.order_item_id);
    const issue=d?'<p class="small-note">Your report is '+escapeHTML(d.status.replace(/_/g,' '))+'. Keep the item until RIANDERBLOG completes its review.</p>':'<button class="secondary" onclick="customerReportItemIssue('+f.order_item_id+')">Report wrong / damaged goods</button>';
-   return '<div class="listing"><strong>'+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</strong><p>RIANDERBLOG admin has approved this delivery. Confirm only if you received the correct goods.</p>'+issue+'<button class="primary" onclick="customerConfirmItemReceived(\''+f.id+'\')">Confirm goods received</button></div>';
+   const confirmButton=(!d||d.status==='resolved_supplier')?'<button class="primary" onclick="customerConfirmItemReceived(\''+f.id+'\')">Confirm goods received</button>':'';
+   return '<div class="listing"><strong>'+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</strong><p>RIANDERBLOG admin has approved this delivery. Confirm only if you received the correct goods.</p>'+issue+confirmButton+'</div>';
   }).join('')+'</div>':'';
  }catch(e){box.textContent='Could not load delivery confirmations: '+e.message;}
 }
