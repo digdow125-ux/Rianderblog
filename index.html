@@ -916,9 +916,8 @@ main{max-width:1220px}
       <button type="button" id="supplierCentreButton" class="secondary" onclick="supplierShowMainPage('centre')">⚙️ Supplier Centre</button>
     </div>
     <div id="supplierCentrePage" style="display:none">
-    <div class="supplier-centre-menu" id="supplierCentreMenu" aria-label="Supplier Centre pages">
-      <button type="button" id="supplierApplicationTab" class="primary" data-notify-target="suppliers" onclick="supplierShowTab('application')">📝 Supplier application</button>
-      <button type="button" id="supplierProductsTab" class="secondary" data-notify-target="suppliers" onclick="supplierShowTab('workspace')">📦 Products, orders & wallet</button>
+    <div class="supplier-centre-intro">
+      <p class="small-note">Apply as a supplier and manage your products, orders, deliveries and wallet from this page.</p>
     </div>
     <div class="listing" id="supplierApplicationPage" style="margin-top:22px">
       <h3>Supplier application</h3>
@@ -937,7 +936,7 @@ main{max-width:1220px}
     
       </div>
     </div>
-<div id="supplierWorkspacePanel" style="display:none">
+<div id="supplierWorkspacePanel" style="display:block">
 <div class="listing" style="margin-top:0">
   <h3>📦 Supplier Workspace</h3>
   <div class="supplier-workspace-menu" id="supplierWorkspaceMenu" aria-label="Supplier workspace pages">
@@ -2888,15 +2887,10 @@ function supplierShowMainPage(page){
 function supplierShowTab(tab){
   const application=document.getElementById('supplierApplicationPage');
   const workspace=document.getElementById('supplierWorkspacePanel');
-  const appButton=document.getElementById('supplierApplicationTab');
-  const productsButton=document.getElementById('supplierProductsTab');
-  const showWorkspace=tab==='workspace';
   supplierShowMainPage('centre');
-  if(application)application.style.display=showWorkspace?'none':'block';
-  if(workspace)workspace.style.display=showWorkspace?'block':'none';
-  if(appButton)appButton.className=showWorkspace?'secondary':'primary';
-  if(productsButton)productsButton.className=showWorkspace?'primary':'secondary';
-  const target=showWorkspace?workspace:application;
+  if(application)application.style.display='block';
+  if(workspace)workspace.style.display='block';
+  const target=tab==='workspace'?workspace:application;
   if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function applySupplier(){
@@ -3773,3 +3767,8 @@ loadProgrammes();
 </script>
 </body>
 </html>
+
+<style>
+#suppliers .supplier-centre-menu,#suppliers .supplier-workspace-menu{position:static!important;float:none!important;transform:none!important;width:100%;max-width:none;}
+#suppliers #supplierApplicationPage,#suppliers #supplierWorkspacePanel{position:static!important;float:none!important;width:100%;}
+</style>
