@@ -835,6 +835,76 @@ main{max-width:1220px}
 .supplier-review-form strong{color:#173b63;font-size:13px}
 .supplier-review-form select,.supplier-review-form textarea{width:100%;padding:10px;border:1px solid #dbe2eb;border-radius:7px;background:#fff;color:#25364c}
 .supplier-review-form textarea{min-height:75px;resize:vertical}
+
+/* RESPONSIVE POLISH — desktop, tablet and normal/mobile layouts */
+@media (min-width: 1100px) {
+  main { max-width: 1320px; padding: 30px 28px; }
+  header { padding-left: max(28px,calc((100% - 1320px)/2)); padding-right: max(28px,calc((100% - 1320px)/2)); }
+  nav { padding-left: max(28px,calc((100% - 1320px)/2)); padding-right: max(28px,calc((100% - 1320px)/2)); }
+  .products { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 20px; }
+  .product { padding: 16px; border-radius: 12px; }
+  .product img { height: 220px; }
+  .panel, .admin-tools { padding: 24px; border-radius: 14px; }
+  .market-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .form-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .admin-stat-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
+@media (min-width: 651px) and (max-width: 1099px) {
+  main { padding: 24px 20px; }
+  .products { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .product img { height: 185px; }
+  .admin-stat-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 650px) {
+  body { font-size: 14px; }
+  header { padding: 12px 14px; gap: 10px; }
+  .brand { min-width: 0; gap: 8px; }
+  .brand-mark { width: 38px; height: 38px; font-size: 20px; }
+  .brand-name { font-size: clamp(17px,5vw,21px); letter-spacing: .4px; }
+  .brand-tag { font-size: 8px; letter-spacing: 1px; }
+  .header-actions { margin-left: auto; }
+  nav { min-height: 48px; padding: 7px 14px; }
+  .nav-links { left: 14px; max-height: calc(100vh - 100px); overflow-y: auto; }
+  main { width: 100%; padding: 14px 11px 24px; }
+  .section-head { align-items: flex-start; margin: 20px 0 12px; }
+  .section-head h2 { font-size: 20px; }
+  .products { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+  .product { min-width: 0; padding: 8px; border-radius: 9px; }
+  .product img { height: clamp(112px,34vw,155px); }
+  .product h3 { min-height: 0; font-size: 13px; line-height: 1.35; }
+  .product-desc { min-height: 0; font-size: 11px; }
+  .price { font-size: 15px; }
+  .product-actions { grid-template-columns: 1fr; gap: 6px; }
+  .product-actions button, .buy { font-size: 11px; padding: 9px 7px; }
+  .panel, .admin-tools, .market-card { padding: 13px; border-radius: 10px; }
+  .form-grid { grid-template-columns: minmax(0,1fr); }
+  .form-grid textarea { grid-column: auto; }
+  .cart-item { align-items: flex-start; gap: 9px; }
+  .cart-info { min-width: 0; }
+  .admin-heading { padding: 14px; }
+  .admin-navigation { gap: 6px; }
+  .admin-navigation button { padding: 9px 11px; font-size: 12px; }
+  .admin-table-wrap { max-width: 100%; }
+  .admin-table-wrap table { min-width: 620px; }
+  .chat-shell { grid-template-columns: 1fr; min-height: 420px; }
+  .detail-backdrop { padding: 8px; }
+  .detail-box { max-height: 94vh; padding: 16px; }
+  .detail-content { grid-template-columns: 1fr; gap: 13px; }
+  .detail-image { height: 190px; }
+  .support-launcher { right: 12px; bottom: 12px; padding: 12px 15px; font-size: 13px; }
+  .support-window { right: 8px; bottom: 68px; width: calc(100vw - 16px); height: min(600px,calc(100dvh - 85px)); }
+  .notification-panel { right: -5px; }
+  .currency-bar { align-items: stretch; }
+  .currency-bar select { width: 100%; }
+}
+@media (max-width: 360px) {
+  .brand-name { font-size: 16px; }
+  .header-cart { padding: 8px; font-size: 11px; }
+  .notification-bell { width: 34px; height: 34px; }
+  .products { gap: 7px; }
+  .product { padding: 7px; }
+}
+
 </style>
 </head>
 <body>
