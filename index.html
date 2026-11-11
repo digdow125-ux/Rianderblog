@@ -2866,7 +2866,7 @@ async function renderSuppliers(){
  box.innerHTML='<p class="small-note">Loading approved suppliers and their products…</p>';
  try{
   const [supplierResult,productResult]=await Promise.all([
-   db.from('suppliers').select('id,business_name,company_name,country,description,website,product_categories').eq('status','approved').order('company_name'),
+   db.from('suppliers').select('id,business_name,company_name,country,description,website,product_categories').in('status',['approved','active']).order('company_name'),
    db.from('products').select('id,name,description,category,price,currency,image_url,supplier_id').eq('is_active',true).eq('review_status','approved').not('supplier_id','is',null).order('created_at',{ascending:false})
   ]);
   if(supplierResult.error)throw supplierResult.error;
