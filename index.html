@@ -974,7 +974,7 @@ main{max-width:1220px}
   <section id="orderTracking" class="panel secondary-page">
     <div class="customer-orders-heading"><div><span>YOUR PURCHASES</span><h2>📦 Track my orders</h2><p>Follow your orders from payment to delivery.</p></div><button class="secondary" onclick="showCustomerOrderTracking()">↻ Refresh</button></div>
     <p id="orderTrackingStatus">Sign in to view your orders and delivery updates.</p>
-    <div id="customerOrderTrackingList"></div>
+    <div id="customerOrderTrackingList"></div><div id="customerFulfilmentConfirmations"></div>
   </section>
 
 
@@ -1057,6 +1057,7 @@ main{max-width:1220px}
       <div id="adminOrderList" class="admin-table-wrap">
         Orders will appear here.
       </div>
+      <div class="admin-tools"><h3>Supplier shipment & delivery approvals</h3><p class="small-note">Approve shipment first, then delivery. Customer receipt confirmation releases supplier funds.</p><button class="secondary" onclick="loadAdminFulfilmentReviews()">Refresh requests</button><div id="adminFulfilmentReviews">Pending requests will appear here.</div></div>
     </div>
   </div>
 
@@ -1312,7 +1313,7 @@ function adminShowTab(tab) {
 
   if (selected) selected.style.display = "block";
 
-  if (tab === "orders") loadAdminOrdersTable();
+  if (tab === "orders") { loadAdminOrdersTable(); loadAdminFulfilmentReviews(); }
   if (tab === "products") renderAdminProducts();
   if (tab === "wallet") {
     loadAdminWallet();
@@ -2464,6 +2465,7 @@ async function showCustomerOrderTracking(){
     status.textContent="Showing "+(orders?.length||0)+" order(s).";
     box.innerHTML=!orders?.length?'<div class="customer-orders-empty"><strong>No orders yet</strong><p>Your purchases and tracking updates will appear here after checkout.</p><button class="primary" onclick="showSection(\'products\')">Explore products</button></div>':(orders||[]).map(order=>renderCustomerOrderTracking(order,updatesByOrder[order.id]||[])).join("");
   }catch(error){status.textContent="Could not load your orders: "+error.message;}
+  await loadCustomerFulfilmentConfirmations();
 }
 
 function setAccountMode(mode){
@@ -2927,6 +2929,7 @@ async function loadSupplierWorkspace(){
 
     await loadSupplierProducts(supplier.id);
     await loadSupplierOrders(supplier.id);
+     await loadSupplierFulfilments(supplier.id);
     await loadSupplierWallet(user.id);
   }catch(e){
     currentSupplierRecord=null;
@@ -2984,6 +2987,79 @@ async function loadSupplierProducts(supplierId){
       </div>
     </div>
   `).join('');
+}
+
+
+// SUPPLIER SHIPMENT / DELIVERY WORKFLOW
+async function loadSupplierFulfilments(supplierId){
+ const box=document.getElementById('supplierFulfilmentControls');if(!box)return;box.textContent='Loading shipment tasks...';
+ try{
+  const ir=await db.from('order_items').select('id,order_id,product_name,quantity').eq('supplier_id',supplierId).order('created_at',{ascending:false});if(ir.error)throw ir.error;
+  const items=ir.data||[];if(!items.length){box.textContent='No supplier order items yet.';return;}
+  const ids=items.map(x=>x.id),oids=[...new Set(items.map(x=>x.order_id))];
+  const [fr,orr]=await Promise.all([db.from('supplier_item_fulfilments').select('*').in('order_item_id',ids),db.from('orders').select('id,order_number,payment_status,customer_name').in('id',oids)]);
+  if(fr.error)throw fr.error;if(orr.error)throw orr.error;
+  const fm=new Map((fr.data||[]).map(x=>[x.order_item_id,x])),om=new Map((orr.data||[]).map(x=>[x.id,x]));
+  box.innerHTML='<h4>📦 Shipment & delivery tasks</h4><div style="overflow-x:auto"><table><thead><tr><th>Order</th><th>Product</th><th>Status</th><th>Action</th></tr></thead><tbody>'+items.map(i=>{
+   const f=fm.get(i.id),o=om.get(i.order_id)||{},st=f?.status||'not_submitted';let action='';
+   if(o.payment_status!=='paid')action='Awaiting payment';
+   else if(st==='not_submitted')action='<button class="secondary" onclick="supplierSubmitItemShipment('+i.id+')">Mark shipped</button>';
+   else if(st==='shipped_submitted')action='Awaiting admin shipment approval';
+   else if(st==='shipped_approved')action='<button class="secondary" onclick="supplierSubmitItemDelivery('+i.id+')">Mark delivered</button>';
+   else if(st==='delivered_submitted')action='Awaiting admin delivery approval';
+   else if(st==='delivered_approved')action='Admin approved · awaiting customer';
+   else action='Customer confirmed · funds released';
+   return '<tr><td>'+escapeHTML(o.order_number||i.order_id)+'</td><td>'+escapeHTML(i.product_name)+' × '+i.quantity+'</td><td>'+escapeHTML(st.replace(/_/g,' '))+'</td><td>'+action+(f?.carrier?'<small>'+escapeHTML(f.carrier)+' · '+escapeHTML(f.tracking_number||'')+'</small>':'')+(f?.admin_note?'<small>Admin: '+escapeHTML(f.admin_note)+'</small>':'')+'</td></tr>';
+  }).join('')+'</tbody></table></div>';
+ }catch(e){box.textContent='Could not load fulfilment tasks: '+e.message;}
+}
+async function supplierSubmitItemShipment(id){
+ const carrier=prompt('Delivery company / courier:');if(!carrier)return;const tracking=prompt('Tracking number:');if(!tracking)return;
+ const note=prompt('Optional message to customer:')||'';
+ try{const {error}=await db.rpc('supplier_submit_item_fulfilment',{p_order_item_id:id,p_action:'shipped',p_carrier:carrier,p_tracking_number:tracking,p_supplier_note:note,p_delivery_evidence_url:null});if(error)throw error;alert('Shipment submitted for admin approval.');await loadSupplierWorkspace();}
+ catch(e){alert('Could not submit shipment: '+e.message);}
+}
+async function supplierSubmitItemDelivery(id){
+ const proof=prompt('Delivery evidence link or proof reference (required):');if(!proof)return;const note=prompt('Optional delivery note:')||'';
+ try{const {error}=await db.rpc('supplier_submit_item_fulfilment',{p_order_item_id:id,p_action:'delivered',p_carrier:null,p_tracking_number:null,p_supplier_note:note,p_delivery_evidence_url:proof});if(error)throw error;alert('Delivery submitted for admin approval. Funds remain locked.');await loadSupplierWorkspace();}
+ catch(e){alert('Could not submit delivery: '+e.message);}
+}
+async function loadAdminFulfilmentReviews(){
+ const box=document.getElementById('adminFulfilmentReviews');if(!box)return;box.textContent='Loading...';
+ try{
+  await adminGuard();const {data,error}=await db.from('supplier_item_fulfilments').select('*').in('status',['shipped_submitted','delivered_submitted']).order('updated_at',{ascending:false});if(error)throw error;
+  if(!data?.length){box.textContent='No pending supplier submissions.';return;}
+  const ids=data.map(x=>x.order_item_id),oids=[...new Set(data.map(x=>x.order_id))],sids=[...new Set(data.map(x=>x.supplier_id))];
+  const [ir,or,sr]=await Promise.all([db.from('order_items').select('id,product_name,quantity').in('id',ids),db.from('orders').select('id,order_number,customer_name').in('id',oids),db.from('suppliers').select('id,business_name,company_name').in('id',sids)]);
+  if(ir.error)throw ir.error;if(or.error)throw or.error;if(sr.error)throw sr.error;
+  const im=new Map((ir.data||[]).map(x=>[x.id,x])),om=new Map((or.data||[]).map(x=>[x.id,x])),sm=new Map((sr.data||[]).map(x=>[x.id,x]));
+  box.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Order / customer</th><th>Supplier / product</th><th>Submission</th><th>Tracking / proof</th><th>Action</th></tr></thead><tbody>'+data.map(f=>{
+   const o=om.get(f.order_id)||{},i=im.get(f.order_item_id)||{},sp=sm.get(f.supplier_id)||{},ship=f.status==='shipped_submitted';
+   return '<tr><td>'+escapeHTML(o.order_number||f.order_id)+'<small>'+escapeHTML(o.customer_name||'')+'</small></td><td>'+escapeHTML(sp.business_name||sp.company_name||'Supplier')+'<small>'+escapeHTML(i.product_name||'')+' × '+Number(i.quantity||1)+'</small></td><td>'+ (ship?'Shipment submitted':'Delivery submitted')+'<small>'+escapeHTML(f.supplier_note||'')+'</small></td><td><small>'+escapeHTML(f.carrier||'')+' '+escapeHTML(f.tracking_number||'')+'</small>'+(f.delivery_evidence_url?'<small>'+escapeHTML(f.delivery_evidence_url)+'</small>':'')+'</td><td><button class="primary" onclick="adminReviewItemFulfilment(\''+f.id+'\',\''+(ship?'approve_shipment':'approve_delivery')+'\')">Approve</button><button class="secondary" onclick="adminReviewItemFulfilment(\''+f.id+'\',\'reject\')">Reject</button></td></tr>';
+  }).join('')+'</tbody></table></div>';
+ }catch(e){box.textContent='Could not load approvals: '+e.message;}
+}
+async function adminReviewItemFulfilment(id,action){
+ const note=prompt(action==='reject'?'Reason for rejection:':'Optional admin note:')||'';if(action==='reject'&&!note.trim())return;
+ try{await adminGuard();const {error}=await db.rpc('admin_review_item_fulfilment',{p_fulfilment_id:id,p_action:action,p_admin_note:note});if(error)throw error;alert('Review saved.');await loadAdminFulfilmentReviews();}catch(e){alert('Review failed: '+e.message);}
+}
+async function loadCustomerFulfilmentConfirmations(){
+ const box=document.getElementById('customerFulfilmentConfirmations');if(!box)return;
+ try{
+  const {data:{user}}=await db.auth.getUser();if(!user){box.innerHTML='';return;}
+  const {data:orders,error}=await db.from('orders').select('id').eq('user_id',user.id);if(error)throw error;
+  const ids=(orders||[]).map(x=>x.id);if(!ids.length){box.innerHTML='';return;}
+  const {data:items,error:ie}=await db.from('order_items').select('id,order_id,product_name,quantity').in('order_id',ids);if(ie)throw ie;
+  const itemIds=(items||[]).map(x=>x.id);if(!itemIds.length){box.innerHTML='';return;}
+  const {data:fs,error:fe}=await db.from('supplier_item_fulfilments').select('*').in('order_item_id',itemIds);if(fe)throw fe;
+  const im=new Map(items.map(x=>[x.id,x]));const ready=(fs||[]).filter(f=>f.status==='delivered_approved');
+  box.innerHTML=ready.length?'<div class="customer-order-card"><h3>Confirm delivered goods</h3>'+ready.map(f=>{const i=im.get(f.order_item_id)||{};return '<div class="listing"><strong>'+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</strong><p>RIANDERBLOG admin has approved this delivery. Confirm only if you have received it.</p><button class="primary" onclick="customerConfirmItemReceived(\''+f.id+'\')">Confirm goods received</button></div>';}).join('')+'</div>':'';
+ }catch(e){box.textContent='Could not load delivery confirmations: '+e.message;}
+}
+async function customerConfirmItemReceived(id){
+ if(!confirm('Confirm that you received these goods? This releases the supplier funds once all their items in this order are confirmed.'))return;
+ try{const {error}=await db.rpc('customer_confirm_item_received',{p_fulfilment_id:id});if(error)throw error;alert('Receipt confirmed.');await showCustomerOrderTracking();await loadCustomerFulfilmentConfirmations();}
+ catch(e){alert('Could not confirm receipt: '+e.message);}
 }
 
 async function loadSupplierOrders(supplierId){
