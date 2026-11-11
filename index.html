@@ -664,6 +664,14 @@ main{max-width:1220px}
 #adminPanel .admin-stat-grid h3{color:var(--rb-navy)}
 #adminPanel .admin-navigation{position:sticky;top:6px;z-index:20;border-color:#dfe6ef;background:rgba(255,255,255,.97);backdrop-filter:blur(8px)}
 #adminPanel .admin-navigation button{white-space:nowrap}
+#adminPanel .admin-nav-dropdown{position:relative;flex:none;z-index:35}
+#adminPanel .admin-nav-dropdown>summary{list-style:none;cursor:pointer;white-space:nowrap;padding:11px 15px;border:1px solid #e4e9f0;border-radius:8px;background:#f8fafc;color:#173b63;font-size:13px;font-weight:700}
+#adminPanel .admin-nav-dropdown>summary::-webkit-details-marker{display:none}
+#adminPanel .admin-nav-dropdown[open]>summary,#adminPanel .admin-nav-dropdown>summary:hover{background:var(--rb-navy);color:#fff}
+#adminPanel .admin-nav-submenu{position:absolute;top:calc(100% + 7px);left:0;display:flex;flex-direction:column;gap:4px;min-width:225px;padding:8px;border:1px solid #dfe6ef;border-radius:11px;background:#fff;box-shadow:0 12px 28px rgba(16,33,62,.16)}
+#adminPanel .admin-nav-submenu button{width:100%;padding:10px 12px;text-align:left;border:0;border-radius:7px;background:#fff;color:#34465e;font-size:12px}
+#adminPanel .admin-nav-submenu button:hover{background:#f1f5f9;color:#173b63}
+#adminPanel .supplier-management-section{scroll-margin-top:95px}
 #adminPanel .admin-navigation button:hover,#adminPanel .admin-navigation button:focus{background:var(--rb-navy);color:#fff}
 #adminPanel .admin-tools{border-color:#e1e7ef;box-shadow:0 4px 15px rgba(16,33,62,.04)}
 #adminPanel .admin-tools h3{color:var(--rb-navy)}
@@ -1120,7 +1128,16 @@ main{max-width:1220px}
   <div class="admin-navigation">
     <button onclick="adminShowTab('overview')">Overview</button>
     <button onclick="adminShowTab('orders')">Orders</button>
-    <button onclick="adminShowTab('suppliers')">Suppliers</button>
+    <details class="admin-nav-dropdown" id="adminSuppliersDropdown">
+      <summary onclick="adminShowTab('suppliers')">Suppliers <span aria-hidden="true">▾</span></summary>
+      <div class="admin-nav-submenu">
+        <button onclick="adminOpenSupplierSection('supplierApplicationsSection')">Applications & profiles</button>
+        <button onclick="adminOpenSupplierSection('supplierProductsSection')">Product submissions</button>
+        <button onclick="adminOpenSupplierSection('supplierFulfilmentSection')">Shipment & delivery</button>
+        <button onclick="adminOpenSupplierSection('supplierWithdrawalsSection')">Withdrawals & payouts</button>
+        <button onclick="adminOpenSupplierSection('supplierLedgerSection')">Wallet & transactions</button>
+      </div>
+    </details>
     <button onclick="adminShowTab('products')">Products</button>
     <button onclick="adminShowTab('wallet')">Wallet</button>
     <button onclick="adminShowTab('support')">Customer support</button>
@@ -1277,11 +1294,11 @@ main{max-width:1220px}
     <div class="admin-quick-card"><span>03</span><strong>Order fulfilment</strong><small>Confirm shipment and delivery evidence.</small></div>
     <div class="admin-quick-card"><span>04</span><strong>Wallet & payouts</strong><small>Review balances, transactions and withdrawals.</small></div>
   </div>
-  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>01 / ONBOARDING</span><h3>Supplier applications & business profiles</h3><p>Review submitted business details and approve or reject applications.</p></div><button class="secondary" onclick="loadAdminSupplierApplications()">↻ Refresh</button></div><div id="adminSupplierList" class="admin-table-wrap">Supplier applications will appear here.</div></section>
-  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>02 / CATALOGUE REVIEW</span><h3>Supplier product submissions</h3><p>Check product information and supplier links before publishing.</p></div><button class="secondary" onclick="loadPendingSupplierProducts()">↻ Refresh</button></div><div id="pendingSupplierProductList" class="admin-table-wrap">Supplier products will appear here.</div></section>
-  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>03 / ORDER OPERATIONS</span><h3>Shipment & delivery approvals</h3><p>Review supplier evidence and confirm each fulfilment step.</p></div><button class="secondary" onclick="loadAdminFulfilmentReviews()">↻ Refresh</button></div><div id="adminFulfilmentReviews" class="admin-table-wrap">Pending submissions will appear here.</div></section>
-  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>04 / FINANCE</span><h3>Supplier withdrawals & payouts</h3><p>Verify payout destination, make the transfer, then record the provider reference.</p></div><button class="secondary" onclick="loadAdminWithdrawals()">↻ Refresh</button></div><p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p><div id="adminWithdrawalsTable" class="admin-table-wrap">Withdrawal requests will appear here.</div></section>
-  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>05 / ACCOUNTING</span><h3>Supplier wallet & transaction history</h3><p>Review supplier earnings, debits, available balances and payout records.</p></div><button class="secondary" onclick="loadAdminSupplierLedger()">↻ Refresh</button></div><div id="adminSupplierLedger" class="admin-table-wrap">Supplier wallet transactions will appear here.</div></section>
+  <section id="supplierApplicationsSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>01 / ONBOARDING</span><h3>Supplier applications & business profiles</h3><p>Review submitted business details and approve or reject applications.</p></div><button class="secondary" onclick="loadAdminSupplierApplications()">↻ Refresh</button></div><div id="adminSupplierList" class="admin-table-wrap">Supplier applications will appear here.</div></section>
+  <section id="supplierProductsSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>02 / CATALOGUE REVIEW</span><h3>Supplier product submissions</h3><p>Check product information and supplier links before publishing.</p></div><button class="secondary" onclick="loadPendingSupplierProducts()">↻ Refresh</button></div><div id="pendingSupplierProductList" class="admin-table-wrap">Supplier products will appear here.</div></section>
+  <section id="supplierFulfilmentSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>03 / ORDER OPERATIONS</span><h3>Shipment & delivery approvals</h3><p>Review supplier evidence and confirm each fulfilment step.</p></div><button class="secondary" onclick="loadAdminFulfilmentReviews()">↻ Refresh</button></div><div id="adminFulfilmentReviews" class="admin-table-wrap">Pending submissions will appear here.</div></section>
+  <section id="supplierWithdrawalsSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>04 / FINANCE</span><h3>Supplier withdrawals & payouts</h3><p>Verify payout destination, make the transfer, then record the provider reference.</p></div><button class="secondary" onclick="loadAdminWithdrawals()">↻ Refresh</button></div><p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p><div id="adminWithdrawalsTable" class="admin-table-wrap">Withdrawal requests will appear here.</div></section>
+  <section id="supplierLedgerSection" class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>05 / ACCOUNTING</span><h3>Supplier wallet & transaction history</h3><p>Review supplier earnings, debits, available balances and payout records.</p></div><button class="secondary" onclick="loadAdminSupplierLedger()">↻ Refresh</button></div><div id="adminSupplierLedger" class="admin-table-wrap">Supplier wallet transactions will appear here.</div></section>
 </div>
 
 <div id="adminTab-support" class="admin-tab" style="display:none">
@@ -1445,6 +1462,15 @@ async function loadAdminSupplierApplications(){
   if(error)throw error;if(!data?.length){box.textContent='No supplier applications found.';return;}
   box.innerHTML='<table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Business</th><th>Contact person</th><th>Country</th><th>Email</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody>'+data.map(x=>'<tr><td><strong>'+escapeHTML(x.business_name||'—')+'</strong></td><td>'+escapeHTML(x.contact_name||'—')+'</td><td>'+escapeHTML(x.country||'—')+'</td><td>'+escapeHTML(x.email||'—')+'</td><td>'+escapeHTML(x.created_at?new Date(x.created_at).toLocaleDateString():'—')+'</td><td><span class="admin-order-pill">'+escapeHTML(x.status||'pending')+'</span></td><td>'+(x.status==='pending'?'<button class="primary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'approved\')">Approve</button> <button class="secondary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'rejected\')">Reject</button>':'—')+'</td></tr>').join('')+'</tbody></table>';
  }catch(e){box.textContent='Could not load supplier applications: '+e.message;}
+}
+
+// Open the Suppliers workspace and jump to the selected sub-menu section.
+function adminOpenSupplierSection(sectionId) {
+  adminShowTab('suppliers');
+  const target = document.getElementById(sectionId);
+  if (target) setTimeout(() => target.scrollIntoView({behavior:'smooth',block:'start'}), 80);
+  const menu = document.getElementById('adminSuppliersDropdown');
+  if (menu) menu.open = true;
 }
 
 // ADMIN PANEL TABS
