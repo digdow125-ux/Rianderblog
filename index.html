@@ -1154,9 +1154,9 @@ main{max-width:1220px}
 <input id="supplierProductColours" placeholder="Available colours, separated by commas">
 <label for="supplierProductDeliveryDays">Delivery time (maximum 7 days)</label>
 <select id="supplierProductDeliveryDays"><option value="1">1 day</option><option value="2">2 days</option><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7" selected>7 days</option></select>
-<label><strong>Product pictures (minimum 5, maximum 10)</strong></label>
+<label><strong>Product pictures (minimum 1, maximum 5)</strong></label>
 <input id="supplierProductImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple>
-<p class="small-note">Choose at least 5 clear photos showing different angles, details and packaging. Each photo must be 5 MB or smaller. On Android, select multiple pictures from Gallery.</p>
+<p class="small-note">Add 1 to 5 clear product photos showing the item from useful angles. Each photo must be 5 MB or smaller. On Android, you can select multiple pictures from Gallery.</p>
 <div id="supplierProductGalleryPreview" class="supplier-gallery-preview"></div>
 <textarea id="supplierProductImageUrl" placeholder="Optional: paste image URLs, one per line (each URL counts as one picture)"></textarea>
 <div id="supplierExistingGallery" class="small-note"></div>
@@ -2006,9 +2006,9 @@ async function resolveProductImages(fileId,urlId,existingImages,existingUrl,user
   const files=Array.from(input.files||[]);
   const typed=document.getElementById(urlId).value.trim();
   const urls=typed?typed.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean):[];
-  if(files.length>10)throw new Error('Upload no more than 10 new pictures at once.');
+  if(files.length>5)throw new Error('Upload no more than 5 new pictures at once.');
   if(files.some(file=>file.size>5*1024*1024))throw new Error('Each picture must be 5 MB or smaller.');
-  if(files.length+urls.length>10)throw new Error('A product can have a maximum of 10 pictures.');
+  if(files.length+urls.length>5)throw new Error('A product can have a maximum of 5 pictures.');
   const existing=Array.isArray(existingImages)?existingImages.filter(Boolean):[];
   if(!existing.length&&existingUrl)existing.push(existingUrl);
   const uploaded=[];
@@ -2018,17 +2018,17 @@ async function resolveProductImages(fileId,urlId,existingImages,existingUrl,user
     if(!valid)throw new Error('One of the image URLs is invalid.');
     return valid;
   });
-  const result=[...new Set([...existing,...uploaded,...validUrls])].slice(0,10);
-  if(result.length<5)throw new Error('Please add at least 5 product pictures. You currently have '+result.length+'.');
+  const result=[...new Set([...existing,...uploaded,...validUrls])].slice(0,5);
+  if(result.length<1)throw new Error('Please add at least 1 product picture.');
   return result;
 }
 function previewSupplierProductPictures(){
   const input=document.getElementById('supplierProductImage');
   const box=document.getElementById('supplierProductGalleryPreview');
   if(!input||!box)return;
-  const files=Array.from(input.files||[]).slice(0,10);
+  const files=Array.from(input.files||[]).slice(0,5);
   box.innerHTML=files.map(file=>'<img src="'+URL.createObjectURL(file)+'" alt="Selected product picture">').join('');
-  if(files.length)adminMessage('supplierProductMessage',files.length+' new picture(s) selected. You need at least 5 pictures in total.');
+  if(files.length)adminMessage('supplierProductMessage',files.length+' new picture(s) selected. Add between 1 and 5 pictures in total.');
 }
 document.addEventListener('change',event=>{
   if(event.target&&event.target.id==='supplierProductImage')previewSupplierProductPictures();
@@ -2497,7 +2497,7 @@ document.getElementById("search").addEventListener("input",displayProducts);
 function getProductGallery(p){
   const stored=Array.isArray(p.product_image_urls)?p.product_image_urls:[];
   const candidates=[...stored,p.image_url].map(safeUrl).filter(Boolean);
-  return [...new Set(candidates)].slice(0,10);
+  return [...new Set(candidates)].slice(0,5);
 }
 function selectDetailImage(thumb,src){
   const main=document.getElementById('detailMainImage');
