@@ -862,7 +862,7 @@ main{max-width:1220px}
     <a href="#messages" onclick="showSection('messages');closeMenu();return false">💬 My messages</a>
     <a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();closeMenu();return false">📦 Track my orders</a>
     <a href="#dashboard" onclick="showSection('dashboard');closeMenu();return false">📊 My dashboard</a>
-    <a href="#suppliers" onclick="showSection('suppliers');closeMenu();return false">🏭 Suppliers & supplier centre</a>
+    <a href="#suppliers" data-notify-highlight="suppliers" onclick="showSection('suppliers');supplierShowMainPage('centre');closeMenu();return false">🏭 Suppliers & supplier centre</a>
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Change currency</a>
     <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment help</a>
@@ -970,8 +970,8 @@ main{max-width:1220px}
 
   <section id="suppliers" class="panel secondary-page">
     <div class="supplier-main-menu" aria-label="Supplier pages">
-      <button type="button" id="supplierCentreButton" class="primary" onclick="supplierShowMainPage('centre')">⚙️ Supplier Centre</button>
-      <button type="button" id="supplierDirectoryButton" class="secondary" onclick="supplierShowMainPage('directory')">🏭 Discover Suppliers</button>
+      <button type="button" id="supplierCentreButton" class="primary" data-notify-highlight="suppliers" onclick="supplierShowMainPage('centre')">⚙️ Supplier Centre</button>
+      <button type="button" id="supplierDirectoryButton" class="secondary" data-notify-highlight="suppliers" onclick="supplierShowMainPage('directory')">🏭 Discover Suppliers</button>
     </div>
     <div id="supplierDirectoryArea" class="supplier-directory">
       <div class="supplier-directory-heading">
@@ -987,13 +987,13 @@ main{max-width:1220px}
     <div id="supplierCentrePage" style="display:none">
     <div class="supplier-centre-intro"><p class="small-note">Choose a section below. Each option opens its own page within Supplier Centre.</p></div>
     <div class="supplier-centre-menu" id="supplierCentreMenu" aria-label="Supplier Centre navigation">
-      <button type="button" class="primary" data-supplier-page="application" onclick="supplierNavigateTo('application')">📝 Supplier application</button>
-      <button type="button" data-supplier-page="add-product" onclick="supplierNavigateTo('supplierProductName')">➕ Add / manage products</button>
-      <button type="button" data-supplier-page="my-products" onclick="supplierNavigateTo('supplierProductList')">🛍️ My products</button>
-      <button type="button" data-supplier-page="orders" onclick="supplierNavigateTo('supplierOrdersTable')">📊 My orders & sales</button>
-      <button type="button" data-supplier-page="fulfilment" onclick="supplierNavigateTo('supplierFulfilmentControls')">🚚 Shipment & delivery</button>
-      <button type="button" data-supplier-page="wallet" onclick="supplierNavigateTo('supplierWalletBalances')">💳 Wallet & transactions</button>
-      <button type="button" data-supplier-page="withdrawals" onclick="supplierNavigateTo('supplierWithdrawalWallet')">🏦 Withdrawals</button>
+      <button type="button" class="primary" data-notify-highlight="suppliers" data-supplier-page="application" onclick="supplierNavigateTo('application')">📝 Supplier application</button>
+      <button type="button" data-notify-highlight="suppliers" data-supplier-page="add-product" onclick="supplierNavigateTo('supplierProductName')">➕ Add / manage products</button>
+      <button type="button" data-notify-highlight="suppliers" data-supplier-page="my-products" onclick="supplierNavigateTo('supplierProductList')">🛍️ My products</button>
+      <button type="button" data-notify-highlight="suppliers" data-supplier-page="orders" onclick="supplierNavigateTo('supplierOrdersTable')">📊 My orders & sales</button>
+      <button type="button" data-notify-highlight="suppliers" data-supplier-page="fulfilment" onclick="supplierNavigateTo('supplierFulfilmentControls')">🚚 Shipment & delivery</button>
+      <button type="button" data-notify-highlight="suppliers" data-supplier-page="wallet" onclick="supplierNavigateTo('supplierWalletBalances')">💳 Wallet & transactions</button>
+      <button type="button" data-notify-highlight="suppliers" data-supplier-page="withdrawals" onclick="supplierNavigateTo('supplierWithdrawalWallet')">🏦 Withdrawals</button>
     </div>
     <div class="listing" id="supplierApplicationPage" style="margin-top:22px">
       <h3>Supplier application</h3>
@@ -2822,12 +2822,12 @@ async function loadNotifications(){
   const rows=data||[];
   const unreadRows=rows.filter(n=>!n.is_read);
   const unread=unreadRows.length;
-  document.querySelectorAll('[data-notify-target]').forEach(option=>{
-    const target=option.getAttribute('data-notify-target');
+  document.querySelectorAll('[data-notify-target],[data-notify-highlight]').forEach(option=>{
+    const target=option.getAttribute('data-notify-target')||option.getAttribute('data-notify-highlight');
     const pending=unreadRows.some(n=>(n.target_section||'dashboard')===target);
     option.classList.toggle('has-unread-notification',pending);
     option.setAttribute('aria-label',option.textContent.trim()+(pending?' — unread notification':''));
-    if(!option.dataset.notificationReadHandler){
+    if(option.hasAttribute('data-notify-target')&&!option.dataset.notificationReadHandler){
       option.dataset.notificationReadHandler='1';
       option.addEventListener('click',async()=>{
         const selectedTarget=option.getAttribute('data-notify-target');
@@ -2841,7 +2841,7 @@ async function loadNotifications(){
   if(!rows.length){list.innerHTML='<p class="notification-empty">You are all caught up. New updates will appear here.</p>';return;}
   list.innerHTML=rows.map(n=>{
     const date=new Date(n.created_at).toLocaleString();
-    return '<button type="button" class="notification-item '+(n.is_read?'':'unread')+'" data-notification-id="'+escapeHTML(n.id)+'" data-target-section="'+escapeHTML(n.target_section||'dashboard')+'"><strong>'+escapeHTML(n.title)+'</strong><span>'+escapeHTML(n.body||'')+'</span><small>'+escapeHTML(date)+(n.is_read?'':' · New')+'</small></button>';
+    return '<button type="button" class="notification-item '+(n.is_read?'':'unread')+'" data-notification-id="'+escapeHTML(n.id)+'" data-target-section="'+escapeHTML(n.target_section||'dashboard')+'" data-notification-type="'+escapeHTML(n.notification_type||'')+'"><strong>'+escapeHTML(n.title)+'</strong><span>'+escapeHTML(n.body||'')+'</span><small>'+escapeHTML(date)+(n.is_read?'':' · New')+'</small></button>';
   }).join('');
   list.querySelectorAll('[data-notification-id]').forEach(button=>button.addEventListener('click',async()=>{
     const id=button.dataset.notificationId;
@@ -2856,6 +2856,16 @@ async function loadNotifications(){
       const adminTab=target==='adminOrders'?'orders':target==='adminApplications'?'applications':target==='adminSupport'?'support':target==='adminSuppliers'?'suppliers':'overview';
       if(typeof adminShowTab==='function')adminShowTab(adminTab);
       if(target==='adminSuppliers'&&typeof loadAdminFulfilmentReviews==='function')loadAdminFulfilmentReviews();
+    }else if(target==='suppliers'){
+      showSection('suppliers');
+      supplierShowMainPage('centre');
+      const type=button.dataset.notificationType||'';
+      const destination=type==='supplier_product_status'?'supplierProductList':
+        type==='customer_received_order'?'supplierOrdersTable':
+        (type==='shipment_approved'||type==='delivery_approved'||type==='supplier_fulfilment')?'supplierFulfilmentControls':
+        type==='wallet_activity'?'supplierWalletBalances':
+        type==='withdrawal_status'?'supplierWithdrawalWallet':null;
+      if(destination&&typeof supplierNavigateTo==='function')supplierNavigateTo(destination);
     }else{
       showSection(target);
       if(target==='orderTracking'&&typeof showCustomerOrderTracking==='function')showCustomerOrderTracking();
