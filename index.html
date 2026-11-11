@@ -530,6 +530,49 @@ main{max-width:1220px}
 @media(max-width:760px){#adminPanel .admin-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:430px){#adminPanel .admin-quick-grid{grid-template-columns:1fr}#adminPanel .admin-quick-card{min-height:125px}}
 
+
+/* Professional product management workspace */
+#adminPanel .admin-products-head{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:25px 27px;margin:0 0 20px;border:1px solid #dce5ef;border-radius:18px;background:linear-gradient(120deg,#f7faff,#eef4fb)}
+#adminPanel .admin-products-eyebrow{font-size:10px;font-weight:800;letter-spacing:1.8px;color:#b18435}
+#adminPanel .admin-products-head h2{margin:7px 0 5px;color:#132d4d;font-size:25px}
+#adminPanel .admin-products-head p{margin:0;color:#687b91;font-size:13px;line-height:1.6}
+#adminPanel .admin-products-workspace{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.85fr);gap:18px;align-items:start}
+#adminPanel .admin-products-panel{min-width:0;padding:21px;border:1px solid #e0e7ef;border-radius:16px;background:#fff;box-shadow:0 5px 18px rgba(20,45,75,.045);margin-bottom:18px}
+#adminPanel .admin-products-section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:19px}
+#adminPanel .admin-products-section-title>div{display:flex;align-items:center;gap:12px}
+#adminPanel .admin-products-step{display:inline-flex;align-items:center;justify-content:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:#edf3fa;color:#24496f;font-size:11px;font-weight:800}
+#adminPanel .admin-products-section-title h3,#adminPanel .admin-products-guide h3{margin:0 0 4px;color:#183452;font-size:16px}
+#adminPanel .admin-products-section-title p{margin:0;color:#7a899a;font-size:12px}
+#adminPanel .admin-products-tag{padding:6px 9px;border-radius:20px;background:#f7f1e5;color:#9b722e;font-size:9px;font-weight:800;letter-spacing:.7px}
+#adminPanel .admin-products-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+#adminPanel .admin-products-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+#adminPanel .admin-products-field-wide{grid-column:1/-1}
+#adminPanel .admin-products-field label{font-size:12px;font-weight:700;color:#40556d}
+#adminPanel .admin-products-field input,#adminPanel .admin-products-field select,#adminPanel .admin-products-field textarea{box-sizing:border-box;width:100%;min-width:0;padding:11px 12px;border:1px solid #d8e1eb;border-radius:9px;background:#fbfcfe;color:#20364e;font:inherit;font-size:13px;outline:none}
+#adminPanel .admin-products-field input:focus,#adminPanel .admin-products-field select:focus,#adminPanel .admin-products-field textarea:focus{border-color:#527da9;box-shadow:0 0 0 3px rgba(65,112,160,.1);background:#fff}
+#adminPanel .admin-products-field textarea{resize:vertical;min-height:95px}
+#adminPanel .admin-products-hint{font-size:11px;color:#8492a2}
+#adminPanel .admin-products-publish{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;padding:14px;border:1px solid #e4eaf1;border-radius:11px;background:#f8fafc}
+#adminPanel .admin-products-publish>div{display:flex;flex-direction:column;gap:4px}
+#adminPanel .admin-products-publish strong{font-size:12px;color:#304860}
+#adminPanel .admin-products-publish>div span{font-size:11px;color:#8492a2}
+#adminPanel .admin-products-toggle{display:flex;align-items:center;gap:7px;color:#315b49;font-size:11px;font-weight:700;white-space:nowrap}
+#adminPanel .admin-products-toggle input{width:16px;height:16px;accent-color:#21845d}
+#adminPanel .admin-products-form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}
+#adminPanel .admin-products-form-actions button,#adminPanel .admin-products-head-actions button{min-height:40px;padding:0 17px;border-radius:9px}
+#adminPanel .admin-products-guide{background:#f8fafc}
+#adminPanel .admin-products-guide>p{font-size:11px;line-height:1.6;color:#8190a0;margin:14px 0 0}
+#adminPanel .admin-products-guide ul{display:grid;gap:12px;padding:0;margin:17px 0 0;list-style:none}
+#adminPanel .admin-products-guide li{display:flex;align-items:flex-start;gap:9px;color:#52667d;font-size:12px;line-height:1.5}
+#adminPanel .admin-products-guide li span{display:inline-flex;align-items:center;justify-content:center;flex:0 0 21px;height:21px;border-radius:7px;background:#e8eff7;color:#315b83;font-size:10px;font-weight:800}
+#adminPanel .admin-products-review .admin-products-section-title{align-items:flex-start}
+#adminPanel .admin-products-review>button{width:100%;margin-bottom:12px}
+#adminPanel .admin-products-list{min-width:0}
+#adminPanel .admin-products-catalogue{margin-top:2px}
+#adminPanel .admin-products-catalogue .admin-products-section-title{flex-wrap:wrap}
+#adminPanel #pendingSupplierProductList .admin-row,#adminPanel #adminProductList .admin-row{padding:14px 0;border-bottom:1px solid #edf1f5}
+@media(max-width:850px){#adminPanel .admin-products-workspace{grid-template-columns:1fr}#adminPanel .admin-products-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}#adminPanel .admin-products-side .admin-products-panel{margin-bottom:0}}
+@media(max-width:560px){#adminPanel .admin-products-head{align-items:flex-start;flex-direction:column;padding:19px}#adminPanel .admin-products-head h2{font-size:21px}#adminPanel .admin-products-panel{padding:15px}#adminPanel .admin-products-fields{grid-template-columns:1fr}#adminPanel .admin-products-field-wide{grid-column:auto}#adminPanel .admin-products-side{grid-template-columns:1fr}#adminPanel .admin-products-publish{align-items:flex-start;flex-direction:column}#adminPanel .admin-products-section-title{align-items:flex-start}#adminPanel .admin-products-tag{display:none}}
 </style>
 </head>
 <body>
@@ -938,81 +981,109 @@ main{max-width:1220px}
   </div>
 
 <div id="adminTab-products" class="admin-tab" style="display:none">
-  <div class="admin-tools">
-    <h3>🛍️ Product Management Centre</h3>
-    <p class="small-note">
-      Add, manage and publish products on the RIANDERBLOG marketplace.
-    </p>
+  <div class="admin-products-head">
+    <div>
+      <span class="admin-products-eyebrow">CATALOGUE CONTROL</span>
+      <h2>Product management</h2>
+      <p>Manage your marketplace catalogue, review supplier submissions and keep product information accurate.</p>
+    </div>
+    <div class="admin-products-head-actions">
+      <button class="secondary" type="button" onclick="loadProducts()">↻ Refresh catalogue</button>
+    </div>
+  </div>
 
-    <div class="listing">
-      <h3>➕ Add or Edit Product</h3>
+  <div class="admin-products-workspace">
+    <section class="admin-products-panel admin-products-editor">
+      <div class="admin-products-section-title">
+        <div><span class="admin-products-step">01</span><div><h3>Product details</h3><p>Create a new listing or update an existing one.</p></div></div>
+        <span class="admin-products-tag">ADMIN LISTING</span>
+      </div>
       <input id="adminProductId" type="hidden">
-
-      <div class="form-grid">
-        <input id="adminProductName" placeholder="Product name">
-        <input id="adminProductPrice" type="number" min="0" step="0.01" placeholder="Product price">
-        <select id="adminProductCurrency">
-          <option value="USD">USD</option>
-          <option value="MWK">MWK</option>
-          <option value="GBP">GBP</option>
-          <option value="EUR">EUR</option>
-          <option value="ZAR">ZAR</option>
-        </select>
-        <input id="adminProductCategory" placeholder="Product category">
-
-        <div>
-          <label for="adminProductImage">Upload product picture</label>
+      <div class="admin-products-fields">
+        <div class="admin-products-field admin-products-field-wide">
+          <label for="adminProductName">Product name</label>
+          <input id="adminProductName" placeholder="e.g. Wireless Bluetooth Headphones">
+        </div>
+        <div class="admin-products-field">
+          <label for="adminProductPrice">Selling price</label>
+          <input id="adminProductPrice" type="number" min="0" step="0.01" placeholder="0.00">
+        </div>
+        <div class="admin-products-field">
+          <label for="adminProductCurrency">Currency</label>
+          <select id="adminProductCurrency">
+            <option value="USD">USD — US Dollar</option>
+            <option value="MWK">MWK — Malawi Kwacha</option>
+            <option value="GBP">GBP — Pound Sterling</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="ZAR">ZAR — South African Rand</option>
+          </select>
+        </div>
+        <div class="admin-products-field admin-products-field-wide">
+          <label for="adminProductCategory">Category</label>
+          <input id="adminProductCategory" placeholder="e.g. Electronics, Fashion, Home">
+        </div>
+        <div class="admin-products-field admin-products-field-wide">
+          <label for="adminProductDescription">Product description</label>
+          <textarea id="adminProductDescription" rows="4" placeholder="Describe the product, its features and important details..."></textarea>
+        </div>
+        <div class="admin-products-field admin-products-field-wide">
+          <label for="adminProductImage">Product image upload</label>
           <input id="adminProductImage" type="file" accept="image/*">
+          <span class="admin-products-hint">Choose a clear, high-quality product photo.</span>
         </div>
-
-        <div>
-          <label for="adminProductImageUrl">Or paste picture URL</label>
-          <input id="adminProductImageUrl" type="url" placeholder="https://example.com/image.jpg">
+        <div class="admin-products-field admin-products-field-wide">
+          <label for="adminProductImageUrl">Or use an image URL</label>
+          <input id="adminProductImageUrl" type="url" placeholder="https://example.com/product-image.jpg">
         </div>
-
-        <div>
-          <label for="adminProductLink">Affiliate / Supplier Product Link</label>
-          <input id="adminProductLink" type="url" placeholder="Paste your affiliate or supplier link">
-        </div>
-
-        <div>
-          <label for="adminProductDescription">Product Description</label>
-          <textarea id="adminProductDescription" placeholder="Describe this product..."></textarea>
+        <div class="admin-products-field admin-products-field-wide">
+          <label for="adminProductLink">Supplier product link</label>
+          <input id="adminProductLink" type="url" placeholder="Paste the supplier or affiliate product URL">
+          <span class="admin-products-hint">Used for product sourcing and administration.</span>
         </div>
       </div>
-
-      <label>
-        <input id="adminProductActive" type="checkbox" checked style="width:auto">
-        Active / visible in marketplace
-      </label>
-
-      <div class="admin-actions">
-        <button class="primary" onclick="saveAdminProduct()">💾 Save Product</button>
-        <button class="secondary" onclick="clearAdminProductForm()">Clear Form</button>
+      <div class="admin-products-publish">
+        <div><strong>Marketplace visibility</strong><span>Choose whether this product is visible to customers.</span></div>
+        <label class="admin-products-toggle"><input id="adminProductActive" type="checkbox" checked><span>Active and visible</span></label>
       </div>
+      <div class="admin-products-form-actions">
+        <button class="primary" type="button" onclick="saveAdminProduct()">Save product</button>
+        <button class="secondary" type="button" onclick="clearAdminProductForm()">Clear form</button>
+      </div>
+      <p id="adminProductMessage" class="small-note" role="status" aria-live="polite"></p>
+    </section>
 
-      <p id="adminProductMessage" class="small-note"></p>
-    </div>
-
-      <div class="listing">
-  <h3>⏳ Pending Supplier Products</h3>
-  <p class="small-note">Review supplier products before publishing.</p>
-  <button class="secondary" onclick="loadPendingSupplierProducts()">
-    Refresh pending products
-  </button>
-  <div id="pendingSupplierProductList">
-    Pending supplier products will appear here.
+    <aside class="admin-products-side">
+      <section class="admin-products-panel admin-products-guide">
+        <span class="admin-products-step">QUICK GUIDE</span>
+        <h3>Publish with confidence</h3>
+        <ul>
+          <li><span>1</span> Add a clear product name and price.</li>
+          <li><span>2</span> Select the correct category and currency.</li>
+          <li><span>3</span> Upload a product image and add a description.</li>
+          <li><span>4</span> Check the supplier link, then save.</li>
+        </ul>
+        <p>Review product details before making a listing visible to customers.</p>
+      </section>
+      <section class="admin-products-panel admin-products-review">
+        <div class="admin-products-section-title">
+          <div><span class="admin-products-step">02</span><div><h3>Supplier submissions</h3><p>Review products awaiting approval.</p></div></div>
+        </div>
+        <button class="secondary" type="button" onclick="loadPendingSupplierProducts()">↻ Refresh submissions</button>
+        <div id="pendingSupplierProductList" class="admin-products-list">Pending supplier products will appear here.</div>
+      </section>
+    </aside>
   </div>
-      </div>
-      <h3>📦 Your Product Catalogue</h3>
-      <p class="small-note">Edit or remove products and manage their visibility.</p>
-      <div id="adminProductList">Products will appear here.</div>
+
+  <section class="admin-products-panel admin-products-catalogue">
+    <div class="admin-products-section-title">
+      <div><span class="admin-products-step">03</span><div><h3>Marketplace catalogue</h3><p>Edit listings, manage visibility or remove products.</p></div></div>
+      <button class="secondary" type="button" onclick="renderAdminProducts()">↻ Refresh list</button>
     </div>
-  </div>
+    <div id="adminProductList" class="admin-products-list">Products will appear here.</div>
+  </section>
 </div>
 
-
-  <div id="adminTab-support" class="admin-tab" style="display:none">
+<div id="adminTab-support" class="admin-tab" style="display:none">
     <div class="admin-tools">
       <h3>Customer support inbox</h3>
       <p class="small-note">Read customer messages and reply privately.</p>
