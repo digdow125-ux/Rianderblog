@@ -1133,6 +1133,7 @@ main{max-width:1220px}
 
     <input id="supplierProductCategory" placeholder="Product category">
 <input id="supplierProductStock" type="number" min="0" step="1" placeholder="Quantity available in your shop">
+<input id="supplierProductMinimumOrder" type="number" min="1" step="1" value="1" placeholder="Minimum order quantity (e.g. 2)">
 <input id="supplierProductColours" placeholder="Available colours, separated by commas">
 <label for="supplierProductDeliveryDays">Delivery time (maximum 7 days)</label>
 <select id="supplierProductDeliveryDays"><option value="1">1 day</option><option value="2">2 days</option><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7" selected>7 days</option></select>
@@ -2436,7 +2437,7 @@ function displayProducts() {
       ${safeUrl(p.image_url) ? `<img src="${safeUrl(p.image_url)}" alt="${escapeHTML(p.name)}" loading="lazy">` : ""}
       <h3>${escapeHTML(p.name)}</h3>
       <p class="product-desc">${escapeHTML(p.description || "Explore this product for more information.")}</p>
-      <p class="small-note">Available: ${Number(p.stock_quantity||0)} · Colours: ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')} · Delivery: ${Number(p.delivery_days||7)} day(s)</p>
+      <p class="small-note">Available: ${Number(p.stock_quantity||0)} · Minimum order: ${Number(p.minimum_order_quantity||1)} · Colours: ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')} · Delivery: ${Number(p.delivery_days||7)} day(s)</p>
       <p class="price">${formatPrice(p.price,p.currency || "USD")}</p>
       <div class="product-actions">
         <button class="details-btn" onclick="openDetails('${escapeHTML(p.id)}')">View Details</button>
@@ -2474,6 +2475,7 @@ function openDetails(id) {
         <div class="detail-price">${formatPrice(p.price,p.currency || "USD")}</div>
         <p class="detail-description">${escapeHTML(p.description || "More product information will be added soon.")}</p>
         <p><strong>Available in shop:</strong> ${Number(p.stock_quantity||0)} units</p>
+        <p><strong>Minimum order:</strong> ${Number(p.minimum_order_quantity||1)} unit(s)</p>
         <p><strong>Colours:</strong> ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')}</p>
         <p><strong>Delivery:</strong> within ${Number(p.delivery_days||7)} day(s), maximum 7 days</p>
         ${(p.available_colours||[]).length ? '<label for="chooseColour">Choose colour</label><select id="chooseColour">'+p.available_colours.map(c=>'<option value="'+escapeHTML(c)+'">'+escapeHTML(c)+'</option>').join('')+'</select>' : ''}
@@ -2508,9 +2510,11 @@ function addToCart(id) {
   const colour=document.getElementById('chooseColour')?.value||'';
   const existing=cart.find(x=>String(x.id)===String(id)&&(x.selected_colour||'')===colour);
   const totalAlready=cart.filter(x=>String(x.id)===String(id)).reduce((sum,x)=>sum+Number(x.quantity||0),0);
-  if(totalAlready+1>Number(p.stock_quantity||0)){alert('Only '+Number(p.stock_quantity||0)+' unit(s) are available across all colours.');return;}
-  if(existing)existing.quantity++;
-  else cart.push({id:p.id,name:p.name,price:Number(p.price||0),currency:p.currency||'USD',image_url:p.image_url||'',quantity:1,selected_colour:colour,delivery_days:Number(p.delivery_days||7),stock_quantity:Number(p.stock_quantity||0)});
+  const minimumOrder=Math.max(1,Number(p.minimum_order_quantity||1));
+  if(Number(p.stock_quantity||0)<minimumOrder){alert('This product is not available to order yet. Please contact the supplier.');return;}
+  if(totalAlready+minimumOrder>Number(p.stock_quantity||0)){alert('Only '+Number(p.stock_quantity||0)+' unit(s) are available across all colours.');return;}
+  if(existing)existing.quantity+=minimumOrder;
+  else cart.push({id:p.id,name:p.name,price:Number(p.price||0),currency:p.currency||'USD',image_url:p.image_url||'',quantity:minimumOrder,minimum_order_quantity:minimumOrder,selected_colour:colour,delivery_days:Number(p.delivery_days||7),stock_quantity:Number(p.stock_quantity||0)});
   saveCart();alert('Product added to your cart!');
 }
 
@@ -2518,10 +2522,11 @@ function changeQuantity(id,amount) {
   const item = cart.find(x => String(x.id) === String(id));
   if (!item) return;
 
-  item.quantity += amount;
-  if (item.quantity <= 0) {
-    cart = cart.filter(x => String(x.id) !== String(id));
-  }
+  const minimumOrder=Math.max(1,Number(item.minimum_order_quantity||1));
+  const nextQuantity=item.quantity+amount;
+  if(nextQuantity<minimumOrder){alert('Minimum order for this product is '+minimumOrder+' unit(s). Use Remove to remove it from your cart.');return;}
+  if(nextQuantity>Number(item.stock_quantity||0)){alert('Only '+Number(item.stock_quantity||0)+' unit(s) are available.');return;}
+  item.quantity=nextQuantity;
   saveCart();
 }
 
@@ -2553,6 +2558,7 @@ function updateCart() {
       <div class="cart-info">
         <strong>${escapeHTML(item.name)}</strong>
         <p>${escapeHTML(item.currency)} ${Number(item.price).toFixed(2)}</p>
+        <p>Minimum order: ${Number(item.minimum_order_quantity||1)} unit(s)</p>
         ${item.selected_colour?'<p>Colour: '+escapeHTML(item.selected_colour)+'</p>':''}
         <p>Subtotal: ${escapeHTML(item.currency)} ${(item.price * item.quantity).toFixed(2)}</p>
       </div>
@@ -2590,6 +2596,11 @@ async function startPayChanguCheckout() {
 
     if (!cart.length) {
         message.textContent = "Your shopping cart is empty.";
+        return;
+    }
+    const belowMinimum=cart.find(item=>Number(item.quantity)<Math.max(1,Number(item.minimum_order_quantity||1)));
+    if(belowMinimum){
+        message.textContent=belowMinimum.name+' requires a minimum order of '+Number(belowMinimum.minimum_order_quantity||1)+' unit(s).';
         return;
     }
 
@@ -3560,6 +3571,7 @@ function clearSupplierProductForm(){
     'supplierProductPrice',
     'supplierProductCategory',
     'supplierProductStock',
+    'supplierProductMinimumOrder',
     'supplierProductColours',
     'supplierProductImageUrl',
     'supplierProductLink',
@@ -3576,6 +3588,8 @@ function clearSupplierProductForm(){
   if(currency) currency.value='USD';
   const delivery=document.getElementById('supplierProductDeliveryDays');
   if(delivery) delivery.value='7';
+  const minimum=document.getElementById('supplierProductMinimumOrder');
+  if(minimum) minimum.value='1';
 
   adminMessage('supplierProductMessage','');
 }
@@ -3642,6 +3656,7 @@ async function loadSupplierProducts(supplierId){
           ${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)}
           · ${escapeHTML(p.category||'Other')}
         </div>
+        <div class="small-note">Minimum order: ${Number(p.minimum_order_quantity||1)} unit(s)</div>
         <div class="small-note">In shop: ${Number(p.stock_quantity||0)} · Colours: ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')} · Delivery: ${Number(p.delivery_days||7)} day(s)</div>
         <div class="small-note">
           ${p.is_active?'Active':'Waiting for admin review'}
@@ -4025,6 +4040,7 @@ function editSupplierProduct(id){
   document.getElementById('supplierProductCurrency').value=p.currency||'USD';
   document.getElementById('supplierProductCategory').value=p.category||'';
   document.getElementById('supplierProductStock').value=p.stock_quantity??0;
+  document.getElementById('supplierProductMinimumOrder').value=p.minimum_order_quantity??1;
   document.getElementById('supplierProductColours').value=(p.available_colours||[]).join(', ');
   document.getElementById('supplierProductDeliveryDays').value=String(p.delivery_days||7);
 
@@ -4050,6 +4066,7 @@ async function saveSupplierProduct(){
     const name=document.getElementById('supplierProductName').value.trim();
     const price=Number(document.getElementById('supplierProductPrice').value);
     const stock=Number(document.getElementById('supplierProductStock').value);
+    const minimumOrder=Number(document.getElementById('supplierProductMinimumOrder').value||1);
     const colours=document.getElementById('supplierProductColours').value.split(',').map(x=>x.trim()).filter(Boolean);
     const deliveryDays=Number(document.getElementById('supplierProductDeliveryDays').value);
     const linkText=document.getElementById('supplierProductLink').value.trim();
@@ -4060,6 +4077,8 @@ async function saveSupplierProduct(){
     }
 
     if(!Number.isInteger(stock)||stock<0) throw new Error('Enter a valid available quantity (zero or more).');
+    if(!Number.isInteger(minimumOrder)||minimumOrder<1) throw new Error('Minimum order must be at least 1 unit.');
+    if(stock>0&&minimumOrder>stock) throw new Error('Minimum order cannot be greater than available stock.');
     if(!Number.isInteger(deliveryDays)||deliveryDays<1||deliveryDays>7) throw new Error('Delivery must be within 1 to 7 days.');
     if(colours.length>20||colours.some(c=>c.length>40)) throw new Error('Enter up to 20 colour names, each under 40 characters.');
     if(linkText&&!link){
@@ -4088,6 +4107,7 @@ async function saveSupplierProduct(){
       currency:document.getElementById('supplierProductCurrency').value,
       category:document.getElementById('supplierProductCategory').value.trim()||'Other',
       stock_quantity:stock,
+      minimum_order_quantity:minimumOrder,
       available_colours:colours,
       delivery_days:deliveryDays,
       image_url:image,
