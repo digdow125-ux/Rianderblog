@@ -515,6 +515,21 @@ main{max-width:1220px}
  #adminPanel .admin-navigation button{padding:10px 12px;font-size:12px}
 }
 
+
+/* ADMIN DASHBOARD INFORMATION HIERARCHY */
+#adminPanel .admin-overview-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:21px 22px;margin:0 0 16px;background:#fff;border:1px solid #e4eaf1;border-radius:13px}
+#adminPanel .admin-overview-intro h3{margin:7px 0 5px;color:#173b63;font-size:20px}
+#adminPanel .admin-overview-intro p{margin:0;color:#748196;font-size:13px;line-height:1.55}
+#adminPanel .admin-quick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+#adminPanel .admin-quick-card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:155px;padding:18px;text-align:left;background:#fff;color:#263b55;border:1px solid #e3e9f0;border-radius:13px;box-shadow:0 4px 13px rgba(16,33,62,.035);transition:transform .18s,border-color .18s,box-shadow .18s}
+#adminPanel .admin-quick-card:hover{transform:translateY(-2px);border-color:#f3a477;box-shadow:0 9px 20px rgba(16,33,62,.08)}
+#adminPanel .admin-quick-card>span{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#f2f5f9;font-size:20px}
+#adminPanel .admin-quick-card strong{font-size:14px;color:#173b63}
+#adminPanel .admin-quick-card small{font-size:12px;line-height:1.45;color:#748196}
+#adminPanel .admin-quick-card b{margin-top:auto;color:#e9682a;font-size:12px}
+@media(max-width:760px){#adminPanel .admin-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:430px){#adminPanel .admin-quick-grid{grid-template-columns:1fr}#adminPanel .admin-quick-card{min-height:125px}}
+
 </style>
 </head>
 <body>
@@ -850,8 +865,9 @@ main{max-width:1220px}
     <button class="primary" onclick="loadAdminDashboard()">↻ Refresh dashboard</button>
   </div>
 
-      <button class="primary" onclick="loadAdminDashboard()">Update statistics</button>
-    </div>
+  <div class="admin-overview-intro">
+    <div><span class="admin-kicker">MARKETPLACE PERFORMANCE</span><h3>At a glance</h3><p>Monitor your marketplace and jump straight to the work that needs attention.</p></div>
+    <button class="secondary" onclick="loadAdminDashboard()">↻ Update statistics</button>
   </div>
 
   <div class="market-grid admin-stat-grid" id="adminStats">
@@ -873,10 +889,16 @@ main{max-width:1220px}
   </div>
 
    <div id="adminTab-overview" class="admin-tab">
-    <div class="admin-tools">
-      <h3>Business overview</h3>
-      <p class="small-note">Your marketplace activity and management tools.</p>
-      <button class="primary" onclick="loadAdminDashboard()">Update statistics</button>
+    <div class="admin-overview-intro">
+      <div><span class="admin-kicker">WORKSPACE</span><h3>Welcome to your control centre</h3><p>Choose a workspace below to manage orders, products, suppliers, customer care and marketplace finances.</p></div>
+    </div>
+    <div class="admin-quick-grid">
+      <button class="admin-quick-card" onclick="adminShowTab('orders')"><span>📦</span><strong>Manage orders</strong><small>Review payments and customer orders</small><b>Open orders →</b></button>
+      <button class="admin-quick-card" onclick="adminShowTab('products')"><span>🛍️</span><strong>Manage products</strong><small>Publish products and review submissions</small><b>Open products →</b></button>
+      <button class="admin-quick-card" onclick="adminShowTab('applications')"><span>🤝</span><strong>Suppliers & applications</strong><small>Review supplier and affiliate applications</small><b>Open applications →</b></button>
+      <button class="admin-quick-card" onclick="adminShowTab('wallet')"><span>💳</span><strong>Marketplace wallet</strong><small>Review balances and withdrawal requests</small><b>Open wallet →</b></button>
+      <button class="admin-quick-card" onclick="adminShowTab('support')"><span>💬</span><strong>Customer support</strong><small>Read and reply to customer messages</small><b>Open inbox →</b></button>
+      <button class="admin-quick-card" onclick="adminShowTab('ai')"><span>✨</span><strong>Admin assistant</strong><small>Get help with marketplace operations</small><b>Open assistant →</b></button>
     </div>
   </div>
 
