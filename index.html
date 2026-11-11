@@ -1451,6 +1451,7 @@ try{
   if(id==="cart"&&typeof updateCart==="function")updateCart();
   if(id==="dashboard"&&typeof showDashboard==="function")showDashboard();
   if(id==="suppliers"&&typeof renderSuppliers==="function")renderSuppliers();
+if(id==="suppliers"&&typeof supplierShowMainPage==="function")supplierShowMainPage('overview');
 if(id==="suppliers"&&typeof loadSupplierWorkspace==="function")loadSupplierWorkspace();
   if(id==="supplierWorkspace"&&typeof loadSupplierWorkspace==="function")loadSupplierWorkspace();
   if(id==="messages"&&typeof loadMarketplaceConversations==="function")loadMarketplaceConversations();
@@ -2854,6 +2855,24 @@ async function renderSuppliers(){
  if(error){box.innerHTML='<p class="small-note">Supplier directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
  suppliersCache=data||[];const rows=suppliersCache.filter(x=>(x.company_name+' '+x.country+' '+x.description).toLowerCase().includes(q));
  box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
+}
+function supplierShowMainPage(page){
+  const directory=document.getElementById('supplierDirectoryArea');
+  const centre=document.getElementById('supplierCentrePage');
+  const directoryButton=document.getElementById('supplierDirectoryButton');
+  const centreButton=document.getElementById('supplierCentreButton');
+  const overview=page==='overview',isCentre=page==='centre';
+  if(directory)directory.style.display=(overview||!isCentre)?'block':'none';
+  if(centre)centre.style.display=(overview||isCentre)?'block':'none';
+  if(directoryButton){directoryButton.classList.toggle('primary',!isCentre);directoryButton.classList.toggle('secondary',isCentre);directoryButton.setAttribute('aria-current',!isCentre?'page':'false');}
+  if(centreButton){centreButton.classList.toggle('primary',isCentre);centreButton.classList.toggle('secondary',!isCentre);centreButton.setAttribute('aria-current',isCentre?'page':'false');}
+  if(overview||isCentre){
+    const app=document.getElementById('supplierApplicationPage'),work=document.getElementById('supplierWorkspacePanel');
+    if(app)app.style.display='none';if(work)work.style.display='none';
+    ['supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+    const menu=document.getElementById('supplierCentreMenu');
+    if(menu)menu.querySelectorAll('button[data-supplier-page]').forEach(b=>{b.classList.remove('primary');b.setAttribute('aria-current','false');});
+  }
 }
 function supplierShowMainPage(page){
   const directory=document.getElementById('supplierDirectoryArea');
