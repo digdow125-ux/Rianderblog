@@ -2602,12 +2602,22 @@ async function startPayChanguCheckout() {
     } catch (error) {
         console.error("PayChangu checkout error:", error);
 
-        message.textContent =
-            "Checkout could not start: " +
-            (error.message || "Please try again.");
+        let friendlyMessage = error?.message || "Please try again.";
+        // Supabase FunctionsHttpError stores the server response in error.context.
+        // Read its JSON body so customers see the real reason (for example, stock is 0).
+        try {
+            const response = error?.context;
+            if (response && typeof response.json === "function") {
+                const payload = await response.clone().json();
+                if (payload?.error) friendlyMessage = payload.error;
+            }
+        } catch (readError) {
+            console.warn("Could not read checkout error details:", readError);
+        }
 
+        message.textContent = "Checkout could not start: " + friendlyMessage;
         button.disabled = false;
-        button.textContent = "💳 Pay with PayChangu";
+        button.innerHTML = "<span>Continue to secure payment</span><strong>→</strong>";
     }
 }
 async function signUp() {
