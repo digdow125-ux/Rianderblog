@@ -915,10 +915,15 @@ main{max-width:1220px}
   </section>
 
   <section id="suppliers" class="panel secondary-page">
-    <div id="supplierDirectoryArea">
-    <h2>🏭 Discover Suppliers</h2><p>Find businesses and manufacturers offering products to customers worldwide.</p>
-    <input id="supplierSearch" class="search" placeholder="Search suppliers by company, country or products…" oninput="renderSuppliers()">
-    <div id="supplierList"><p class="small-note">Supplier directory will display approved supplier profiles here.</p></div>
+    <div id="supplierDirectoryArea" class="supplier-directory">
+      <div class="supplier-directory-heading">
+        <div><span class="supplier-kicker">RIANDERBLOG BUSINESS NETWORK</span><h2>Discover Suppliers</h2><p>Find approved businesses, explore their products and contact suppliers directly.</p></div>
+        <span class="supplier-directory-mark">RB</span>
+      </div>
+      <input id="supplierSearch" class="search" placeholder="Search supplier, country, product or category…" oninput="renderSuppliers()">
+      <div id="supplierCategoryFilters" class="supplier-category-filters"></div>
+      <div id="supplierDirectorySummary" class="supplier-directory-summary">Loading approved suppliers…</div>
+      <div id="supplierList"><p class="small-note">Approved supplier profiles will appear here.</p></div>
     </div>
     <div class="supplier-main-menu" aria-label="Supplier pages">
       <button type="button" id="supplierDirectoryButton" class="primary" onclick="supplierShowMainPage('directory')">🏭 Discover Suppliers</button>
@@ -2849,13 +2854,64 @@ const paymentDescriptions={
 };
 function selectPayment(method,button){document.querySelectorAll('.method-option').forEach(b=>b.classList.remove('selected'));if(button)button.classList.add('selected');document.getElementById('paymentInfo').innerHTML='<strong>'+escapeHTML(method)+'</strong><br>'+escapeHTML(paymentDescriptions[method])+'<br><span class="pill">Setup required — not live</span>';}
 let suppliersCache=[];
+let supplierDirectoryProducts=[];
+let supplierDirectoryCategory='All';
 async function renderSuppliers(){
- const box=document.getElementById('supplierList');const q=(document.getElementById('supplierSearch').value||'').toLowerCase();
- const {data,error}=await db.from('suppliers').select('id,company_name,country,description,website').eq('status','approved').order('company_name');
- if(error){box.innerHTML='<p class="small-note">Supplier directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
- suppliersCache=data||[];const rows=suppliersCache.filter(x=>(x.company_name+' '+x.country+' '+x.description).toLowerCase().includes(q));
- box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
+ const box=document.getElementById('supplierList');
+ const search=document.getElementById('supplierSearch');
+ const summary=document.getElementById('supplierDirectorySummary');
+ const filters=document.getElementById('supplierCategoryFilters');
+ if(!box)return;
+ const q=(search?.value||'').trim().toLowerCase();
+ box.innerHTML='<p class="small-note">Loading approved suppliers and their products…</p>';
+ try{
+  const [supplierResult,productResult]=await Promise.all([
+   db.from('suppliers').select('id,business_name,company_name,country,description,website,product_categories').eq('status','approved').order('company_name'),
+   db.from('products').select('id,name,description,category,price,currency,image_url,supplier_id').eq('is_active',true).eq('review_status','approved').not('supplier_id','is',null).order('created_at',{ascending:false})
+  ]);
+  if(supplierResult.error)throw supplierResult.error;
+  if(productResult.error)throw productResult.error;
+  suppliersCache=supplierResult.data||[];
+  supplierDirectoryProducts=productResult.data||[];
+  const categories=['All',...new Set(supplierDirectoryProducts.map(p=>p.category).filter(Boolean))].sort((a,b)=>a==='All'?-1:b==='All'?1:a.localeCompare(b));
+  if(filters)filters.innerHTML=categories.map(c=>'<button type="button" class="'+(c===supplierDirectoryCategory?'active':'')+'" onclick="setSupplierDirectoryCategory('+JSON.stringify(c).replace(/</g,'\\u003c')+')">'+escapeHTML(c)+'</button>').join('');
+  const visible=suppliersCache.filter(s=>{
+   const prods=supplierDirectoryProducts.filter(p=>p.supplier_id===s.id);
+   const text=[s.business_name,s.company_name,s.country,s.description,(s.product_categories||[]).join(' '),...prods.flatMap(p=>[p.name,p.category,p.description])].join(' ').toLowerCase();
+   return text.includes(q)&&(supplierDirectoryCategory==='All'||prods.some(p=>p.category===supplierDirectoryCategory));
+  });
+  if(summary)summary.textContent=visible.length+' approved supplier'+(visible.length===1?'':'s')+' · '+supplierDirectoryProducts.length+' approved product'+(supplierDirectoryProducts.length===1?'':'s');
+  if(!visible.length){
+   box.innerHTML='<div class="supplier-empty"><strong>No approved suppliers found</strong><p>'+(suppliersCache.length?'Try another search or category.':'New supplier profiles will appear here after RIANDERBLOG approves their applications.')+'</p></div>';
+   return;
+  }
+  box.innerHTML=visible.map(s=>{
+   const name=s.business_name||s.company_name||'Supplier';
+   const products=supplierDirectoryProducts.filter(p=>p.supplier_id===s.id);
+   const initials=name.split(/\\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
+   const productMarkup=products.length?products.map(p=>{
+    const image=safeUrl(p.image_url);
+    return '<article class="supplier-product-card">'+(image?'<img src="'+escapeHTML(image)+'" alt="'+escapeHTML(p.name)+'" loading="lazy">':'<div class="supplier-product-placeholder">RB</div>')+'<div class="supplier-product-info"><strong>'+escapeHTML(p.name)+'</strong><span class="supplier-product-category">'+escapeHTML(p.category||'General')+'</span><b>'+escapeHTML(p.currency||'')+' '+Number(p.price||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</b><button type="button" class="supplier-chat-button" onclick="startSupplierDirectoryChat('+Number(p.id)+')">Chat about this product</button></div></article>';
+   }).join(''):'<p class="small-note supplier-no-products">This supplier has no approved products listed yet.</p>';
+   const website=safeUrl(s.website);
+   return '<article class="supplier-directory-card"><div class="supplier-card-top"><div class="supplier-avatar">'+escapeHTML(initials||'RB')+'</div><div class="supplier-card-identity"><h3>'+escapeHTML(name)+'</h3><span class="supplier-location">'+escapeHTML(s.country||'International supplier')+'</span><span class="supplier-approved">✓ Approved supplier</span></div><span class="supplier-product-count">'+products.length+' product'+(products.length===1?'':'s')+'</span></div><p class="supplier-card-description">'+escapeHTML(s.description||'Approved RIANDERBLOG supplier.')+'</p><div class="supplier-card-actions"><button type="button" class="primary" onclick="toggleSupplierProfile(\''+s.id+'\')">View profile & products</button>'+(website?'<a href="'+escapeHTML(website)+'" target="_blank" rel="noopener noreferrer">Website</a>':'')+'</div><div class="supplier-profile-products" id="supplierProfile_'+s.id+'" style="display:none"><h4>Approved products</h4><div class="supplier-product-grid">'+productMarkup+'</div></div></article>';
+  }).join('');
+ }catch(e){
+  if(summary)summary.textContent='Supplier directory could not be loaded.';
+  box.innerHTML='<p class="small-note">Could not load suppliers: '+escapeHTML(e.message||String(e))+'</p>';
+ }
 }
+function setSupplierDirectoryCategory(category){supplierDirectoryCategory=category;renderSuppliers();}
+function toggleSupplierProfile(id){const panel=document.getElementById('supplierProfile_'+id);if(!panel)return;panel.style.display=panel.style.display==='none'?'block':'none';}
+async function startSupplierDirectoryChat(productId){
+ const product=supplierDirectoryProducts.find(p=>Number(p.id)===Number(productId));
+ if(!product){alert('This product is no longer available. Please refresh the supplier directory.');return;}
+ const existingIndex=allProducts.findIndex(p=>String(p.id)===String(product.id));
+ if(existingIndex>=0)allProducts[existingIndex]={...allProducts[existingIndex],...product};
+ else allProducts.push(product);
+ await startSupplierConversation(product.id);
+}
+
 function supplierShowMainPage(page){
   const directory=document.getElementById('supplierDirectoryArea');
   const centre=document.getElementById('supplierCentrePage');
@@ -3819,3 +3875,42 @@ loadProgrammes();
 #suppliers .supplier-centre-menu,#suppliers .supplier-workspace-menu{position:static!important;float:none!important;transform:none!important;width:100%;max-width:none;}
 #suppliers #supplierApplicationPage,#suppliers #supplierWorkspacePanel{position:static!important;float:none!important;width:100%;}
 </style>
+
+/* Discover Suppliers directory */
+#suppliers .supplier-directory{width:100%;}
+.supplier-directory-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px;background:linear-gradient(115deg,#173b63,#245b86);border-radius:13px;color:#fff;margin-bottom:18px}
+.supplier-directory-heading h2{color:#fff;margin:7px 0;font-size:27px}
+.supplier-directory-heading p{color:#e0eaf4;margin:0;line-height:1.5;font-size:13px}
+.supplier-kicker{font-size:10px;letter-spacing:1.6px;font-weight:800;color:#ffd2a8}
+.supplier-directory-mark{display:grid;place-items:center;flex:none;width:62px;height:62px;border:2px solid #f36b25;border-radius:15px;color:#fff;font-weight:900;font-size:20px}
+.supplier-category-filters{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.supplier-category-filters button{background:#fff;border:1px solid #dce3ec;color:#34465e;border-radius:20px;padding:9px 14px;font-size:12px}
+.supplier-category-filters button.active{background:#173b63;color:#fff;border-color:#173b63}
+.supplier-directory-summary{font-size:12px;color:#718096;margin:12px 0}
+.supplier-directory-card{background:#fff;border:1px solid #e1e7ef;border-radius:13px;padding:17px;margin:12px 0;box-shadow:0 4px 15px rgba(23,59,99,.05)}
+.supplier-card-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.supplier-avatar{width:53px;height:53px;border-radius:12px;background:#173b63;color:#ffd08a;display:grid;place-items:center;font-weight:900;font-size:17px;flex:none}
+.supplier-card-identity{flex:1;min-width:130px;display:flex;flex-direction:column;gap:4px}
+.supplier-card-identity h3{margin:0;color:#173b63;font-size:17px}
+.supplier-location{font-size:12px;color:#687589}
+.supplier-approved{font-size:11px;color:#28734a;font-weight:700}
+.supplier-product-count{font-size:11px;color:#53647a;background:#f1f4f8;padding:7px 9px;border-radius:20px}
+.supplier-card-description{font-size:13px;line-height:1.55;color:#586579;margin:13px 0}
+.supplier-card-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.supplier-card-actions button,.supplier-card-actions a{font-size:12px;padding:11px 14px;border-radius:7px;text-decoration:none;font-weight:700}
+.supplier-card-actions a{background:#f1f4f8;color:#29425f}
+.supplier-profile-products{border-top:1px solid #e8edf3;margin-top:15px;padding-top:14px}
+.supplier-profile-products h4{margin:0 0 12px;color:#173b63}
+.supplier-product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px}
+.supplier-product-card{border:1px solid #e5eaf0;border-radius:10px;overflow:hidden;background:#fff;min-width:0}
+.supplier-product-card>img,.supplier-product-placeholder{width:100%;height:135px;object-fit:contain;background:#f7f9fb}
+.supplier-product-placeholder{display:grid;place-items:center;color:#b1bdcc;font-weight:900;font-size:22px}
+.supplier-product-info{display:flex;flex-direction:column;gap:7px;padding:11px}
+.supplier-product-info strong{font-size:13px;color:#243b58;line-height:1.35}
+.supplier-product-category{font-size:11px;color:#718096}
+.supplier-product-info b{font-size:14px;color:#173b63}
+.supplier-chat-button{background:#f36b25;color:#fff;padding:10px;font-size:11px}
+.supplier-no-products{padding:10px;background:#f7f9fb;border-radius:8px}
+.supplier-empty{padding:28px 16px;text-align:center;border:1px dashed #cbd5e1;border-radius:12px;background:#fafbfd;color:#42536a}
+.supplier-empty p{font-size:13px;color:#718096}
+@media(max-width:560px){.supplier-directory-heading{padding:17px}.supplier-directory-heading h2{font-size:23px}.supplier-directory-mark{width:48px;height:48px}.supplier-product-grid{grid-template-columns:1fr 1fr}.supplier-product-card>img,.supplier-product-placeholder{height:105px}}
