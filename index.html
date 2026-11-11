@@ -723,6 +723,25 @@ main{max-width:1220px}
 /* Simple supplier submission and admin confirmation workflow */
 .supplier-fulfilment-panel{border:1px solid #dce5ef!important;background:#fff!important}
 .fulfilment-table{width:100%;min-width:700px;border-collapse:separate;border-spacing:0}.fulfilment-table th{padding:12px;background:#172e4d;color:#fff;text-align:left;font-size:11px;white-space:nowrap}.fulfilment-table td{padding:12px;border-bottom:1px solid #edf0f4;font-size:12px;vertical-align:middle}.fulfilment-table td strong,.fulfilment-table td small{display:block}.fulfilment-table td small{margin-top:5px;color:#7b899a;line-height:1.4}.fulfilment-form{margin-top:15px;padding:17px;border:1px solid #dce5ef;border-left:4px solid #d6ad55;border-radius:11px;background:#fbfcfe}.fulfilment-form h4{margin:0 0 6px;color:#173452}.fulfilment-form label{display:block;margin:12px 0 5px;font-size:12px;font-weight:700}.fulfilment-form input,.fulfilment-form textarea{box-sizing:border-box;width:100%;padding:11px;border:1px solid #dce3ec;border-radius:8px;background:#fff;font:inherit;font-size:13px}.fulfilment-form-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:13px}.fulfilment-empty{padding:16px;border:1px dashed #dce4ed;border-radius:10px;background:#fbfcfe}.fulfilment-empty p{margin:5px 0;color:#7b899a}
+
+/* Supplier control centre: consistent sections and data tables */
+#adminPanel #adminTab-suppliers .supplier-management-section{padding:0;margin:18px 0 22px;border:1px solid #dfe6ef;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(16,33,62,.045);overflow:hidden}
+#adminPanel #adminTab-suppliers .supplier-section-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:19px 21px;background:linear-gradient(110deg,#f7f9fc,#eef3f8);border-bottom:1px solid #e3e9f0}
+#adminPanel #adminTab-suppliers .supplier-section-heading>div>span{font-size:10px;font-weight:800;letter-spacing:1.35px;color:#a27b35}
+#adminPanel #adminTab-suppliers .supplier-section-heading h3{margin:5px 0;color:#173452;font-size:17px}
+#adminPanel #adminTab-suppliers .supplier-section-heading p{margin:0;color:#718096;font-size:12px;line-height:1.5}
+#adminPanel #adminTab-suppliers .supplier-section-heading button{flex:none}
+#adminPanel #adminTab-suppliers .admin-table-wrap{margin:0;padding:0 15px 15px}
+#adminPanel #adminTab-suppliers .admin-table-wrap table{min-width:760px;width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+#adminPanel #adminTab-suppliers .admin-table-wrap th{position:sticky;top:0;background:#173452;color:#fff;font-size:10px;text-transform:uppercase;letter-spacing:.55px;white-space:nowrap;padding:13px 12px}
+#adminPanel #adminTab-suppliers .admin-table-wrap td{padding:13px 12px;vertical-align:middle;color:#40536a;border-bottom:1px solid #edf1f5;line-height:1.45}
+#adminPanel #adminTab-suppliers .admin-table-wrap td strong{color:#203b59}
+#adminPanel #adminTab-suppliers .admin-table-wrap td small{display:block;color:#8290a0;font-size:10px;margin-top:3px;max-width:260px;overflow-wrap:anywhere}
+#adminPanel #adminTab-suppliers .admin-table-wrap tbody tr:nth-child(even){background:#fafbfd}
+#adminPanel #adminTab-suppliers .admin-table-wrap tbody tr:hover{background:#f2f6fa}
+#adminPanel #adminTab-suppliers .admin-table-wrap td button{white-space:nowrap;margin:2px;padding:7px 10px;font-size:11px}
+#adminPanel #adminTab-suppliers .supplier-control-summary{margin:16px 0 20px}
+@media(max-width:600px){#adminPanel #adminTab-suppliers .supplier-section-heading{align-items:flex-start;padding:15px;flex-direction:column}#adminPanel #adminTab-suppliers .admin-table-wrap{padding:0 9px 10px}}
 </style>
 </head>
 <body>
@@ -1252,17 +1271,17 @@ main{max-width:1220px}
 
 <div id="adminTab-suppliers" class="admin-tab" style="display:none">
   <div class="admin-overview-intro"><div><span class="admin-kicker">SUPPLIER CONTROL CENTRE</span><h2>Supplier management</h2><p>All supplier records and operations are organised here, from onboarding to product approval, delivery and payouts.</p></div></div>
-  <div class="admin-quick-grid">
-    <div class="admin-quick-card"><span>01</span><strong>Applications</strong><small>Review business details and approve supplier accounts.</small></div>
-    <div class="admin-quick-card"><span>02</span><strong>Product reviews</strong><small>Approve or reject supplier product listings.</small></div>
-    <div class="admin-quick-card"><span>03</span><strong>Fulfilment</strong><small>Verify shipment and delivery submissions.</small></div>
-    <div class="admin-quick-card"><span>04</span><strong>Withdrawals</strong><small>Review and process supplier payouts.</small></div>
+  <div class="admin-quick-grid supplier-control-summary">
+    <div class="admin-quick-card"><span>01</span><strong>Supplier applications</strong><small>Business profiles, contacts and onboarding decisions.</small></div>
+    <div class="admin-quick-card"><span>02</span><strong>Product approvals</strong><small>Review supplier listings before publication.</small></div>
+    <div class="admin-quick-card"><span>03</span><strong>Order fulfilment</strong><small>Confirm shipment and delivery evidence.</small></div>
+    <div class="admin-quick-card"><span>04</span><strong>Wallet & payouts</strong><small>Review balances, transactions and withdrawals.</small></div>
   </div>
-  <section class="admin-tools"><h3>01 · Supplier applications & business profiles</h3><p class="small-note">Review supplier business name, contact person, country, email and application status.</p><button class="secondary" onclick="loadAdminSupplierApplications()">↻ Refresh supplier applications</button><div id="adminSupplierList" class="admin-table-wrap">Supplier applications will appear here.</div></section>
-  <section class="admin-tools"><h3>02 · Supplier product submissions</h3><p class="small-note">Review product details submitted by suppliers before publishing.</p><button class="secondary" onclick="loadPendingSupplierProducts()">↻ Refresh product submissions</button><div id="pendingSupplierProductList" class="admin-products-list">Pending supplier products will appear here.</div></section>
-  <section class="admin-tools"><h3>03 · Shipment & delivery approvals</h3><p class="small-note">Approve shipment first, then delivery. Customer receipt confirmation releases supplier funds.</p><button class="secondary" onclick="loadAdminFulfilmentReviews()">↻ Refresh fulfilment requests</button><div id="adminFulfilmentReviews" class="admin-table-wrap">Pending submissions will appear here.</div></section>
-  <section class="admin-tools"><h3>05 · Supplier wallet & transaction history</h3><p class="small-note">Review supplier wallet balances and the earning, debit and payout ledger entries.</p><button class="secondary" onclick="loadAdminSupplierLedger()">↻ Refresh supplier ledger</button><div id="adminSupplierLedger" class="admin-table-wrap">Supplier wallet transactions will appear here.</div></section>
-  <section class="admin-tools"><h3>04 · Supplier withdrawals & payouts</h3><p class="small-note">Send the payout to the supplier's selected mobile-money or bank account first. Then mark it paid and enter the provider transaction reference.</p><button class="secondary" onclick="loadAdminWithdrawals()">↻ Refresh withdrawal requests</button><p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p><div id="adminWithdrawalsTable" class="admin-table-wrap">Withdrawal requests will appear here.</div></section>
+  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>01 / ONBOARDING</span><h3>Supplier applications & business profiles</h3><p>Review submitted business details and approve or reject applications.</p></div><button class="secondary" onclick="loadAdminSupplierApplications()">↻ Refresh</button></div><div id="adminSupplierList" class="admin-table-wrap">Supplier applications will appear here.</div></section>
+  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>02 / CATALOGUE REVIEW</span><h3>Supplier product submissions</h3><p>Check product information and supplier links before publishing.</p></div><button class="secondary" onclick="loadPendingSupplierProducts()">↻ Refresh</button></div><div id="pendingSupplierProductList" class="admin-table-wrap">Supplier products will appear here.</div></section>
+  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>03 / ORDER OPERATIONS</span><h3>Shipment & delivery approvals</h3><p>Review supplier evidence and confirm each fulfilment step.</p></div><button class="secondary" onclick="loadAdminFulfilmentReviews()">↻ Refresh</button></div><div id="adminFulfilmentReviews" class="admin-table-wrap">Pending submissions will appear here.</div></section>
+  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>04 / FINANCE</span><h3>Supplier withdrawals & payouts</h3><p>Verify payout destination, make the transfer, then record the provider reference.</p></div><button class="secondary" onclick="loadAdminWithdrawals()">↻ Refresh</button></div><p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p><div id="adminWithdrawalsTable" class="admin-table-wrap">Withdrawal requests will appear here.</div></section>
+  <section class="admin-tools supplier-management-section"><div class="supplier-section-heading"><div><span>05 / ACCOUNTING</span><h3>Supplier wallet & transaction history</h3><p>Review supplier earnings, debits, available balances and payout records.</p></div><button class="secondary" onclick="loadAdminSupplierLedger()">↻ Refresh</button></div><div id="adminSupplierLedger" class="admin-table-wrap">Supplier wallet transactions will appear here.</div></section>
 </div>
 
 <div id="adminTab-support" class="admin-tab" style="display:none">
@@ -1419,8 +1438,13 @@ async function loadAdminSupplierLedger(){
 }
 
 async function loadAdminSupplierApplications(){
- const box=document.getElementById('adminSupplierList');if(!box)return;
- await adminLoadTable('supplier_applications','id,business_name,contact_name,country,email,status,created_at','adminSupplierList','supplier_application');
+ const box=document.getElementById('adminSupplierList');if(!box)return;box.textContent='Loading supplier applications...';
+ try{
+  await adminGuard();
+  const {data,error}=await db.from('supplier_applications').select('id,business_name,contact_name,country,email,status,created_at').order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;if(!data?.length){box.textContent='No supplier applications found.';return;}
+  box.innerHTML='<table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Business</th><th>Contact person</th><th>Country</th><th>Email</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody>'+data.map(x=>'<tr><td><strong>'+escapeHTML(x.business_name||'—')+'</strong></td><td>'+escapeHTML(x.contact_name||'—')+'</td><td>'+escapeHTML(x.country||'—')+'</td><td>'+escapeHTML(x.email||'—')+'</td><td>'+escapeHTML(x.created_at?new Date(x.created_at).toLocaleDateString():'—')+'</td><td><span class="admin-order-pill">'+escapeHTML(x.status||'pending')+'</span></td><td>'+(x.status==='pending'?'<button class="primary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'approved\')">Approve</button> <button class="secondary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'rejected\')">Reject</button>':'—')+'</td></tr>').join('')+'</tbody></table>';
+ }catch(e){box.textContent='Could not load supplier applications: '+e.message;}
 }
 
 // ADMIN PANEL TABS
@@ -2057,46 +2081,13 @@ async function loadAdminDashboard() {
       }
 function renderAdminProducts(){const box=document.getElementById('adminProductList');if(!box)return;box.innerHTML=allProducts.length?allProducts.map(p=>`<div class="admin-row"><div><strong>${escapeHTML(p.name)}</strong><div class="small-note">${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)} · ${p.is_active?'Active':'Hidden'}</div></div><div class="admin-actions"><button class="secondary" onclick="editAdminProduct('${escapeHTML(p.id)}')">Edit</button><button class="remove" onclick="deleteAdminProduct('${escapeHTML(p.id)}')">Delete</button></div></div>`).join(''):'No products available.';}
 async function loadPendingSupplierProducts(){
-  const box=document.getElementById('pendingSupplierProductList');
-  if(!box)return;
-
-  box.textContent='Loading supplier submissions...';
-
-  try{
-    await adminGuard();
-
-    const {data,error}=await db.from('products')
-      .select('id,name,description,price,currency,category,image_url,affiliate_url,created_at,supplier_id,review_status,is_active')
-      .not('supplier_id','is',null)
-      .eq('review_status','pending')
-      .order('created_at',{ascending:false});
-
-    if(error)throw error;
-
-    if(!data?.length){
-      box.textContent='No supplier products are waiting for approval.';
-      return;
-    }
-
-    box.innerHTML=data.map(p=>`
-      <div class="admin-row">
-        <div style="min-width:220px;flex:1">
-          ${safeUrl(p.image_url)?`<img src="${safeUrl(p.image_url)}" alt="${escapeHTML(p.name)}" style="width:90px;height:90px;object-fit:contain">`:''}
-          <strong>${escapeHTML(p.name)}</strong>
-          <div class="small-note">${escapeHTML(p.currency||'USD')} ${Number(p.price||0).toFixed(2)} · ${escapeHTML(p.category||'Other')}</div>
-          <div class="small-note">${escapeHTML(p.description||'No description supplied')}</div>
-          ${safeUrl(p.affiliate_url)?`<a href="${safeUrl(p.affiliate_url)}" target="_blank" rel="noopener">View supplier link</a>`:''}
-        </div>
-        <div class="admin-actions">
-          <button class="primary" type="button" onclick="adminReviewSupplierProduct('${p.id}','approved')">Approve</button>
-          <button class="remove" type="button" onclick="adminReviewSupplierProduct('${p.id}','rejected')">Reject</button>
-        </div>
-      </div>
-    `).join('');
-
-  }catch(e){
-    box.textContent='Could not load pending products: '+e.message;
-  }
+ const box=document.getElementById('pendingSupplierProductList');if(!box)return;box.textContent='Loading supplier product submissions...';
+ try{
+  await adminGuard();
+  const {data,error}=await db.from('products').select('id,name,description,price,currency,category,image_url,affiliate_url,created_at,supplier_id,review_status,is_active').not('supplier_id','is',null).eq('review_status','pending').order('created_at',{ascending:false});
+  if(error)throw error;if(!data?.length){box.textContent='No supplier products are waiting for approval.';return;}
+  box.innerHTML='<table class="admin-orders-table" style="min-width:850px"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Supplier link</th><th>Submitted</th><th>Review</th></tr></thead><tbody>'+data.map(p=>'<tr><td><div style="display:flex;align-items:center;gap:10px;min-width:180px">'+(safeUrl(p.image_url)?'<img src="'+escapeHTML(safeUrl(p.image_url))+'" alt="" style="width:52px;height:52px;object-fit:contain;border-radius:8px;background:#f5f7fa">':'')+'<div><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML((p.description||'').slice(0,100))+'</small></div></div></td><td>'+escapeHTML(p.category||'Other')+'</td><td>'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+'</td><td>'+(safeUrl(p.affiliate_url)?'<a href="'+escapeHTML(safeUrl(p.affiliate_url))+'" target="_blank" rel="noopener">Open link</a>':'Not provided')+'</td><td>'+escapeHTML(p.created_at?new Date(p.created_at).toLocaleDateString():'—')+'</td><td><button class="primary" onclick="adminReviewSupplierProduct(\''+p.id+'\',\'approved\')">Approve</button> <button class="secondary" onclick="adminReviewSupplierProduct(\''+p.id+'\',\'rejected\')">Reject</button></td></tr>').join('')+'</tbody></table>';
+ }catch(e){box.textContent='Could not load pending products: '+e.message;}
 }
 
 async function adminReviewSupplierProduct(id,status){
