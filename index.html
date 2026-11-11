@@ -772,6 +772,15 @@ main{max-width:1220px}
 .supplier-centre-menu button,.supplier-workspace-menu button{position:static!important;float:none!important;transform:none!important;width:100%;display:block;text-align:left;padding:13px 15px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;color:#263c58;font-size:13px;font-weight:650;box-shadow:none}
 .supplier-centre-menu button.primary,.supplier-workspace-menu button.primary{background:#173b63;border-color:#173b63;color:#fff}
 .supplier-centre-menu button:hover,.supplier-workspace-menu button:hover{background:#edf2f8;color:#173b63}
+
+/* Professional, in-flow supplier navigation and page switching */
+#suppliers .supplier-main-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;max-width:620px;margin:18px 0;padding:14px;background:#f5f7fa;border:1px solid #e2e8ef;border-radius:13px}
+#suppliers .supplier-main-menu button{min-height:50px;text-align:left;padding:14px 16px;border-radius:9px}
+#suppliers #supplierCentrePage{width:100%;}
+#suppliers .supplier-centre-intro{padding:15px 17px;background:#f5f7fa;border:1px solid #e3e8ef;border-radius:10px;margin:12px 0}
+#suppliers .supplier-centre-menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;width:100%;margin:14px 0 20px;padding:14px;position:static!important}
+#suppliers .supplier-centre-menu button{min-height:48px;white-space:normal;line-height:1.35}
+@media(max-width:560px){#suppliers .supplier-main-menu{grid-template-columns:1fr}#suppliers .supplier-centre-menu{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -2845,6 +2854,40 @@ async function renderSuppliers(){
  if(error){box.innerHTML='<p class="small-note">Supplier directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
  suppliersCache=data||[];const rows=suppliersCache.filter(x=>(x.company_name+' '+x.country+' '+x.description).toLowerCase().includes(q));
  box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
+}
+function supplierShowMainPage(page){
+  const directory=document.getElementById('supplierDirectoryArea');
+  const centre=document.getElementById('supplierCentrePage');
+  const directoryButton=document.getElementById('supplierDirectoryButton');
+  const centreButton=document.getElementById('supplierCentreButton');
+  const isCentre=page==='centre';
+  if(directory)directory.style.display=isCentre?'none':'block';
+  if(centre)centre.style.display=isCentre?'block':'none';
+  if(directoryButton){
+    directoryButton.classList.toggle('primary',!isCentre);
+    directoryButton.classList.toggle('secondary',isCentre);
+    directoryButton.setAttribute('aria-current',!isCentre?'page':'false');
+  }
+  if(centreButton){
+    centreButton.classList.toggle('primary',isCentre);
+    centreButton.classList.toggle('secondary',!isCentre);
+    centreButton.setAttribute('aria-current',isCentre?'page':'false');
+  }
+  if(isCentre){
+    const application=document.getElementById('supplierApplicationPage');
+    const workspace=document.getElementById('supplierWorkspacePanel');
+    if(application)application.style.display='block';
+    if(workspace)workspace.style.display='block';
+    ['supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{
+      const section=document.getElementById(id);
+      if(section)section.style.display='block';
+    });
+    const menu=document.getElementById('supplierCentreMenu');
+    if(menu)menu.querySelectorAll('button[data-supplier-page]').forEach(button=>{
+      button.classList.remove('primary');
+      button.setAttribute('aria-current','false');
+    });
+  }
 }
 function supplierNavigateTo(elementId){
   const groups={
