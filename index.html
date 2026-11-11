@@ -766,6 +766,8 @@ main{max-width:1220px}
 .supplier-centre-submenu button:hover{background:#f1f5f9;color:#173b63}
 .supplier-main-menu{display:flex;flex-direction:column;align-items:stretch;gap:7px;width:min(100%,360px);margin:16px 0}
 .supplier-main-menu button{width:100%;text-align:left;padding:12px 14px;border-radius:9px;font-weight:700}
+.has-unread-notification{background:#8b572b!important;border-color:#8b572b!important;color:#fff!important;box-shadow:0 0 0 2px rgba(139,87,43,.16);font-weight:800!important}
+.has-unread-notification:hover,.has-unread-notification:focus{background:#70421f!important;color:#fff!important}
 </style>
 </head>
 <body>
@@ -913,8 +915,8 @@ main{max-width:1220px}
     <details class="supplier-centre-menu" id="supplierCentreMenu">
       <summary>Supplier Centre menu <span aria-hidden="true">▾</span></summary>
       <div class="supplier-centre-submenu">
-        <button type="button" onclick="supplierShowTab('application')">Supplier application</button>
-        <button type="button" onclick="supplierShowTab('workspace')">Products, orders & wallet</button>
+        <button type="button" data-notify-target="suppliers" onclick="supplierShowTab('application')">Supplier application</button>
+        <button type="button" data-notify-target="suppliers" onclick="supplierShowTab('workspace')">Products, orders & wallet</button>
       </div>
     </details>
     <div class="listing" id="supplierApplicationPage" style="margin-top:22px">
@@ -1174,22 +1176,22 @@ main{max-width:1220px}
 
   <div class="admin-navigation">
     <button onclick="adminShowTab('overview')">Overview</button>
-    <button onclick="adminShowTab('orders')">Orders</button>
+    <button data-notify-target="adminOrders" onclick="adminShowTab('orders')">Orders</button>
     <details class="admin-nav-dropdown" id="adminSuppliersDropdown">
-      <summary onclick="adminShowTab('suppliers')">Suppliers <span aria-hidden="true">▾</span></summary>
+      <summary data-notify-target="adminSuppliers" onclick="adminShowTab('suppliers')">Suppliers <span aria-hidden="true">▾</span></summary>
       <div class="admin-nav-submenu">
-        <button onclick="adminOpenSupplierSection('supplierApplicationsSection')">Applications & profiles</button>
-        <button onclick="adminOpenSupplierSection('supplierProductsSection')">Product submissions</button>
-        <button onclick="adminOpenSupplierSection('supplierFulfilmentSection')">Shipment & delivery</button>
-        <button onclick="adminOpenSupplierSection('supplierWithdrawalsSection')">Withdrawals & payouts</button>
-        <button onclick="adminOpenSupplierSection('supplierLedgerSection')">Wallet & transactions</button>
+        <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierApplicationsSection')">Applications & profiles</button>
+        <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierProductsSection')">Product submissions</button>
+        <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierFulfilmentSection')">Shipment & delivery</button>
+        <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierWithdrawalsSection')">Withdrawals & payouts</button>
+        <button data-notify-target="adminSuppliers" onclick="adminOpenSupplierSection('supplierLedgerSection')">Wallet & transactions</button>
       </div>
     </details>
     <button onclick="adminShowTab('products')">Products</button>
     <button onclick="adminShowTab('wallet')">Wallet</button>
-    <button onclick="adminShowTab('support')">Customer support</button>
+    <button data-notify-target="adminSupport" onclick="adminShowTab('support')">Customer support</button>
     <button onclick="adminShowTab('ai')">AI assistant</button>
-    <button onclick="adminShowTab('applications')">Applications</button>
+    <button data-notify-target="adminApplications" onclick="adminShowTab('applications')">Applications</button>
   </div>
 
    <div id="adminTab-overview" class="admin-tab">
@@ -2751,7 +2753,14 @@ async function loadNotifications(){
   const {data,error}=await db.from('notifications').select('id,title,body,notification_type,target_section,is_read,created_at,related_order_id').order('created_at',{ascending:false}).limit(30);
   if(error){list.innerHTML='<p class="notification-empty">Could not load notifications. Please refresh.</p>';console.error('Notification load:',error);return;}
   const rows=data||[];
-  const unread=rows.filter(n=>!n.is_read).length;
+  const unreadRows=rows.filter(n=>!n.is_read);
+  const unread=unreadRows.length;
+  document.querySelectorAll('[data-notify-target]').forEach(option=>{
+    const target=option.getAttribute('data-notify-target');
+    const pending=unreadRows.some(n=>(n.target_section||'dashboard')===target);
+    option.classList.toggle('has-unread-notification',pending);
+    option.setAttribute('aria-label',option.textContent.trim()+(pending?' — unread notification':''));
+  });
   if(count){count.textContent=unread>99?'99+':String(unread);count.style.display=unread?'block':'none';}
   if(!rows.length){list.innerHTML='<p class="notification-empty">You are all caught up. New updates will appear here.</p>';return;}
   list.innerHTML=rows.map(n=>{
