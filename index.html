@@ -1868,7 +1868,6 @@ function openDetails(id) {
   if (!p) return;
 
   const image = safeUrl(p.image_url);
-  const supplier = safeUrl(p.affiliate_url);
 
   document.getElementById("detailContent").innerHTML = `
     <div class="detail-content">
@@ -1921,7 +1920,6 @@ function addToCart(id) {
       price:Number(p.price || 0),
       currency:p.currency || "USD",
       image_url:p.image_url || "",
-      affiliate_url:p.affiliate_url || "",
       quantity:1
     });
   }
@@ -1975,7 +1973,6 @@ function updateCart() {
       <strong>${item.quantity}</strong>
       <button onclick="changeQuantity('${escapeHTML(item.id)}',1)">+</button>
       <button class="remove" onclick="removeFromCart('${escapeHTML(item.id)}')">Remove</button>
-      ${safeUrl(item.affiliate_url) ? `<a class="buy" href="${safeUrl(item.affiliate_url)}" target="_blank" rel="noopener noreferrer">Buy this item</a>` : ""}
     </div>
   `).join("");
 
@@ -1989,7 +1986,7 @@ function updateCart() {
     Object.entries(totals).map(([c,v]) => c + " " + v.toFixed(2)).join(" + ");
 
   note.textContent =
-    "You can visit the supplier directly or use PayChangu checkout where enabled.";
+    "Complete your order and payment securely on RIANDERBLOG. Use Messages to contact the supplier without leaving the website.";
 }
 async function startPayChanguCheckout() {
     const button = document.getElementById("payChanguButton");
