@@ -913,6 +913,12 @@ main{max-width:1220px}
   .product { padding: 7px; }
 }
 
+
+/* Install RIANDERBLOG app */
+.install-app-btn{background:#173b63;color:#fff;border:1px solid #f36b25;border-radius:8px;padding:10px 12px;font-size:13px;font-weight:800;white-space:nowrap}
+.install-app-btn:hover{background:#245b86}
+@media(max-width:520px){.header-actions{flex-wrap:wrap;justify-content:flex-end}.install-app-btn{font-size:11px;padding:9px 10px}}
+
 </style>
 </head>
 <body>
@@ -923,6 +929,7 @@ main{max-width:1220px}
     <div><div class="brand-name">RIANDER<span>BLOG</span></div><div class="brand-tag">Global marketplace</div></div>
   </a>
   <div class="header-actions">
+    <button class="install-app-btn" id="installAppButton" type="button" onclick="installRianderblogApp()">⬇ Install App</button>
     <button class="notification-bell" id="notificationBell" type="button" onclick="toggleNotifications()" aria-label="Notifications" aria-expanded="false">🔔<span id="notificationCount" class="notification-count" style="display:none">0</span></button>
     <button class="header-cart" type="button" onclick="showSection('cart')">🛒 Cart (<span id="headerCartCount">0</span>)</button>
     <div class="notification-panel" id="notificationPanel" style="display:none">
@@ -4169,5 +4176,51 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+
+<script>
+/* Install prompt for Android/desktop browsers that support PWA installation. */
+let rianderblogInstallPrompt = null;
+(function setupRianderblogInstall(){
+  const button = document.getElementById('installAppButton');
+  const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (isInstalled && button) button.style.display = 'none';
+
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    rianderblogInstallPrompt = event;
+    if (button) button.style.display = 'inline-block';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    rianderblogInstallPrompt = null;
+    if (button) button.style.display = 'none';
+    alert('RIANDERBLOG has been installed successfully!');
+  });
+})();
+
+async function installRianderblogApp(){
+  if (rianderblogInstallPrompt) {
+    rianderblogInstallPrompt.prompt();
+    const choice = await rianderblogInstallPrompt.userChoice;
+    rianderblogInstallPrompt = null;
+    if (choice && choice.outcome === 'accepted') {
+      const button = document.getElementById('installAppButton');
+      if (button) button.style.display = 'none';
+    }
+    return;
+  }
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (isStandalone) {
+    alert('RIANDERBLOG is already installed on this device.');
+  } else if (isIOS) {
+    alert('To install RIANDERBLOG: tap Share in Safari, then choose Add to Home Screen.');
+  } else {
+    alert('To install RIANDERBLOG, open this website in Chrome, tap the three dots (⋮), then choose Install app or Add to Home screen.');
+  }
+}
+</script>
+
 </body>
 </html>
