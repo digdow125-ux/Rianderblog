@@ -88,6 +88,12 @@ footer strong{color:var(--gold)}
 .detail-close{position:absolute;right:12px;top:12px;background:#edf0f4;color:#24334a;font-size:19px;width:38px;height:38px;border-radius:50%}
 .detail-content{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding-top:10px}
 .detail-image{width:100%;height:300px;object-fit:contain;background:#f7f8fa;border-radius:10px}
+.detail-gallery-thumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}
+.detail-gallery-thumb{width:100%;height:66px;object-fit:cover;border:2px solid #e1e6ed;border-radius:7px;background:#fff;cursor:pointer}
+.detail-gallery-thumb.active{border-color:#f36b25;box-shadow:0 0 0 2px #f36b2530}
+.supplier-gallery-preview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:8px 0}
+.supplier-gallery-preview img{width:100%;height:65px;object-fit:cover;border:1px solid #dce2eb;border-radius:7px}
+@media(max-width:650px){.detail-gallery-thumb{height:55px}.supplier-gallery-preview img{height:52px}}
 .detail-category{color:var(--gold-dark);font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1.3px}
 .detail-content h2{color:var(--navy);font-size:25px;line-height:1.3;margin:10px 0}
 .detail-description{color:#586579;line-height:1.7;white-space:pre-wrap}
@@ -1148,9 +1154,12 @@ main{max-width:1220px}
 <input id="supplierProductColours" placeholder="Available colours, separated by commas">
 <label for="supplierProductDeliveryDays">Delivery time (maximum 7 days)</label>
 <select id="supplierProductDeliveryDays"><option value="1">1 day</option><option value="2">2 days</option><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7" selected>7 days</option></select>
-<label>Product Picture</label>
-<input id="supplierProductImage" type="file" accept="image/*">
-<input id="supplierProductImageUrl" type="url" placeholder="Or paste an image URL">
+<label><strong>Product pictures (minimum 5, maximum 10)</strong></label>
+<input id="supplierProductImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple>
+<p class="small-note">Choose at least 5 clear photos showing different angles, details and packaging. Each photo must be 5 MB or smaller. On Android, select multiple pictures from Gallery.</p>
+<div id="supplierProductGalleryPreview" class="supplier-gallery-preview"></div>
+<textarea id="supplierProductImageUrl" placeholder="Optional: paste image URLs, one per line (each URL counts as one picture)"></textarea>
+<div id="supplierExistingGallery" class="small-note"></div>
     <input id="supplierProductLink" type="url" placeholder="Supplier product URL (optional)">
 
     <textarea id="supplierProductDescription"
@@ -1992,24 +2001,38 @@ async function uploadProductImage(file,userId){
   return result.data.publicUrl;
 }
 
-async function resolveProductImage(fileId,urlId,existingUrl,user){
-  const file = document.getElementById(fileId).files[0];
-  const typedUrl = document.getElementById(urlId).value.trim();
-
-  if(file){
-    return await uploadProductImage(file,user.id);
-  }
-
-  if(typedUrl){
-    const valid = safeUrl(typedUrl);
-    if(!valid) throw new Error('Enter a valid image URL.');
+async function resolveProductImages(fileId,urlId,existingImages,existingUrl,user){
+  const input=document.getElementById(fileId);
+  const files=Array.from(input.files||[]);
+  const typed=document.getElementById(urlId).value.trim();
+  const urls=typed?typed.split(/[\\n,]+/).map(x=>x.trim()).filter(Boolean):[];
+  if(files.length>10)throw new Error('Upload no more than 10 new pictures at once.');
+  if(files.some(file=>file.size>5*1024*1024))throw new Error('Each picture must be 5 MB or smaller.');
+  if(files.length+urls.length>10)throw new Error('A product can have a maximum of 10 pictures.');
+  const existing=Array.isArray(existingImages)?existingImages.filter(Boolean):[];
+  if(!existing.length&&existingUrl)existing.push(existingUrl);
+  const uploaded=[];
+  for(const file of files)uploaded.push(await uploadProductImage(file,user.id));
+  const validUrls=urls.map(url=>{
+    const valid=safeUrl(url);
+    if(!valid)throw new Error('One of the image URLs is invalid.');
     return valid;
-  }
-
-  if(existingUrl) return existingUrl;
-
-  throw new Error('Upload a picture or paste an image URL.');
+  });
+  const result=[...new Set([...existing,...uploaded,...validUrls])].slice(0,10);
+  if(result.length<5)throw new Error('Please add at least 5 product pictures. You currently have '+result.length+'.');
+  return result;
 }
+function previewSupplierProductPictures(){
+  const input=document.getElementById('supplierProductImage');
+  const box=document.getElementById('supplierProductGalleryPreview');
+  if(!input||!box)return;
+  const files=Array.from(input.files||[]).slice(0,10);
+  box.innerHTML=files.map(file=>'<img src="'+URL.createObjectURL(file)+'" alt="Selected product picture">').join('');
+  if(files.length)adminMessage('supplierProductMessage',files.length+' new picture(s) selected. You need at least 5 pictures in total.');
+}
+document.addEventListener('change',event=>{
+  if(event.target&&event.target.id==='supplierProductImage')previewSupplierProductPictures();
+});
 
 function clearAdminProductForm(){
   [
@@ -2092,6 +2115,7 @@ async function saveAdminProduct(){
       currency:document.getElementById('adminProductCurrency').value,
       category:document.getElementById('adminProductCategory').value.trim()||'Other',
       image_url:image,
+      product_image_urls:images,
       affiliate_url:link,
       description:document.getElementById('adminProductDescription').value.trim(),
       is_active:document.getElementById('adminProductActive').checked
@@ -2471,16 +2495,29 @@ function filterCategory(category,button) {
 document.getElementById("search").addEventListener("input",displayProducts);
 
 /* Open full product details */
+function getProductGallery(p){
+  const stored=Array.isArray(p.product_image_urls)?p.product_image_urls:[];
+  const candidates=[...stored,p.image_url].map(safeUrl).filter(Boolean);
+  return [...new Set(candidates)].slice(0,10);
+}
+function selectDetailImage(thumb,src){
+  const main=document.getElementById('detailMainImage');
+  if(main)main.src=src;
+  document.querySelectorAll('.detail-gallery-thumb').forEach(x=>x.classList.remove('active'));
+  if(thumb)thumb.classList.add('active');
+}
 function openDetails(id) {
   const p = allProducts.find(x => String(x.id) === String(id));
   if (!p) return;
 
-  const image = safeUrl(p.image_url);
+  const images = getProductGallery(p);
 
   document.getElementById("detailContent").innerHTML = `
     <div class="detail-content">
       <div>
-        ${image ? `<img class="detail-image" src="${image}" alt="${escapeHTML(p.name)}">` : `<div class="detail-image" style="display:grid;place-items:center;color:#8993a3">Image unavailable</div>`}
+        ${images.length ? `<img id="detailMainImage" class="detail-image" src="${escapeHTML(images[0])}" alt="${escapeHTML(p.name)}">` : `<div class="detail-image" style="display:grid;place-items:center;color:#8993a3">Image unavailable</div>`}
+        ${images.length>1 ? `<div class="detail-gallery-thumbs">${images.map((src,i)=>`<img class="detail-gallery-thumb ${i===0?'active':''}" src="${escapeHTML(src)}" alt="Product photo ${i+1}" onclick="selectDetailImage(this,'${escapeHTML(src)}')">`).join('')}</div>` : ''}
+        ${images.length ? `<p class="small-note">${images.length} product photos · Tap a photo to view</p>` : ''}
       </div>
       <div>
         <div class="detail-category">${escapeHTML(p.category || "Featured product")}</div>
@@ -3596,6 +3633,10 @@ function clearSupplierProductForm(){
 
   const file=document.getElementById('supplierProductImage');
   if(file) file.value='';
+  const preview=document.getElementById('supplierProductGalleryPreview');
+  if(preview)preview.innerHTML='';
+  const existingGallery=document.getElementById('supplierExistingGallery');
+  if(existingGallery)existingGallery.textContent='';
 
   const currency=document.getElementById('supplierProductCurrency');
   if(currency) currency.value='USD';
@@ -4057,7 +4098,10 @@ function editSupplierProduct(id){
   document.getElementById('supplierProductDeliveryDays').value=String(p.delivery_days||7);
 
   document.getElementById('supplierProductImage').value='';
-  document.getElementById('supplierProductImageUrl').value=p.image_url||'';
+  document.getElementById('supplierProductImageUrl').value='';
+  const oldGallery=getProductGallery(p);
+  document.getElementById('supplierExistingGallery').textContent='Existing pictures kept: '+oldGallery.length+'. Add more pictures below if needed.';
+  document.getElementById('supplierProductGalleryPreview').innerHTML=oldGallery.map(src=>'<img src="'+escapeHTML(src)+'" alt="Existing product picture">').join('');
 
   document.getElementById('supplierProductLink').value=p.affiliate_url||'';
   document.getElementById('supplierProductDescription').value=p.description||'';
@@ -4106,12 +4150,14 @@ async function saveSupplierProduct(){
       throw new Error('That product was not found in your supplier account.');
     }
 
-    const image=await resolveProductImage(
+    const images=await resolveProductImages(
       'supplierProductImage',
       'supplierProductImageUrl',
+      oldProduct?.product_image_urls,
       oldProduct?.image_url,
       user
     );
+    const image=images[0];
 
     const row={
       name:name,
