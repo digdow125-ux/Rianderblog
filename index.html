@@ -2611,12 +2611,11 @@ async function loadNotifications(){
     await loadNotifications();
     document.getElementById('notificationPanel').style.display='none';
     document.getElementById('notificationBell')?.setAttribute('aria-expanded','false');
-    if(['adminPanel','adminOrders','adminSuppliers','adminApplications'].includes(target)){
+    if(['adminPanel','adminOrders','adminSuppliers','adminApplications','adminSupport'].includes(target)){
       showSection('adminPanel');
       const adminTab=target==='adminOrders'?'orders':target==='adminApplications'?'applications':target==='adminSupport'?'support':target==='adminSuppliers'?'suppliers':'overview';
       if(typeof adminShowTab==='function')adminShowTab(adminTab);
       if(target==='adminSuppliers'&&typeof loadAdminFulfilmentReviews==='function')loadAdminFulfilmentReviews();
-      if(target==='adminSupport'&&typeof loadAdminSupport==='function')loadAdminSupport();
     }else{
       showSection(target);
       if(target==='orderTracking'&&typeof showCustomerOrderTracking==='function')showCustomerOrderTracking();
