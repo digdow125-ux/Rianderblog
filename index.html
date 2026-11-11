@@ -3364,6 +3364,26 @@ async function sendMarketplaceMessage(){
     return;
   }
 
+  const commonQuestion=/\b(how (do|can) i (order|buy|pay|track|create an account|sign up)|how long (is|does) delivery|delivery time|payment methods|paychangu|track my order|where is my order|wrong item|damaged item|missing item|report (a )?(wrong|damaged|missing)|what if i receive)\b/i.test(message);
+  if(commonQuestion){
+    const {data:supplier}=await db.from('suppliers').select('id').eq('user_id',user.id).in('status',['approved','active']).maybeSingle();
+    if(!supplier){
+      status.textContent='RIANDERBLOG AI is checking this common question...';
+      try{
+        const {data:answer,error:aiError}=await db.functions.invoke('ai-support',{body:{message}});
+        if(!aiError&&answer?.reply){
+          const bubble=document.createElement('div');bubble.className='chat-bubble theirs';
+          const label=document.createElement('strong');label.textContent='RIANDERBLOG AI';
+          const textNode=document.createElement('div');textNode.textContent=answer.reply;
+          const time=document.createElement('small');time.textContent=new Date().toLocaleString();
+          bubble.append(label,textNode,time);document.getElementById('messageArea').appendChild(bubble);
+          input.value='';status.textContent='Answered by RIANDERBLOG AI. Ask the supplier if you need product-specific details.';
+          return;
+        }
+      }catch(aiError){console.warn('AI FAQ unavailable; sending to supplier instead.',aiError);}
+    }
+  }
+
   const {error}=await db.from('messages').insert({
     conversation_id:activeMarketplaceConversation,
     sender_id:user.id,
