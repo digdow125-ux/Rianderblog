@@ -2760,6 +2760,15 @@ async function loadNotifications(){
     const pending=unreadRows.some(n=>(n.target_section||'dashboard')===target);
     option.classList.toggle('has-unread-notification',pending);
     option.setAttribute('aria-label',option.textContent.trim()+(pending?' — unread notification':''));
+    if(!option.dataset.notificationReadHandler){
+      option.dataset.notificationReadHandler='1';
+      option.addEventListener('click',async()=>{
+        const selectedTarget=option.getAttribute('data-notify-target');
+        if(!selectedTarget)return;
+        await db.from('notifications').update({is_read:true}).eq('recipient_user_id',user.id).eq('target_section',selectedTarget).eq('is_read',false);
+        await loadNotifications();
+      });
+    }
   });
   if(count){count.textContent=unread>99?'99+':String(unread);count.style.display=unread?'block':'none';}
   if(!rows.length){list.innerHTML='<p class="notification-empty">You are all caught up. New updates will appear here.</p>';return;}
