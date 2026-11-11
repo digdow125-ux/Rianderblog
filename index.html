@@ -1004,6 +1004,7 @@ main{max-width:1220px}
   <div class="admin-navigation">
     <button onclick="adminShowTab('overview')">Overview</button>
     <button onclick="adminShowTab('orders')">Orders</button>
+    <button onclick="adminShowTab('suppliers')">Suppliers</button>
     <button onclick="adminShowTab('products')">Products</button>
     <button onclick="adminShowTab('wallet')">Wallet</button>
     <button onclick="adminShowTab('support')">Customer support</button>
@@ -1018,7 +1019,7 @@ main{max-width:1220px}
     <div class="admin-quick-grid">
       <button class="admin-quick-card" onclick="adminShowTab('orders')"><span>📦</span><strong>Manage orders</strong><small>Review payments and customer orders</small><b>Open orders →</b></button>
       <button class="admin-quick-card" onclick="adminShowTab('products')"><span>🛍️</span><strong>Manage products</strong><small>Publish products and review submissions</small><b>Open products →</b></button>
-      <button class="admin-quick-card" onclick="adminShowTab('applications')"><span>🤝</span><strong>Suppliers & applications</strong><small>Review supplier and affiliate applications</small><b>Open applications →</b></button>
+      <button class="admin-quick-card" onclick="adminShowTab('suppliers')"><span>🏭</span><strong>Supplier management</strong><small>Applications, products, fulfilment and payouts in one place</small><b>Open suppliers →</b></button>
       <button class="admin-quick-card" onclick="adminShowTab('wallet')"><span>💳</span><strong>Marketplace wallet</strong><small>Review balances and withdrawal requests</small><b>Open wallet →</b></button>
       <button class="admin-quick-card" onclick="adminShowTab('support')"><span>💬</span><strong>Customer support</strong><small>Read and reply to customer messages</small><b>Open inbox →</b></button>
       <button class="admin-quick-card" onclick="adminShowTab('ai')"><span>✨</span><strong>Admin assistant</strong><small>Get help with marketplace operations</small><b>Open assistant →</b></button>
@@ -1040,13 +1041,7 @@ main{max-width:1220px}
         No transactions loaded.
       </div>
     </div>
-    <div class="admin-tools">
-      <h3>Supplier Withdrawal Requests</h3>
-      <p class="small-note">Send the money to the supplier's selected mobile-money or bank account first. Only then mark the request as paid and enter the provider transaction reference.</p>
-      <button class="primary" onclick="loadAdminWithdrawals()">Refresh withdrawal requests</button>
-      <p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p>
-      <div id="adminWithdrawalsTable" class="admin-table-wrap">No withdrawal requests loaded.</div>
-    </div>
+
   </div>
 
   <div id="adminTab-orders" class="admin-tab" style="display:none">
@@ -1057,7 +1052,7 @@ main{max-width:1220px}
       <div id="adminOrderList" class="admin-table-wrap">
         Orders will appear here.
       </div>
-      <div class="admin-tools"><h3>Supplier shipment & delivery approvals</h3><p class="small-note">Approve shipment first, then delivery. Customer receipt confirmation releases supplier funds.</p><button class="secondary" onclick="loadAdminFulfilmentReviews()">Refresh requests</button><div id="adminFulfilmentReviews">Pending requests will appear here.</div></div>
+
     </div>
   </div>
 
@@ -1145,13 +1140,7 @@ main{max-width:1220px}
         </ul>
         <p>Review product details before making a listing visible to customers.</p>
       </section>
-      <section class="admin-products-panel admin-products-review">
-        <div class="admin-products-section-title">
-          <div><span class="admin-products-step">02</span><div><h3>Supplier submissions</h3><p>Review products awaiting approval.</p></div></div>
-        </div>
-        <button class="secondary" type="button" onclick="loadPendingSupplierProducts()">↻ Refresh submissions</button>
-        <div id="pendingSupplierProductList" class="admin-products-list">Pending supplier products will appear here.</div>
-      </section>
+
     </aside>
   </div>
 
@@ -1162,6 +1151,20 @@ main{max-width:1220px}
     </div>
     <div id="adminProductList" class="admin-products-list">Products will appear here.</div>
   </section>
+</div>
+
+<div id="adminTab-suppliers" class="admin-tab" style="display:none">
+  <div class="admin-overview-intro"><div><span class="admin-kicker">SUPPLIER CONTROL CENTRE</span><h2>Supplier management</h2><p>All supplier records and operations are organised here, from onboarding to product approval, delivery and payouts.</p></div></div>
+  <div class="admin-quick-grid">
+    <div class="admin-quick-card"><span>01</span><strong>Applications</strong><small>Review business details and approve supplier accounts.</small></div>
+    <div class="admin-quick-card"><span>02</span><strong>Product reviews</strong><small>Approve or reject supplier product listings.</small></div>
+    <div class="admin-quick-card"><span>03</span><strong>Fulfilment</strong><small>Verify shipment and delivery submissions.</small></div>
+    <div class="admin-quick-card"><span>04</span><strong>Withdrawals</strong><small>Review and process supplier payouts.</small></div>
+  </div>
+  <section class="admin-tools"><h3>01 · Supplier applications & business profiles</h3><p class="small-note">Review supplier business name, contact person, country, email and application status.</p><button class="secondary" onclick="loadAdminSupplierApplications()">↻ Refresh supplier applications</button><div id="adminSupplierList" class="admin-table-wrap">Supplier applications will appear here.</div></section>
+  <section class="admin-tools"><h3>02 · Supplier product submissions</h3><p class="small-note">Review product details submitted by suppliers before publishing.</p><button class="secondary" onclick="loadPendingSupplierProducts()">↻ Refresh product submissions</button><div id="pendingSupplierProductList" class="admin-products-list">Pending supplier products will appear here.</div></section>
+  <section class="admin-tools"><h3>03 · Shipment & delivery approvals</h3><p class="small-note">Approve shipment first, then delivery. Customer receipt confirmation releases supplier funds.</p><button class="secondary" onclick="loadAdminFulfilmentReviews()">↻ Refresh fulfilment requests</button><div id="adminFulfilmentReviews" class="admin-table-wrap">Pending submissions will appear here.</div></section>
+  <section class="admin-tools"><h3>04 · Supplier withdrawals & payouts</h3><p class="small-note">Send the payout to the supplier's selected mobile-money or bank account first. Then mark it paid and enter the provider transaction reference.</p><button class="secondary" onclick="loadAdminWithdrawals()">↻ Refresh withdrawal requests</button><p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p><div id="adminWithdrawalsTable" class="admin-table-wrap">Withdrawal requests will appear here.</div></section>
 </div>
 
 <div id="adminTab-support" class="admin-tab" style="display:none">
@@ -1189,10 +1192,7 @@ main{max-width:1220px}
   </div>
 
   <div id="adminTab-applications" class="admin-tab" style="display:none">
-    <div class="admin-tools">
-      <h3>Supplier applications</h3>
-      <div id="adminSupplierList" class="admin-table-wrap">Not loaded yet.</div>
-    </div>
+
 
     <div class="admin-tools">
       <h3>Affiliate programmes</h3>
@@ -1297,6 +1297,11 @@ function updateAdminVisibility(user) {
     loadAdminOrdersTable();
   }
 }
+async function loadAdminSupplierApplications(){
+ const box=document.getElementById('adminSupplierList');if(!box)return;
+ await adminLoadTable('supplier_applications','id,business_name,contact_name,country,email,status,created_at','adminSupplierList','supplier_application');
+}
+
 // ADMIN PANEL TABS
 function adminShowTab(tab) {
   if (!isAdminSession(
@@ -1313,7 +1318,8 @@ function adminShowTab(tab) {
 
   if (selected) selected.style.display = "block";
 
-  if (tab === "orders") { loadAdminOrdersTable(); loadAdminFulfilmentReviews(); }
+  if (tab === "orders") loadAdminOrdersTable();
+  if (tab === "suppliers") { loadAdminSupplierApplications(); loadPendingSupplierProducts(); loadAdminFulfilmentReviews(); loadAdminWithdrawals(); }
   if (tab === "products") renderAdminProducts();
   if (tab === "wallet") {
     loadAdminWallet();
