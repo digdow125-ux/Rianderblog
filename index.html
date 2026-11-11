@@ -664,6 +664,13 @@ main{max-width:1220px}
 #adminPanel .admin-stat-grid h3{color:var(--rb-navy)}
 #adminPanel .admin-navigation{position:sticky;top:6px;z-index:20;border-color:#dfe6ef;background:rgba(255,255,255,.97);backdrop-filter:blur(8px)}
 #adminPanel .admin-navigation button{white-space:nowrap}
+#suppliers .supplier-nav-dropdown{display:flex;flex-direction:column;align-items:stretch;width:min(100%,360px);margin:12px 0 18px;position:relative}
+#suppliers .supplier-nav-dropdown>summary{list-style:none;cursor:pointer;padding:12px 15px;border:1px solid #dfe6ef;border-radius:9px;background:#f8fafc;color:#173b63;font-size:13px;font-weight:700}
+#suppliers .supplier-nav-dropdown>summary::-webkit-details-marker{display:none}
+#suppliers .supplier-nav-dropdown[open]>summary{background:var(--rb-navy);color:#fff}
+#suppliers .supplier-nav-submenu{display:flex;flex-direction:column;gap:4px;margin-top:6px;padding:8px;border:1px solid #dfe6ef;border-left:3px solid var(--rb-gold);border-radius:0 10px 10px 0;background:#fff}
+#suppliers .supplier-nav-submenu button{width:100%;padding:10px 12px;text-align:left;border:0;border-radius:7px;background:#fff;color:#34465e;font-size:12px}
+#suppliers .supplier-nav-submenu button:hover{background:#f1f5f9;color:#173b63}
 #adminPanel .admin-nav-dropdown{position:relative;display:flex;flex-direction:column;align-items:stretch;flex:none;z-index:35;min-width:190px}
 #adminPanel .admin-nav-dropdown>summary{list-style:none;cursor:pointer;white-space:nowrap;padding:11px 15px;border:1px solid #e4e9f0;border-radius:8px;background:#f8fafc;color:#173b63;font-size:13px;font-weight:700}
 #adminPanel .admin-nav-dropdown>summary::-webkit-details-marker{display:none}
@@ -911,6 +918,17 @@ main{max-width:1220px}
 <div id="supplierWorkspacePanel" style="display:none">
 <div class="listing" style="margin-top:0">
   <h3>📦 Supplier Workspace</h3>
+  <details class="supplier-nav-dropdown" id="supplierWorkspaceMenu">
+    <summary>Supplier menu <span aria-hidden="true">▾</span></summary>
+    <div class="supplier-nav-submenu">
+      <button type="button" onclick="supplierNavigateTo('supplierProductName')">Add / manage products</button>
+      <button type="button" onclick="supplierNavigateTo('supplierProductList')">My products</button>
+      <button type="button" onclick="supplierNavigateTo('supplierOrdersTable')">My orders & sales</button>
+      <button type="button" onclick="supplierNavigateTo('supplierFulfilmentControls')">Shipment & delivery</button>
+      <button type="button" onclick="supplierNavigateTo('supplierWalletBalances')">Wallet & transactions</button>
+      <button type="button" onclick="supplierNavigateTo('supplierWithdrawalWallet')">Withdrawals</button>
+    </div>
+  </details>
   <p class="small-note">
     Manage your products after your supplier application is approved.
   </p>
@@ -2776,6 +2794,11 @@ async function renderSuppliers(){
  if(error){box.innerHTML='<p class="small-note">Supplier directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
  suppliersCache=data||[];const rows=suppliersCache.filter(x=>(x.company_name+' '+x.country+' '+x.description).toLowerCase().includes(q));
  box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
+}
+function supplierNavigateTo(elementId){
+  const target=document.getElementById(elementId);
+  if(!target)return;
+  target.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function supplierShowTab(tab){
   const application=document.getElementById('supplierApplicationPanel');
