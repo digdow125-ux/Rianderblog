@@ -969,6 +969,10 @@ main{max-width:1220px}
   </section>
 
   <section id="suppliers" class="panel secondary-page">
+    <div class="supplier-main-menu" aria-label="Supplier pages">
+      <button type="button" id="supplierCentreButton" class="primary" onclick="supplierShowMainPage('centre')">⚙️ Supplier Centre</button>
+      <button type="button" id="supplierDirectoryButton" class="secondary" onclick="supplierShowMainPage('directory')">🏭 Discover Suppliers</button>
+    </div>
     <div id="supplierDirectoryArea" class="supplier-directory">
       <div class="supplier-directory-heading">
         <div><span class="supplier-kicker">RIANDERBLOG BUSINESS NETWORK</span><h2>Discover Suppliers</h2><p>Find approved businesses, explore their products and contact suppliers directly.</p></div>
@@ -979,10 +983,7 @@ main{max-width:1220px}
       <div id="supplierDirectorySummary" class="supplier-directory-summary">Loading approved suppliers…</div>
       <div id="supplierList"><p class="small-note">Approved supplier profiles will appear here.</p></div>
     </div>
-    <div class="supplier-main-menu" aria-label="Supplier pages">
-      <button type="button" id="supplierDirectoryButton" class="primary" onclick="supplierShowMainPage('directory')">🏭 Discover Suppliers</button>
-      <button type="button" id="supplierCentreButton" class="secondary" onclick="supplierShowMainPage('centre')">⚙️ Supplier Centre</button>
-    </div>
+
     <div id="supplierCentrePage" style="display:none">
     <div class="supplier-centre-intro"><p class="small-note">Choose a section below. Each option opens its own page within Supplier Centre.</p></div>
     <div class="supplier-centre-menu" id="supplierCentreMenu" aria-label="Supplier Centre navigation">
@@ -1510,7 +1511,7 @@ try{
   if(id==="cart"&&typeof updateCart==="function")updateCart();
   if(id==="dashboard"&&typeof showDashboard==="function")showDashboard();
   if(id==="suppliers"&&typeof renderSuppliers==="function")renderSuppliers();
-if(id==="suppliers"&&typeof supplierShowMainPage==="function")supplierShowMainPage('overview');
+if(id==="suppliers"&&typeof supplierShowMainPage==="function")supplierShowMainPage('centre');
 if(id==="suppliers"&&typeof loadSupplierWorkspace==="function")loadSupplierWorkspace();
   if(id==="supplierWorkspace"&&typeof loadSupplierWorkspace==="function")loadSupplierWorkspace();
   if(id==="messages"&&typeof loadMarketplaceConversations==="function")loadMarketplaceConversations();
