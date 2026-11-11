@@ -777,6 +777,14 @@ main{max-width:1220px}
     <h2>🏭 Discover Suppliers</h2><p>Find businesses and manufacturers offering products to customers worldwide.</p>
     <input id="supplierSearch" class="search" placeholder="Search suppliers by company, country or products…" oninput="renderSuppliers()">
     <div id="supplierList"><p class="small-note">Supplier directory will display approved supplier profiles here.</p></div>
+    <div class="listing" style="margin-top:22px">
+      <h3>Supplier Centre</h3>
+      <p class="small-note">Choose the area you want to manage. Your application and product workspace are kept separate.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0">
+        <button id="supplierApplicationTab" class="primary" onclick="supplierShowTab('application')">Supplier application</button>
+        <button id="supplierProductsTab" class="secondary" onclick="supplierShowTab('workspace')">Products, orders & wallet</button>
+      </div>
+      <div id="supplierApplicationPanel">
     <h3>Become a supplier</h3><p class="small-note">Create a supplier application. RIANDERBLOG admin approval is required before public listing.</p>
     <div class="form-grid">
   <input id="supplierCompany" placeholder="Company / business name">
@@ -788,7 +796,10 @@ main{max-width:1220px}
     </div>
     <button class="primary" onclick="applySupplier()">Submit supplier application</button><p id="supplierMessage" class="small-note"></p>
     
-<div class="listing" style="margin-top:25px">
+      </div>
+    </div>
+<div id="supplierWorkspacePanel" style="display:none">
+<div class="listing" style="margin-top:0">
   <h3>📦 Supplier Workspace</h3>
   <p class="small-note">
     Manage your products after your supplier application is approved.
@@ -880,6 +891,8 @@ main{max-width:1220px}
     <h4>My withdrawal history</h4>
     <div id="supplierWithdrawalHistory" class="admin-table-wrap">No withdrawal requests yet.</div>
   </div>
+  
+</div>
   </section>
   <section id="affiliates" class="panel secondary-page">
     <h2>🤝 Affiliate Marketing Centre</h2><p>Discover company affiliate programmes and apply to promote products for commission.</p>
@@ -2660,6 +2673,18 @@ async function renderSuppliers(){
  if(error){box.innerHTML='<p class="small-note">Supplier directory is being set up. '+escapeHTML(error.message)+'</p>';return;}
  suppliersCache=data||[];const rows=suppliersCache.filter(x=>(x.company_name+' '+x.country+' '+x.description).toLowerCase().includes(q));
  box.innerHTML=rows.length?rows.map(x=>`<div class="listing"><h4>${escapeHTML(x.company_name)}</h4><span class="pill">${escapeHTML(x.country||'International')}</span><p>${escapeHTML(x.description||'Supplier profile')}</p>${safeUrl(x.website)?`<a href="${safeUrl(x.website)}" target="_blank" rel="noopener">Company website</a>`:''}</div>`).join(''):'<p class="small-note">No approved suppliers found yet.</p>';
+}
+function supplierShowTab(tab){
+  const application=document.getElementById('supplierApplicationPanel');
+  const workspace=document.getElementById('supplierWorkspacePanel');
+  const appButton=document.getElementById('supplierApplicationTab');
+  const productsButton=document.getElementById('supplierProductsTab');
+  if(!application||!workspace)return;
+  const showWorkspace=tab==='workspace';
+  application.style.display=showWorkspace?'none':'block';
+  workspace.style.display=showWorkspace?'block':'none';
+  if(appButton){appButton.className=showWorkspace?'secondary':'primary';}
+  if(productsButton){productsButton.className=showWorkspace?'primary':'secondary';}
 }
 async function applySupplier(){
  const message=document.getElementById('supplierMessage');
