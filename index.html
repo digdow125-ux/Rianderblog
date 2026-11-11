@@ -1164,6 +1164,7 @@ main{max-width:1220px}
   <section class="admin-tools"><h3>01 · Supplier applications & business profiles</h3><p class="small-note">Review supplier business name, contact person, country, email and application status.</p><button class="secondary" onclick="loadAdminSupplierApplications()">↻ Refresh supplier applications</button><div id="adminSupplierList" class="admin-table-wrap">Supplier applications will appear here.</div></section>
   <section class="admin-tools"><h3>02 · Supplier product submissions</h3><p class="small-note">Review product details submitted by suppliers before publishing.</p><button class="secondary" onclick="loadPendingSupplierProducts()">↻ Refresh product submissions</button><div id="pendingSupplierProductList" class="admin-products-list">Pending supplier products will appear here.</div></section>
   <section class="admin-tools"><h3>03 · Shipment & delivery approvals</h3><p class="small-note">Approve shipment first, then delivery. Customer receipt confirmation releases supplier funds.</p><button class="secondary" onclick="loadAdminFulfilmentReviews()">↻ Refresh fulfilment requests</button><div id="adminFulfilmentReviews" class="admin-table-wrap">Pending submissions will appear here.</div></section>
+  <section class="admin-tools"><h3>05 · Supplier wallet & transaction history</h3><p class="small-note">Review supplier wallet balances and the earning, debit and payout ledger entries.</p><button class="secondary" onclick="loadAdminSupplierLedger()">↻ Refresh supplier ledger</button><div id="adminSupplierLedger" class="admin-table-wrap">Supplier wallet transactions will appear here.</div></section>
   <section class="admin-tools"><h3>04 · Supplier withdrawals & payouts</h3><p class="small-note">Send the payout to the supplier's selected mobile-money or bank account first. Then mark it paid and enter the provider transaction reference.</p><button class="secondary" onclick="loadAdminWithdrawals()">↻ Refresh withdrawal requests</button><p id="adminWithdrawalsStatus" class="small-note">Withdrawal requests have not been loaded.</p><div id="adminWithdrawalsTable" class="admin-table-wrap">Withdrawal requests will appear here.</div></section>
 </div>
 
@@ -1297,6 +1298,29 @@ function updateAdminVisibility(user) {
     loadAdminOrdersTable();
   }
 }
+async function loadAdminSupplierLedger(){
+ const box=document.getElementById('adminSupplierLedger');if(!box)return;box.textContent='Loading supplier wallet ledger...';
+ try{
+  await adminGuard();
+  const wr=await db.from('wallet_accounts').select('id,owner_id,currency,status').eq('account_type','supplier');
+  if(wr.error)throw wr.error;const wallets=wr.data||[];
+  if(!wallets.length){box.textContent='No supplier wallets have been created yet.';return;}
+  const ids=wallets.map(w=>w.id),owners=[...new Set(wallets.map(w=>w.owner_id))];
+  const [tr,sr]=await Promise.all([
+   db.from('wallet_transactions').select('id,wallet_account_id,transaction_type,entry_type,amount,currency,status,source_provider,source_reference,related_order_id,description,created_at').in('wallet_account_id',ids).order('created_at',{ascending:false}).limit(250),
+   db.from('suppliers').select('user_id,business_name,company_name').in('user_id',owners)
+  ]);
+  if(tr.error)throw tr.error;if(sr.error)throw sr.error;
+  const wm=new Map(wallets.map(w=>[w.id,w])),sm=new Map((sr.data||[]).map(x=>[x.user_id,x]));
+  const rows=tr.data||[];
+  if(!rows.length){box.textContent='Supplier wallets exist, but no transactions have been recorded.';return;}
+  box.innerHTML='<div style="overflow-x:auto"><table class="admin-orders-table" style="min-width:900px"><thead><tr><th>Date</th><th>Supplier</th><th>Type</th><th>Amount</th><th>Status</th><th>Reference / order</th><th>Description</th></tr></thead><tbody>'+rows.map(t=>{
+   const w=wm.get(t.wallet_account_id)||{},sp=sm.get(w.owner_id)||{};
+   return '<tr><td>'+escapeHTML(new Date(t.created_at).toLocaleString())+'</td><td>'+escapeHTML(sp.business_name||sp.company_name||'Supplier account')+'</td><td>'+escapeHTML(t.transaction_type||t.entry_type||'Transaction')+'</td><td>'+escapeHTML(t.currency||w.currency||'')+' '+Number(t.amount||0).toFixed(2)+'</td><td>'+escapeHTML(t.status||'—')+'</td><td>'+escapeHTML(t.source_reference||t.related_order_id||'—')+'</td><td>'+escapeHTML(t.description||'—')+'</td></tr>';
+  }).join('')+'</tbody></table></div>';
+ }catch(e){box.textContent='Could not load supplier ledger: '+e.message;}
+}
+
 async function loadAdminSupplierApplications(){
  const box=document.getElementById('adminSupplierList');if(!box)return;
  await adminLoadTable('supplier_applications','id,business_name,contact_name,country,email,status,created_at','adminSupplierList','supplier_application');
@@ -1319,7 +1343,7 @@ function adminShowTab(tab) {
   if (selected) selected.style.display = "block";
 
   if (tab === "orders") loadAdminOrdersTable();
-  if (tab === "suppliers") { loadAdminSupplierApplications(); loadPendingSupplierProducts(); loadAdminFulfilmentReviews(); loadAdminWithdrawals(); }
+  if (tab === "suppliers") { loadAdminSupplierApplications(); loadPendingSupplierProducts(); loadAdminFulfilmentReviews(); loadAdminWithdrawals(); loadAdminSupplierLedger(); }
   if (tab === "products") renderAdminProducts();
   if (tab === "wallet") {
     loadAdminWallet();
