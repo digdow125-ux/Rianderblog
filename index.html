@@ -764,6 +764,8 @@ main{max-width:1220px}
 .supplier-centre-submenu{display:flex;flex-direction:column;gap:4px;margin-top:6px;padding:8px;border:1px solid #dfe6ef;border-left:3px solid #d6ad55;border-radius:0 10px 10px 0;background:#fff}
 .supplier-centre-submenu button{width:100%;padding:10px 12px;text-align:left;border:0;border-radius:7px;background:#fff;color:#34465e;font-size:12px}
 .supplier-centre-submenu button:hover{background:#f1f5f9;color:#173b63}
+.supplier-main-menu{display:flex;flex-direction:column;align-items:stretch;gap:7px;width:min(100%,360px);margin:16px 0}
+.supplier-main-menu button{width:100%;text-align:left;padding:12px 14px;border-radius:9px;font-weight:700}
 </style>
 </head>
 <body>
@@ -903,6 +905,11 @@ main{max-width:1220px}
     <input id="supplierSearch" class="search" placeholder="Search suppliers by company, country or products…" oninput="renderSuppliers()">
     <div id="supplierList"><p class="small-note">Supplier directory will display approved supplier profiles here.</p></div>
     </div>
+    <div class="supplier-main-menu">
+      <button type="button" id="supplierDirectoryButton" class="primary" onclick="supplierShowMainPage('directory')">Discover Suppliers</button>
+      <button type="button" id="supplierCentreButton" class="secondary" onclick="supplierShowMainPage('centre')">Supplier Centre</button>
+    </div>
+    <div id="supplierCentrePage" style="display:none">
     <details class="supplier-centre-menu" id="supplierCentreMenu">
       <summary>Supplier Centre menu <span aria-hidden="true">▾</span></summary>
       <div class="supplier-centre-submenu">
@@ -1082,6 +1089,8 @@ main{max-width:1220px}
       </div>
     </div>
   </div>
+    </div>
+
 </section>
   <section id="account" class="panel secondary-page account-page">
     <div class="account-hero">
@@ -2842,17 +2851,30 @@ function supplierNavigateTo(elementId){
   const menu=document.getElementById('supplierWorkspaceMenu');
   if(menu)menu.open=true;
 }
-function supplierShowTab(tab){
+function supplierShowMainPage(page){
   const directory=document.getElementById('supplierDirectoryArea');
-  const applicationPage=document.getElementById('supplierApplicationPage');
+  const centre=document.getElementById('supplierCentrePage');
+  const directoryButton=document.getElementById('supplierDirectoryButton');
+  const centreButton=document.getElementById('supplierCentreButton');
+  const showCentre=page==='centre';
+  if(directory)directory.style.display=showCentre?'none':'block';
+  if(centre)centre.style.display=showCentre?'block':'none';
+  if(directoryButton)directoryButton.className=showCentre?'secondary':'primary';
+  if(centreButton)centreButton.className=showCentre?'primary':'secondary';
+  if(showCentre)supplierShowTab('application');
+  const target=showCentre?centre:directory;
+  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function supplierShowTab(tab){
+  const application=document.getElementById('supplierApplicationPage');
   const workspace=document.getElementById('supplierWorkspacePanel');
   const menu=document.getElementById('supplierCentreMenu');
   const showWorkspace=tab==='workspace';
-  if(directory)directory.style.display='none';
-  if(applicationPage)applicationPage.style.display=showWorkspace?'none':'block';
+  supplierShowMainPage('centre');
+  if(application)application.style.display=showWorkspace?'none':'block';
   if(workspace)workspace.style.display=showWorkspace?'block':'none';
   if(menu)menu.open=false;
-  const target=showWorkspace?workspace:applicationPage;
+  const target=showWorkspace?workspace:application;
   if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function applySupplier(){
