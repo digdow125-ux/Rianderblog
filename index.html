@@ -842,6 +842,12 @@ main{max-width:1220px}
     <p class="small-note">Your approved supplier earnings appear here. Request a payout to Airtel Money, TNM Mpamba or a bank account.</p>
     <p id="supplierWalletStatus" class="small-note">Wallet balances have not been loaded.</p>
     <div id="supplierWalletBalances" class="market-grid"></div>
+    <div class="admin-tools" style="margin-top:22px">
+      <h4>📊 Supplier Transaction History</h4>
+      <p class="small-note">A record of wallet credits, deductions, commission earnings and payout activity.</p>
+      <div id="supplierTransactionSummary" class="market-grid"></div>
+      <div id="supplierTransactionHistory" class="admin-table-wrap">Your wallet transactions will appear here.</div>
+    </div>
     <h4>Request a withdrawal</h4>
     <div class="form-grid">
       <select id="supplierWithdrawalWallet"><option value="">Select wallet currency</option></select>
@@ -3057,6 +3063,23 @@ async function loadSupplierWallet(userId){
         const pending=Number(w.pending_balance||0);
         return '<div class="market-card"><p class="small-note">'+currency+' supplier wallet</p><h3>'+currency+' '+available.toFixed(2)+'</h3><p class="small-note">Pending / reserved: '+currency+' '+pending.toFixed(2)+'</p></div>';
       }).join('');
+    }
+    const transactionBox=document.getElementById('supplierTransactionHistory');
+    const summaryBox=document.getElementById('supplierTransactionSummary');
+    if(transactionBox){
+      transactionBox.textContent='Loading your transaction history...';
+      if(!ids.length){ transactionBox.textContent='No supplier wallet transactions yet.'; if(summaryBox)summaryBox.innerHTML=''; }
+      else{
+        const {data:transactions,error:txError}=await db.from('wallet_transactions').select('id,wallet_account_id,transaction_type,entry_type,amount,currency,status,source_provider,source_reference,description,related_order_id,created_at').in('wallet_account_id',ids).order('created_at',{ascending:false}).limit(200);
+        if(txError)throw txError;
+        const rows=transactions||[];
+        const credits=rows.filter(tx=>tx.entry_type==='credit'&&String(tx.status||'').toLowerCase()==='posted');
+        const debits=rows.filter(tx=>tx.entry_type==='debit'&&String(tx.status||'').toLowerCase()==='posted');
+        const total=items=>items.reduce((sum,tx)=>sum+Number(tx.amount||0),0);
+        if(summaryBox)summaryBox.innerHTML='<div class="market-card"><p class="small-note">Posted credits</p><h3>'+credits.length+'</h3><p>'+(credits.length?escapeHTML(credits[0].currency):'')+' '+total(credits).toFixed(2)+'</p></div>'+'<div class="market-card"><p class="small-note">Posted debits</p><h3>'+debits.length+'</h3><p>'+(debits.length?escapeHTML(debits[0].currency):'')+' '+total(debits).toFixed(2)+'</p></div>'+'<div class="market-card"><p class="small-note">Records shown</p><h3>'+rows.length+'</h3><p class="small-note">Latest 200 transactions</p></div>';
+        if(!rows.length)transactionBox.textContent='No transactions yet. Verified supplier earnings and wallet activity will appear here.';
+        else transactionBox.innerHTML='<table><thead><tr><th>Date</th><th>Transaction</th><th>Amount</th><th>Status</th><th>Reference / Details</th></tr></thead><tbody>'+rows.map(tx=>{const date=tx.created_at?new Date(tx.created_at).toLocaleString():'—';const sign=tx.entry_type==='debit'?'−':'+';const amount=sign+escapeHTML(tx.currency)+' '+Number(tx.amount||0).toFixed(2);const details=[tx.source_provider,tx.source_reference,tx.description,tx.related_order_id?'Order: '+tx.related_order_id:null].filter(Boolean).map(escapeHTML).join('<br>');return '<tr><td>'+escapeHTML(date)+'</td><td>'+escapeHTML(tx.transaction_type||tx.entry_type||'Wallet activity')+'</td><td><strong>'+amount+'</strong></td><td>'+escapeHTML(tx.status||'—')+'</td><td>'+(details||'—')+'</td></tr>';}).join('')+'</tbody></table>';
+      }
     }
     (wallets||[]).forEach(w=>{
       const b=balances.find(x=>x.wallet_account_id===w.id);
