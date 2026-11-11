@@ -2653,6 +2653,18 @@ async function startPayChanguCheckout() {
         return;
     }
 
+    const cartCurrencies = [...new Set(cart.map(item => (item.currency || "MWK").toUpperCase()))];
+    if (cartCurrencies.length !== 1) {
+        message.textContent = "Please checkout products using one currency at a time.";
+        return;
+    }
+    const cartCurrency = cartCurrencies[0];
+    const cartTotal = cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
+    if (cartCurrency === "MWK" && cartTotal < 10000) {
+        message.textContent = "Minimum order value is MK 10,000. Add more products to your cart before checkout.";
+        return;
+    }
+
     const {data:{user},error:authError}=await db.auth.getUser();
     if(authError) {
         message.textContent="Could not verify your account. Please try again.";
