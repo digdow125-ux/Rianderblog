@@ -1528,16 +1528,16 @@ function updateAdminVisibility(user) {
   const allowed = !!user && user.id === ADMIN_USER_ID;
 
   document.querySelectorAll(".admin-only").forEach(el => {
-    el.style.display = allowed
-      ? (el.id === "adminNavLink" ? "block" : "block")
-      : "none";
+    // Keep the admin navigation link visible to the administrator,
+    // but never expose the dashboard panel until Admin Panel is selected.
+    el.style.display = allowed && el.id === "adminNavLink" ? "block" : "none";
   });
 
   const status = document.getElementById("adminStatus");
 
   if (status) {
     status.textContent = allowed
-      ? "Administrator verified. Manage your marketplace below."
+      ? "Administrator verified. Open Admin Panel from the navigation to manage your marketplace."
       : "Administrator access is restricted.";
   }
 
