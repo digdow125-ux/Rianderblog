@@ -3701,7 +3701,7 @@ async function openMarketplaceConversation(id){
   const {data:{user}}=await db.auth.getUser();
   area.innerHTML='';
 
-  (data||[]).forEach(m=>{
+  for(const m of (data||[])){
     const bubble=document.createElement('div');
     bubble.className='chat-bubble '+(m.sender_id===user.id?'mine':'theirs');
 
@@ -3733,10 +3733,9 @@ async function openMarketplaceConversation(id){
       timeStyle:'short'
     });
 
-    bubble.appendChild(message);
     bubble.appendChild(time);
     area.appendChild(bubble);
-  });
+  }
 }
 
 async function sendMarketplaceChatImage(input){
