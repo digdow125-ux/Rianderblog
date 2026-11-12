@@ -2720,15 +2720,27 @@ async function loadCustomerWalletCredit(){
     const {data,error}=await db.rpc('customer_wallet_credit_balance');
     if(error)throw error;
     const balance=Math.max(0,Math.floor(Number(data)||0));
-    if(balance<=0){box.style.display='none';return;}
     box.style.display='grid';
-    balanceText.textContent='Available balance: MK '+balance.toLocaleString();
+    balanceText.textContent=balance>0
+      ? 'Available balance: MK '+balance.toLocaleString()
+      : 'Available balance: MK 0. Earn credit when a friend you invited completes a qualifying purchase.';
     const amount=document.getElementById('walletCreditAmount');
+    const checkbox=document.getElementById('useWalletCredit');
     const total=(cart||[]).reduce((sum,x)=>sum+Number(x.price||0)*Number(x.quantity||0),0);
     const max=Math.min(balance,Math.floor(total));
     amount.max=String(max);
-    if(document.getElementById('useWalletCredit')?.checked){
-      if(!Number(amount.value)||Number(amount.value)>max)amount.value=String(max);
+    checkbox.disabled=max<=0;
+    if(max<=0){
+      checkbox.checked=false;
+      amount.disabled=true;
+      amount.value='';
+      amount.placeholder='No credit available yet';
+    }else{
+      amount.placeholder='Amount of credit to use';
+      if(checkbox.checked){
+        amount.disabled=false;
+        if(!Number(amount.value)||Number(amount.value)>max)amount.value=String(max);
+      }
     }
   }catch(e){
     console.warn('Could not load shopping credit:',e.message);
