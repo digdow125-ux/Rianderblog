@@ -1066,6 +1066,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <h2>🛒 My Shopping Cart</h2>
     <div id="cartItems">Your cart is empty.</div>
     <h3 id="cartTotal"></h3>
+    <p id="inviteDiscountSummary" class="small-note" style="display:none"></p>
     <p id="cartNote"></p>
 
     <div class="paychangu-checkout">
@@ -1082,12 +1083,6 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
         <input id="checkoutCustomerPhone" type="tel" placeholder="Include your country code" autocomplete="tel" required>
         <label for="checkoutShippingAddress">Delivery address</label>
         <textarea id="checkoutShippingAddress" placeholder="Country, city, area, street and any helpful delivery directions" required></textarea>
-      </div>
-      <div class="wallet-credit-box" id="walletCreditBox" style="display:none">
-        <div><strong>🎁 RIANDERBLOG shopping credit</strong><p id="walletCreditBalance">Checking your available credit…</p></div>
-        <label><input id="useWalletCredit" type="checkbox" onchange="toggleWalletCreditAmount()"> Use credit</label>
-        <input id="walletCreditAmount" type="number" min="1" step="1" inputmode="numeric" placeholder="Amount of credit to use" disabled>
-        <small>Shopping credit can be used on MWK orders. It cannot be withdrawn as cash.</small>
       </div>
       <div class="paychangu-assurance"><span>🔒</span><div><strong>Your payment details stay protected</strong><small>Card and payment credentials are entered only on PayChangu's secure checkout page. RIANDERBLOG never asks for your PIN or card password.</small></div></div>
       <button id="payChanguButton" class="paychangu-pay-button" type="button" onclick="startPayChanguCheckout()"><span>Continue to secure payment</span><strong>→</strong></button>
@@ -2706,56 +2701,32 @@ function updateCart() {
     "Complete your order and payment securely on RIANDERBLOG. Use Messages to contact the supplier without leaving the website.";
   loadCustomerWalletCredit();
 }
+let customerInviteDiscount = 0;
 async function loadCustomerWalletCredit(){
-  const box=document.getElementById('walletCreditBox');
-  const balanceText=document.getElementById('walletCreditBalance');
-  if(!box||!balanceText)return;
+  const summary=document.getElementById('inviteDiscountSummary');
+  if(!summary)return 0;
+  customerInviteDiscount=0;
+  summary.style.display='none';
   const currencySet=[...new Set((cart||[]).map(x=>(x.currency||'MWK').toUpperCase()))];
-  if(currencySet.length!==1||currencySet[0]!=='MWK'){
-    box.style.display='none';return;
-  }
+  if(!cart.length||currencySet.length!==1||currencySet[0]!=='MWK')return 0;
   try{
     const {data:{user}}=await db.auth.getUser();
-    if(!user){box.style.display='none';return;}
+    if(!user)return 0;
     const {data,error}=await db.rpc('customer_wallet_credit_balance');
     if(error)throw error;
     const balance=Math.max(0,Math.floor(Number(data)||0));
-    box.style.display='grid';
-    balanceText.textContent=balance>0
-      ? 'Available balance: MK '+balance.toLocaleString()
-      : 'Available balance: MK 0. Earn credit when a friend you invited completes a qualifying purchase.';
-    const amount=document.getElementById('walletCreditAmount');
-    const checkbox=document.getElementById('useWalletCredit');
     const total=(cart||[]).reduce((sum,x)=>sum+Number(x.price||0)*Number(x.quantity||0),0);
-    const max=Math.min(balance,Math.floor(total));
-    amount.max=String(max);
-    checkbox.disabled=max<=0;
-    if(max<=0){
-      checkbox.checked=false;
-      amount.disabled=true;
-      amount.value='';
-      amount.placeholder='No credit available yet';
-    }else{
-      amount.placeholder='Amount of credit to use';
-      if(checkbox.checked){
-        amount.disabled=false;
-        if(!Number(amount.value)||Number(amount.value)>max)amount.value=String(max);
-      }
+    customerInviteDiscount=Math.min(balance,Math.floor(total));
+    if(customerInviteDiscount>0){
+      summary.textContent='🎁 Invite reward discount: −MK '+customerInviteDiscount.toLocaleString()+' · New total after discount: MK '+Math.max(0,Math.round(total)-customerInviteDiscount).toLocaleString();
+      summary.style.display='block';
     }
+    return customerInviteDiscount;
   }catch(e){
-    console.warn('Could not load shopping credit:',e.message);
-    box.style.display='none';
+    customerInviteDiscount=0;
+    console.warn('Could not load invite discount:',e.message);
+    return 0;
   }
-}
-function toggleWalletCreditAmount(){
-  const enabled=document.getElementById('useWalletCredit')?.checked===true;
-  const amount=document.getElementById('walletCreditAmount');
-  if(!amount)return;
-  amount.disabled=!enabled;
-  if(enabled){
-    const max=Number(amount.max||0);
-    amount.value=max>0?String(max):'';
-  }else amount.value='';
 }
 async function startPayChanguCheckout() {
     const button = document.getElementById("payChanguButton");
@@ -2769,15 +2740,10 @@ async function startPayChanguCheckout() {
 
     const shippingAddress =
         document.getElementById("checkoutShippingAddress").value.trim();
-    const useWalletCredit=document.getElementById("useWalletCredit")?.checked===true;
-    const walletCreditRequested=useWalletCredit?Number(document.getElementById("walletCreditAmount")?.value||0):0;
+    let walletCreditRequested = 0;
 
     if (!cart.length) {
         message.textContent = "Your shopping cart is empty.";
-        return;
-    }
-    if(useWalletCredit&&(!Number.isInteger(walletCreditRequested)||walletCreditRequested<=0)){
-        message.textContent="Enter a valid whole-number shopping credit amount.";
         return;
     }
     const belowMinimum=cart.find(item=>Number(item.quantity)<Math.max(1,Number(item.minimum_order_quantity||1)));
@@ -2793,6 +2759,7 @@ async function startPayChanguCheckout() {
     }
     const cartCurrency = cartCurrencies[0];
     const cartTotal = cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
+    walletCreditRequested = cartCurrency === "MWK" ? await loadCustomerWalletCredit() : 0;
     if (cartCurrency === "MWK" && cartTotal < 10000) {
         message.textContent = "Minimum order value is MK 10,000. Add more products to your cart before checkout.";
         return;
