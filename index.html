@@ -1014,6 +1014,13 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <a href="#suppliers" data-notify-highlight="suppliers" onclick="showSection('suppliers');supplierShowMainPage('centre');closeMenu();return false">🏭 Suppliers & supplier centre</a>
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Change currency</a>
+    <div class="nav-language-control" style="padding:10px 12px;border-top:1px solid #e8edf3;margin-top:6px">
+      <label for="siteLanguageSelect" style="display:block;font-size:12px;font-weight:700;color:#173b63;margin-bottom:6px">🌐 Choose language</label>
+      <select id="siteLanguageSelect" onchange="setSiteLanguage(this.value)" style="width:100%;padding:11px;border:1px solid #d8dee8;border-radius:7px;background:#fff">
+        <option value="en">English</option><option value="ny">Chichewa</option><option value="fr">Français</option><option value="pt">Português</option><option value="es">Español</option><option value="ar">العربية</option><option value="zh-CN">简体中文</option><option value="zh-TW">繁體中文</option><option value="hi">हिन्दी</option><option value="ur">اردو</option><option value="sw">Kiswahili</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="ru">Русский</option><option value="tr">Türkçe</option><option value="nl">Nederlands</option><option value="pl">Polski</option><option value="th">ไทย</option><option value="vi">Tiếng Việt</option><option value="id">Bahasa Indonesia</option><option value="bn">বাংলা</option><option value="fa">فارسی</option><option value="ha">Hausa</option><option value="yo">Yorùbá</option><option value="am">አማርኛ</option><option value="zu">isiZulu</option><option value="xh">isiXhosa</option><option value="rw">Kinyarwanda</option><option value="ne">नेपाली</option><option value="si">සිංහල</option><option value="sv">Svenska</option><option value="da">Dansk</option><option value="no">Norsk</option><option value="fi">Suomi</option><option value="el">Ελληνικά</option><option value="he">עברית</option><option value="uk">Українська</option><option value="ro">Română</option><option value="hu">Magyar</option><option value="cs">Čeština</option><option value="sk">Slovenčina</option><option value="bg">Български</option><option value="hr">Hrvatski</option><option value="sr">Српски</option><option value="ms">Bahasa Melayu</option><option value="ta">தமிழ்</option><option value="te">తెలుగు</option><option value="mr">मराठी</option><option value="gu">ગુજરાતી</option><option value="pa">ਪੰਜਾਬੀ</option><option value="km">ខ្មែរ</option><option value="lo">ລາວ</option><option value="my">မြန်မာ</option>
+      </select>
+      <small id="siteLanguageStatus" style="display:block;color:#6b7788;font-size:10px;margin-top:5px">Choose your preferred language.</small>
+    </div>
     <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment help</a>
     <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin panel</a>
   </div>
@@ -3323,6 +3330,16 @@ document.addEventListener('click',event=>{
   }
 });
 
+// Save the visitor's preferred language. Full translation requires a translation service connection.
+let siteLanguage=localStorage.getItem('rianderblog_language')||((navigator.language||'en').split('-')[0]);
+function setSiteLanguage(code){
+  if(!/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(code))return;
+  siteLanguage=code;localStorage.setItem('rianderblog_language',code);
+  document.documentElement.lang=code;
+  const status=document.getElementById('siteLanguageStatus');
+  if(status)status.textContent='Language preference saved. Full translation will activate when the translation service is connected.';
+}
+
 // Detect each visitor's country and show prices in its local currency.
 // A visitor's manual currency choice is remembered on that device.
 let displayCurrency = localStorage.getItem('rianderblog_currency') || 'USD';
@@ -4576,6 +4593,7 @@ async function applyAffiliate(){
 
 loadProducts();
 showDashboard();
+const languageSelect=document.getElementById('siteLanguageSelect');if(languageSelect){languageSelect.value=siteLanguage;if(!languageSelect.value)languageSelect.value='en';document.documentElement.lang=languageSelect.value;}
 initialiseCurrency();
 renderSuppliers();
 loadProgrammes();
