@@ -1014,13 +1014,6 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <a href="#suppliers" data-notify-highlight="suppliers" onclick="showSection('suppliers');supplierShowMainPage('centre');closeMenu();return false">🏭 Suppliers & supplier centre</a>
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Change currency</a>
-    <div class="nav-language-control" style="padding:10px 12px;border-top:1px solid #e8edf3;margin-top:6px">
-      <label for="siteLanguageSelect" style="display:block;font-size:12px;font-weight:700;color:#173b63;margin-bottom:6px">🌐 Choose language</label>
-      <select id="siteLanguageSelect" onchange="setSiteLanguage(this.value)" style="width:100%;padding:11px;border:1px solid #d8dee8;border-radius:7px;background:#fff">
-        <option value="en">English</option><option value="ny">Chichewa</option><option value="fr">Français</option><option value="pt">Português</option><option value="es">Español</option><option value="ar">العربية</option><option value="zh-CN">简体中文</option><option value="zh-TW">繁體中文</option><option value="hi">हिन्दी</option><option value="ur">اردو</option><option value="sw">Kiswahili</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="ru">Русский</option><option value="tr">Türkçe</option><option value="nl">Nederlands</option><option value="pl">Polski</option><option value="th">ไทย</option><option value="vi">Tiếng Việt</option><option value="id">Bahasa Indonesia</option><option value="bn">বাংলা</option><option value="fa">فارسی</option><option value="ha">Hausa</option><option value="yo">Yorùbá</option><option value="am">አማርኛ</option><option value="zu">isiZulu</option><option value="xh">isiXhosa</option><option value="rw">Kinyarwanda</option><option value="ne">नेपाली</option><option value="si">සිංහල</option><option value="sv">Svenska</option><option value="da">Dansk</option><option value="no">Norsk</option><option value="fi">Suomi</option><option value="el">Ελληνικά</option><option value="he">עברית</option><option value="uk">Українська</option><option value="ro">Română</option><option value="hu">Magyar</option><option value="cs">Čeština</option><option value="sk">Slovenčina</option><option value="bg">Български</option><option value="hr">Hrvatski</option><option value="sr">Српски</option><option value="ms">Bahasa Melayu</option><option value="ta">தமிழ்</option><option value="te">తెలుగు</option><option value="mr">मराठी</option><option value="gu">ગુજરાતી</option><option value="pa">ਪੰਜਾਬੀ</option><option value="km">ខ្មែរ</option><option value="lo">ລາວ</option><option value="my">မြန်မာ</option>
-      </select>
-      <small id="siteLanguageStatus" style="display:block;color:#6b7788;font-size:10px;margin-top:5px">Choose your preferred language.</small>
-    </div>
     <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment help</a>
     <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin panel</a>
   </div>
@@ -3330,9 +3323,6 @@ document.addEventListener('click',event=>{
   }
 });
 
-// Saved language preference; whole-page translation is connected near the end of this file.
-let siteLanguage=localStorage.getItem('rianderblog_language')||((navigator.language||'en').split('-')[0]);
-function setSiteLanguage(code){ window.setTimeout(()=>{ if(typeof translateWholeSite==='function') translateWholeSite(); },0); if(!/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(code))return; siteLanguage=code;localStorage.setItem('rianderblog_language',code);document.documentElement.lang=code; }
 
 // Detect each visitor's country and show prices in its local currency.
 // A visitor's manual currency choice is remembered on that device.
@@ -4587,7 +4577,6 @@ async function applyAffiliate(){
 
 loadProducts();
 showDashboard();
-const languageSelect=document.getElementById('siteLanguageSelect');if(languageSelect){languageSelect.value=siteLanguage;if(!languageSelect.value)languageSelect.value='en';document.documentElement.lang=languageSelect.value;}
 initialiseCurrency();
 renderSuppliers();
 loadProgrammes();
@@ -4647,178 +4636,6 @@ async function installRianderblogApp(){
 </script>
 
 
-<script>
-/* RIANDERBLOG whole-site translation. Text is translated by Gemini AI through a private-key Edge Function. */
-const RIANDER_TRANSLATE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co/functions/v1/translate-site";
-const RIANDER_TRANSLATE_PUBLIC_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
-/* Use the existing siteLanguage variable declared by the main application script. */
-const rianderOriginalText = new WeakMap();
-const rianderOriginalAttrs = new WeakMap();
-const rianderAppliedLanguage = new WeakMap();
-let rianderTranslationRunning = false;
-let rianderTranslationQueued = false;
-let rianderTranslationTimer = null;
-let rianderTranslationCache = {};
-try { rianderTranslationCache = JSON.parse(localStorage.getItem("rianderblog_translation_cache_v1") || "{}") || {}; } catch (_) {}
-
-function rianderIsExcluded(node) {
-  const el = node && (node.nodeType === 1 ? node : node.parentElement);
-  if (!el) return true;
-  return !!el.closest('script,style,noscript,textarea,select,option,code,pre,[contenteditable="true"],.price,.support-msg,.support-log,.private-chat,.user-entered-content');
-}
-function rianderRememberAttr(el, name) {
-  let attrs = rianderOriginalAttrs.get(el);
-  if (!attrs) { attrs = {}; rianderOriginalAttrs.set(el, attrs); }
-  if (!(name in attrs)) attrs[name] = el.getAttribute(name) || "";
-  return attrs[name];
-}
-function rianderSetDirection(code) {
-  const rtl = /^(ar|fa|ur|he)(-|$)/i.test(code);
-  document.documentElement.dir = rtl ? "rtl" : "ltr";
-  document.documentElement.lang = code;
-}
-function rianderSaveCache() {
-  const keys = Object.keys(rianderTranslationCache);
-  if (keys.length > 700) {
-    const trimmed = {};
-    keys.slice(-500).forEach(k => trimmed[k] = rianderTranslationCache[k]);
-    rianderTranslationCache = trimmed;
-  }
-  try { localStorage.setItem("rianderblog_translation_cache_v1", JSON.stringify(rianderTranslationCache)); } catch (_) {}
-}
-function rianderCollectTranslationJobs(target) {
-  const jobs = new Map();
-  const add = (original, apply) => {
-    const source = String(original || "");
-    const trimmed = source.trim();
-    if (!trimmed || trimmed.length > 1000 || !/[A-Za-z]/.test(trimmed)) return;
-    const key = target + "|" + trimmed;
-    if (Object.prototype.hasOwnProperty.call(rianderTranslationCache, key)) {
-      apply(source.replace(trimmed, rianderTranslationCache[key]));
-      return;
-    }
-    if (!jobs.has(trimmed)) jobs.set(trimmed, []);
-    jobs.get(trimmed).push(apply);
-  };
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  let node;
-  while ((node = walker.nextNode())) {
-    if (rianderIsExcluded(node)) continue;
-    const textNode = node;
-    let original = rianderOriginalText.get(textNode);
-    if (original === undefined) { original = textNode.nodeValue || ""; rianderOriginalText.set(textNode, original); }
-    if (target === "en") {
-      if (textNode.nodeValue !== original) textNode.nodeValue = original;
-      rianderAppliedLanguage.set(textNode, "en");
-      continue;
-    }
-    if (rianderAppliedLanguage.get(textNode) === target) continue;
-    add(original, translated => { if (siteLanguage === target && textNode.isConnected) { textNode.nodeValue = translated; rianderAppliedLanguage.set(textNode, target); } });
-  }
-  const attrs = ["placeholder", "title", "aria-label", "alt"];
-  document.querySelectorAll("body *").forEach(el => {
-    if (rianderIsExcluded(el)) return;
-    attrs.forEach(name => {
-      if (!el.hasAttribute(name)) return;
-      const original = rianderRememberAttr(el, name);
-      const applied = el.dataset["rianderTranslated" + name.replace(/[^a-z]/gi, "")] || "";
-      if (target === "en") {
-        if (el.getAttribute(name) !== original) el.setAttribute(name, original);
-        delete el.dataset["rianderTranslated" + name.replace(/[^a-z]/gi, "")];
-      } else if (applied !== target) {
-        add(original, translated => {
-          if (siteLanguage === target && el.isConnected) {
-            el.setAttribute(name, translated);
-            el.dataset["rianderTranslated" + name.replace(/[^a-z]/gi, "")] = target;
-          }
-        });
-      }
-    });
-  });
-  return jobs;
-}
-async function translateWholeSite() {
-  if (rianderTranslationRunning) { rianderTranslationQueued = true; return; }
-  rianderTranslationRunning = true;
-  try {
-    do {
-      rianderTranslationQueued = false;
-      const target = siteLanguage || "en";
-      rianderSetDirection(target);
-      const jobs = rianderCollectTranslationJobs(target);
-      if (target === "en" || !jobs.size) continue;
-      const unique = Array.from(jobs.keys());
-      let i = 0;
-      while (i < unique.length) {
-        if (siteLanguage !== target) break;
-        const batch = [];
-        let batchChars = 0;
-        while (i < unique.length && batch.length < 40) {
-          const next = unique[i];
-          if (batch.length && batchChars + next.length > 6500) break;
-          batch.push(next);
-          batchChars += next.length;
-          i += 1;
-        }
-        const response = await fetch(RIANDER_TRANSLATE_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": RIANDER_TRANSLATE_PUBLIC_KEY,
-            "Authorization": "Bearer " + RIANDER_TRANSLATE_PUBLIC_KEY
-          },
-          body: JSON.stringify({ target, texts: batch })
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(result.error || "Translation request failed.");
-        const translated = result.translations || [];
-        batch.forEach((source, index) => {
-          if (typeof translated[index] !== "string") return;
-          const value = translated[index];
-          rianderTranslationCache[target + "|" + source] = value;
-          (jobs.get(source) || []).forEach(apply => apply(value));
-        });
-        rianderSaveCache();
-      }
-    } while (rianderTranslationQueued);
-    const status = document.getElementById("siteLanguageStatus");
-    if (status && siteLanguage !== "en") status.textContent = "Website translation complete.";
-  } catch (error) {
-    console.warn("RIANDERBLOG translation:", error);
-    const status = document.getElementById("siteLanguageStatus");
-    if (status) status.textContent = error.message || "Translation is temporarily unavailable.";
-  } finally {
-    rianderTranslationRunning = false;
-    if (rianderTranslationQueued) translateWholeSite();
-  }
-}
-function scheduleWholeSiteTranslation() {
-  clearTimeout(rianderTranslationTimer);
-  rianderTranslationTimer = setTimeout(() => translateWholeSite(), 250);
-}
-function setSiteLanguage(code) {
-  if (!/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(code)) return;
-  siteLanguage = code;
-  localStorage.setItem("rianderblog_language", code);
-  rianderSetDirection(code);
-  const select = document.getElementById("siteLanguageSelect");
-  if (select) select.value = code;
-  const status = document.getElementById("siteLanguageStatus");
-  if (status) status.textContent = code === "en" ? "Language changed to English." : "Changing the whole website language…";
-  translateWholeSite();
-}
-(function startRianderLanguage() {
-  const select = document.getElementById("siteLanguageSelect");
-  if (select) select.value = siteLanguage;
-  rianderSetDirection(siteLanguage);
-  const observer = new MutationObserver(records => {
-    if (records.some(record => record.type === "childList" && (record.addedNodes.length || record.removedNodes.length))) scheduleWholeSiteTranslation();
-  });
-  if (document.body) observer.observe(document.body, { childList: true, subtree: true });
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", translateWholeSite, { once: true });
-  else translateWholeSite();
-})();
-</script>
 
 </body>
 </html>
