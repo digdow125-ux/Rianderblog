@@ -1093,17 +1093,12 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   </section>
 
   <section id="payments" class="panel secondary-page">
-    <h2>💳 Payment Centre</h2><p>Select a payment method to see how it is intended to work.</p>
+    <h2>💳 Payment Centre</h2><p>RIANDERBLOG uses PayChangu for secure customer payments.</p>
     <div class="method-list">
-      <button class="method-option" onclick="selectPayment('PayPal',this)">🅿️ PayPal</button>
-      <button class="method-option" onclick="selectPayment('Visa / Mastercard',this)">💳 Visa / Mastercard</button>
-      <button class="method-option" onclick="selectPayment('Airtel Money',this)">📱 Airtel Money</button>
-      <button class="method-option" onclick="selectPayment('TNM Mpamba',this)">📱 TNM Mpamba</button>
-      <button class="method-option" onclick="selectPayment('Bank transfer',this)">🏦 Bank transfer</button>
-      <button class="method-option" onclick="selectPayment('Other international methods',this)">🌐 Other international methods</button>
+      <button class="method-option selected" onclick="selectPayment('PayChangu',this)">🔒 PayChangu — Secure checkout</button>
     </div>
-    <div id="paymentInfo" class="method-info">Choose a method above to view its information. Live checkout is not enabled until RIANDERBLOG has approved merchant accounts and secure gateway integration.</div>
-    <p class="small-note">Never enter card details, PINs or mobile-money passwords into this website. Payments will be redirected to verified payment-provider checkout pages once connected.</p>
+    <div id="paymentInfo" class="method-info"><strong>PayChangu</strong><br>Pay securely through the PayChangu checkout page. Available payment options are shown by PayChangu when you continue from checkout.</div>
+    <p class="small-note">Never share your PIN or card password with anyone. Enter payment details only on the secure PayChangu checkout page.</p>
   </section>
 
   <section id="suppliers" class="panel secondary-page">
@@ -3279,14 +3274,9 @@ function formatPrice(amount,from){
   catch(e){return displayCurrency+' '+converted.toFixed(2);}
 }
 const paymentDescriptions={
- 'PayPal':'Customers can pay through PayPal after RIANDERBLOG connects an eligible business account. Availability to receive and withdraw funds depends on the account country and verification. Not connected yet.',
- 'Visa / Mastercard':'Card payments will use a PCI-compliant payment gateway checkout. RIANDERBLOG must be approved by a provider before cards can be charged. Do not enter card details on this page.',
- 'Airtel Money':'For supported countries, customers will be redirected to an approved mobile-money payment prompt. A merchant account and provider integration are required. Not connected yet.',
- 'TNM Mpamba':'Malawi customers will use an approved Mpamba merchant checkout or payment prompt after merchant approval and integration. Not connected yet.',
- 'Bank transfer':'Bank transfer instructions will appear only after RIANDERBLOG configures and verifies its business bank account. No bank details are published here.',
- 'Other international methods':'Additional methods such as regional wallets or local bank options can be enabled only after confirming country support and completing provider onboarding.'
+ 'PayChangu':'Customers are redirected to PayChangu secure checkout to complete payment. Available payment methods depend on the options enabled for RIANDERBLOG by PayChangu.'
 };
-function selectPayment(method,button){document.querySelectorAll('.method-option').forEach(b=>b.classList.remove('selected'));if(button)button.classList.add('selected');document.getElementById('paymentInfo').innerHTML='<strong>'+escapeHTML(method)+'</strong><br>'+escapeHTML(paymentDescriptions[method])+'<br><span class="pill">Setup required — not live</span>';}
+function selectPayment(method,button){document.querySelectorAll('.method-option').forEach(b=>b.classList.remove('selected'));if(button)button.classList.add('selected');document.getElementById('paymentInfo').innerHTML='<strong>'+escapeHTML(method)+'</strong><br>'+escapeHTML(paymentDescriptions[method]||'Use the secure PayChangu checkout to complete your payment.');}
 let suppliersCache=[];
 let supplierDirectoryProducts=[];
 let supplierDirectoryCategory='All';
@@ -4191,7 +4181,7 @@ async function adminProcessSupplierWithdrawal(requestId,action){
   let paymentReference=null;
   let note='';
   if(action==='paid'){
-    paymentReference=prompt('Enter the Airtel Money, TNM Mpamba or bank transaction reference. Only continue after you have sent the money.');
+    paymentReference=prompt('Enter the PayChangu payment reference. Only continue after PayChangu confirms that the payment is successful.');
     if(paymentReference===null)return;
     if(paymentReference.trim().length<3){alert('A valid payment reference is required.');return;}
     note=prompt('Optional admin note:')||'';
