@@ -4666,7 +4666,7 @@ try { rianderTranslationCache = JSON.parse(localStorage.getItem("rianderblog_tra
 function rianderIsExcluded(node) {
   const el = node && (node.nodeType === 1 ? node : node.parentElement);
   if (!el) return true;
-  return !!el.closest('script,style,noscript,textarea,input,select,option,code,pre,[contenteditable="true"],.price,.support-msg,.support-log,.private-chat,.user-entered-content');
+  return !!el.closest('script,style,noscript,textarea,select,option,code,pre,[contenteditable="true"],.price,.support-msg,.support-log,.private-chat,.user-entered-content');
 }
 function rianderRememberAttr(el, name) {
   let attrs = rianderOriginalAttrs.get(el);
@@ -4706,15 +4706,16 @@ function rianderCollectTranslationJobs(target) {
   let node;
   while ((node = walker.nextNode())) {
     if (rianderIsExcluded(node)) continue;
-    let original = rianderOriginalText.get(node);
-    if (original === undefined) { original = node.nodeValue || ""; rianderOriginalText.set(node, original); }
+    const textNode = node;
+    let original = rianderOriginalText.get(textNode);
+    if (original === undefined) { original = textNode.nodeValue || ""; rianderOriginalText.set(textNode, original); }
     if (target === "en") {
-      if (node.nodeValue !== original) node.nodeValue = original;
-      rianderAppliedLanguage.set(node, "en");
+      if (textNode.nodeValue !== original) textNode.nodeValue = original;
+      rianderAppliedLanguage.set(textNode, "en");
       continue;
     }
-    if (rianderAppliedLanguage.get(node) === target) continue;
-    add(original, translated => { if (siteLanguage === target) { node.nodeValue = translated; rianderAppliedLanguage.set(node, target); } });
+    if (rianderAppliedLanguage.get(textNode) === target) continue;
+    add(original, translated => { if (siteLanguage === target && textNode.isConnected) { textNode.nodeValue = translated; rianderAppliedLanguage.set(textNode, target); } });
   }
   const attrs = ["placeholder", "title", "aria-label", "alt"];
   document.querySelectorAll("body *").forEach(el => {
