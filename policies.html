@@ -237,9 +237,17 @@ async function translateWholeSite() {
       const jobs = rianderCollectTranslationJobs(target);
       if (target === "en" || !jobs.size) continue;
       const unique = Array.from(jobs.keys());
-      for (let i = 0; i < unique.length; i += 80) {
+      for (let i = 0; i < unique.length;) {
         if (siteLanguage !== target) break;
-        const batch = unique.slice(i, i + 80);
+        const batch = [];
+        let batchChars = 0;
+        while (i < unique.length && batch.length < 40) {
+          const next = unique[i];
+          if (batch.length && batchChars + next.length > 6500) break;
+          batch.push(next);
+          batchChars += next.length;
+          i += 1;
+        }
         const response = await fetch(RIANDER_TRANSLATE_URL, {
           method: "POST",
           headers: {
@@ -261,6 +269,8 @@ async function translateWholeSite() {
         rianderSaveCache();
       }
     } while (rianderTranslationQueued);
+    const status = document.getElementById("siteLanguageStatus");
+    if (status && siteLanguage !== "en") status.textContent = "Page translation complete.";
   } catch (error) {
     console.warn("RIANDERBLOG translation:", error);
     const status = document.getElementById("siteLanguageStatus");
