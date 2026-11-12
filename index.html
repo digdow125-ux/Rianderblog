@@ -430,6 +430,9 @@ main{max-width:1220px}
   color:white;
   min-width:85px;
 }
+.chat-photo-picker{display:inline-flex;align-items:center;justify-content:center;padding:12px 14px;border:1px solid #d6ad55;border-radius:10px;background:#fff9eb;color:#10213e;font-weight:700;cursor:pointer}
+.chat-message-photo{display:block;max-width:min(260px,100%);max-height:260px;object-fit:contain;border-radius:10px;margin:5px 0;cursor:zoom-in;background:#fff}
+
 @media(max-width:650px){
   .chat-shell{grid-template-columns:1fr;min-height:600px}
   .chat-sidebar{border-right:0;border-bottom:1px solid #e1e6ee}
@@ -1306,6 +1309,8 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 
       <div id="messageComposer" class="chat-composer" style="display:none">
         <textarea id="messageInput" placeholder="Type your message..."></textarea>
+        <label class="chat-photo-picker" for="chatImageInput">📷 Add picture</label>
+        <input id="chatImageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="sendMarketplaceChatImage(this)">
         <button class="primary" onclick="sendMarketplaceMessage()">Send</button>
         <p id="messageStatus" class="small-note"></p>
       </div>
@@ -3700,8 +3705,27 @@ async function openMarketplaceConversation(id){
     const bubble=document.createElement('div');
     bubble.className='chat-bubble '+(m.sender_id===user.id?'mine':'theirs');
 
-    const message=document.createElement('div');
-    message.textContent=m.message_text;
+    if(m.message_text){
+      const message=document.createElement('div');
+      message.textContent=m.message_text;
+      bubble.appendChild(message);
+    }
+    if(m.image_path){
+      const {data:imageData,error:imageError}=await db.storage.from('chat-images').createSignedUrl(m.image_path,3600);
+      if(!imageError&&imageData?.signedUrl){
+        const photo=document.createElement('img');
+        photo.className='chat-message-photo';
+        photo.src=imageData.signedUrl;
+        photo.alt='Picture shared in chat';
+        photo.loading='lazy';
+        photo.onclick=()=>window.open(imageData.signedUrl,'_blank','noopener');
+        bubble.appendChild(photo);
+      }else{
+        const unavailable=document.createElement('div');
+        unavailable.textContent='Picture is unavailable.';
+        bubble.appendChild(unavailable);
+      }
+    }
 
     const time=document.createElement('small');
     time.textContent=new Date(m.created_at).toLocaleString([],{
@@ -3713,6 +3737,53 @@ async function openMarketplaceConversation(id){
     bubble.appendChild(time);
     area.appendChild(bubble);
   });
+}
+
+async function sendMarketplaceChatImage(input){
+  const file=input?.files?.[0];
+  const status=document.getElementById('messageStatus');
+  if(!file||!activeMarketplaceConversation)return;
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)){
+    status.textContent='Choose a JPG, PNG or WEBP picture.';
+    input.value='';
+    return;
+  }
+  if(file.size>5*1024*1024){
+    status.textContent='Picture must be 5 MB or smaller.';
+    input.value='';
+    return;
+  }
+  const {data:{user},error:userError}=await db.auth.getUser();
+  if(userError||!user){
+    status.textContent='Please sign in before sharing a picture.';
+    input.value='';
+    return;
+  }
+  status.textContent='Uploading picture...';
+  input.disabled=true;
+  try{
+    const extension=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+    const path=activeMarketplaceConversation+'/'+user.id+'/'+crypto.randomUUID()+'.'+extension;
+    const {error:uploadError}=await db.storage.from('chat-images').upload(path,file,{contentType:file.type,upsert:false});
+    if(uploadError)throw uploadError;
+    const {error:insertError}=await db.from('messages').insert({
+      conversation_id:activeMarketplaceConversation,
+      sender_id:user.id,
+      message_text:'📷 Picture',
+      image_path:path
+    });
+    if(insertError){
+      await db.storage.from('chat-images').remove([path]);
+      throw insertError;
+    }
+    input.value='';
+    status.textContent='Picture sent.';
+    await openMarketplaceConversation(activeMarketplaceConversation);
+  }catch(e){
+    status.textContent='Picture could not be sent: '+(e.message||'Please try again.');
+  }finally{
+    input.disabled=false;
+  }
 }
 
 async function sendMarketplaceMessage(){
