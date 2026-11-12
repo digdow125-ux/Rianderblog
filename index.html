@@ -481,6 +481,14 @@ main{max-width:1220px}
 #accountSignedIn{text-align:center}#accountSignedIn h3{margin:8px 0 4px;color:#10213e}#accountSignedIn .account-email{color:#718095;font-size:13px;overflow-wrap:anywhere}
 .account-signout{background:#edf1f6;color:#334258}
 .paychangu-checkout{margin-top:22px;padding:22px;border:1px solid #e1e6ee;border-radius:16px;background:#fff;box-shadow:0 9px 28px rgba(16,33,62,.07)}
+.wallet-credit-box{display:grid;grid-template-columns:1fr auto;gap:10px 14px;align-items:center;margin:16px 0;padding:15px;border:1px solid #e5d7b6;border-radius:11px;background:#fffaf0}
+.wallet-credit-box strong{display:block;color:#10213e}.wallet-credit-box p{margin:4px 0 0;color:#687589;font-size:12px}
+.wallet-credit-box label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#34435a}
+.wallet-credit-box label input{width:auto;margin:0}
+.wallet-credit-box>input{grid-column:1/-1;margin:0;max-width:220px}
+.wallet-credit-box small{grid-column:1/-1;color:#778397;font-size:11px}
+@media(max-width:600px){.wallet-credit-box{grid-template-columns:1fr}.wallet-credit-box>input,.wallet-credit-box small{grid-column:1}}
+
 .paychangu-heading{display:flex;align-items:center;gap:13px;padding-bottom:17px;border-bottom:1px solid #edf0f4}
 .paychangu-lock{display:grid;place-items:center;width:43px;height:43px;flex:none;border-radius:12px;background:#edf4f8;color:#173b63;font-size:22px}
 .paychangu-heading h3{margin:4px 0;color:#10213e;font-size:20px}.paychangu-heading p{margin:0;color:#778397;font-size:12px}
@@ -1074,6 +1082,12 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
         <input id="checkoutCustomerPhone" type="tel" placeholder="Include your country code" autocomplete="tel" required>
         <label for="checkoutShippingAddress">Delivery address</label>
         <textarea id="checkoutShippingAddress" placeholder="Country, city, area, street and any helpful delivery directions" required></textarea>
+      </div>
+      <div class="wallet-credit-box" id="walletCreditBox" style="display:none">
+        <div><strong>🎁 RIANDERBLOG shopping credit</strong><p id="walletCreditBalance">Checking your available credit…</p></div>
+        <label><input id="useWalletCredit" type="checkbox" onchange="toggleWalletCreditAmount()"> Use credit</label>
+        <input id="walletCreditAmount" type="number" min="1" step="1" inputmode="numeric" placeholder="Amount of credit to use" disabled>
+        <small>Shopping credit can be used on MWK orders. It cannot be withdrawn as cash.</small>
       </div>
       <div class="paychangu-assurance"><span>🔒</span><div><strong>Your payment details stay protected</strong><small>Card and payment credentials are entered only on PayChangu's secure checkout page. RIANDERBLOG never asks for your PIN or card password.</small></div></div>
       <button id="payChanguButton" class="paychangu-pay-button" type="button" onclick="startPayChanguCheckout()"><span>Continue to secure payment</span><strong>→</strong></button>
@@ -2690,6 +2704,46 @@ function updateCart() {
 
   note.textContent =
     "Complete your order and payment securely on RIANDERBLOG. Use Messages to contact the supplier without leaving the website.";
+  loadCustomerWalletCredit();
+}
+async function loadCustomerWalletCredit(){
+  const box=document.getElementById('walletCreditBox');
+  const balanceText=document.getElementById('walletCreditBalance');
+  if(!box||!balanceText)return;
+  const currencySet=[...new Set((cart||[]).map(x=>(x.currency||'MWK').toUpperCase()))];
+  if(currencySet.length!==1||currencySet[0]!=='MWK'){
+    box.style.display='none';return;
+  }
+  try{
+    const {data:{user}}=await db.auth.getUser();
+    if(!user){box.style.display='none';return;}
+    const {data,error}=await db.rpc('customer_wallet_credit_balance');
+    if(error)throw error;
+    const balance=Math.max(0,Math.floor(Number(data)||0));
+    if(balance<=0){box.style.display='none';return;}
+    box.style.display='grid';
+    balanceText.textContent='Available balance: MK '+balance.toLocaleString();
+    const amount=document.getElementById('walletCreditAmount');
+    const total=(cart||[]).reduce((sum,x)=>sum+Number(x.price||0)*Number(x.quantity||0),0);
+    const max=Math.min(balance,Math.floor(total));
+    amount.max=String(max);
+    if(document.getElementById('useWalletCredit')?.checked){
+      if(!Number(amount.value)||Number(amount.value)>max)amount.value=String(max);
+    }
+  }catch(e){
+    console.warn('Could not load shopping credit:',e.message);
+    box.style.display='none';
+  }
+}
+function toggleWalletCreditAmount(){
+  const enabled=document.getElementById('useWalletCredit')?.checked===true;
+  const amount=document.getElementById('walletCreditAmount');
+  if(!amount)return;
+  amount.disabled=!enabled;
+  if(enabled){
+    const max=Number(amount.max||0);
+    amount.value=max>0?String(max):'';
+  }else amount.value='';
 }
 async function startPayChanguCheckout() {
     const button = document.getElementById("payChanguButton");
@@ -2703,9 +2757,15 @@ async function startPayChanguCheckout() {
 
     const shippingAddress =
         document.getElementById("checkoutShippingAddress").value.trim();
+    const useWalletCredit=document.getElementById("useWalletCredit")?.checked===true;
+    const walletCreditRequested=useWalletCredit?Number(document.getElementById("walletCreditAmount")?.value||0):0;
 
     if (!cart.length) {
         message.textContent = "Your shopping cart is empty.";
+        return;
+    }
+    if(useWalletCredit&&(!Number.isInteger(walletCreditRequested)||walletCreditRequested<=0)){
+        message.textContent="Enter a valid whole-number shopping credit amount.";
         return;
     }
     const belowMinimum=cart.find(item=>Number(item.quantity)<Math.max(1,Number(item.minimum_order_quantity||1)));
@@ -2802,18 +2862,29 @@ async function startPayChanguCheckout() {
                     items: items,
                     customer_name: customerName,
                     customer_phone: customerPhone,
-                    shipping_address: shippingAddress
+                    shipping_address: shippingAddress,
+                    wallet_credit_amount: walletCreditRequested
                 }
             }
         );
 
         if (error) throw error;
 
-        if (!data || data.success !== true || !data.checkout_url) {
-            throw new Error(
-                data?.error || "PayChangu did not return a checkout link."
-            );
+        if (!data || data.success !== true) {
+            throw new Error(data?.error || "Checkout could not be completed.");
         }
+        if(data.paid_by_wallet===true){
+            cart=[];
+            localStorage.setItem("rianderCart",JSON.stringify(cart));
+            updateCart();
+            message.textContent="Order "+(data.order_number||"")+" placed successfully using your shopping credit. No PayChangu payment is due.";
+            button.disabled=false;
+            button.innerHTML="<span>Continue to secure payment</span><strong>→</strong>";
+            await showDashboard();
+            showSection("dashboard");
+            return;
+        }
+        if(!data.checkout_url)throw new Error(data?.error||"PayChangu did not return a checkout link.");
 
         const checkoutUrl = new URL(data.checkout_url);
 
