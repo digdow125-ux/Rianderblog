@@ -1075,7 +1075,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <div class="paychangu-checkout">
       <div class="paychangu-heading">
         <div class="paychangu-lock">♙</div>
-        <div><span class="paychangu-kicker">SECURE PAYMENT</span><h3>Complete your order</h3><p>Your payment is processed securely by PayChangu.</p></div>
+        <div><span class="paychangu-kicker">SECURE PAYMENT</span><h3>Complete your order</h3><p>Pay securely through PayChangu. International customers can use Visa or Mastercard where enabled for RIANDERBLOG.</p></div>
         <div class="paychangu-brand">Pay<span>Changu</span></div>
       </div>
       <div class="paychangu-minimum-notice" role="note" style="margin:14px 0;padding:12px 14px;border:1px solid rgba(212,175,55,.55);border-radius:10px;background:rgba(212,175,55,.08);color:inherit;font-size:14px;line-height:1.5"><strong>Minimum payment: MK 10,000</strong><br>You can continue to PayChangu when your order reaches at least MK 10,000. Any invite reward discount only applies to the amount above MK 10,000, so at least MK 10,000 will remain payable.</div>
@@ -1110,7 +1110,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <div class="method-list">
       <button class="method-option selected" onclick="selectPayment('PayChangu',this)">🔒 PayChangu — Secure checkout</button>
     </div>
-    <div id="paymentInfo" class="method-info"><strong>PayChangu</strong><br>Pay securely through the PayChangu checkout page. Available payment options are shown by PayChangu when you continue from checkout.</div>
+    <div id="paymentInfo" class="method-info"><strong>PayChangu</strong><br>Customers in Malawi can use the local payment methods enabled for RIANDERBLOG. Customers outside Malawi can pay by Visa or Mastercard where international card payments are enabled on the merchant account. PayChangu shows the available options at checkout.</div>
     <p class="small-note">Never share your PIN or card password with anyone. Enter payment details only on the secure PayChangu checkout page.</p>
   </section>
 
@@ -3352,7 +3352,7 @@ function formatPrice(amount,from){
   catch(e){return displayCurrency+' '+converted.toFixed(2);}
 }
 const paymentDescriptions={
- 'PayChangu':'Customers are redirected to PayChangu secure checkout to complete payment. Available payment methods depend on the options enabled for RIANDERBLOG by PayChangu.'
+ 'PayChangu':'Customers are redirected to PayChangu secure checkout. International customers can use Visa or Mastercard where card payments are enabled for RIANDERBLOG; available methods depend on the merchant account.'
 };
 function selectPayment(method,button){document.querySelectorAll('.method-option').forEach(b=>b.classList.remove('selected'));if(button)button.classList.add('selected');document.getElementById('paymentInfo').innerHTML='<strong>'+escapeHTML(method)+'</strong><br>'+escapeHTML(paymentDescriptions[method]||'Use the secure PayChangu checkout to complete your payment.');}
 let suppliersCache=[];
