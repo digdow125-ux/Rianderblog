@@ -2832,16 +2832,18 @@ async function startPayChanguCheckout() {
 function getPendingReferralCode(){
   const params=new URLSearchParams(window.location.search);
   const incoming=params.get('ref');
-  if(incoming){sessionStorage.setItem('riander_referral_code',incoming.toUpperCase());}
-  return sessionStorage.getItem('riander_referral_code')||'';
+  if(incoming){localStorage.setItem('riander_referral_code',incoming.toUpperCase());}
+  return localStorage.getItem('riander_referral_code')||'';
 }
+// Capture the invitation immediately, before sign-in or Google OAuth redirects.
+getPendingReferralCode();
 async function claimPendingReferral(){
   const code=getPendingReferralCode();
   if(!code)return;
   try{
     const {data,error}=await db.rpc('claim_customer_referral',{p_referral_code:code});
     if(error)throw error;
-    sessionStorage.removeItem('riander_referral_code');
+    localStorage.removeItem('riander_referral_code');
     if(data===true){const msg=document.getElementById('message');if(msg)msg.textContent='Referral linked successfully. Your friend may earn MK1,000 shopping credit after your first completed purchase over MK20,000.';}
   }catch(e){console.warn('Referral could not be linked:',e.message);}
 }
