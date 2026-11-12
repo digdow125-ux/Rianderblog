@@ -3330,15 +3330,9 @@ document.addEventListener('click',event=>{
   }
 });
 
-// Save the visitor's preferred language. Full translation requires a translation service connection.
+// Saved language preference; whole-page translation is connected near the end of this file.
 let siteLanguage=localStorage.getItem('rianderblog_language')||((navigator.language||'en').split('-')[0]);
-function setSiteLanguage(code){
-  if(!/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(code))return;
-  siteLanguage=code;localStorage.setItem('rianderblog_language',code);
-  document.documentElement.lang=code;
-  const status=document.getElementById('siteLanguageStatus');
-  if(status)status.textContent='Language preference saved. Full translation will activate when the translation service is connected.';
-}
+function setSiteLanguage(code){ window.setTimeout(()=>{ if(typeof translateWholeSite==='function') translateWholeSite(); },0); if(!/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(code))return; siteLanguage=code;localStorage.setItem('rianderblog_language',code);document.documentElement.lang=code; }
 
 // Detect each visitor's country and show prices in its local currency.
 // A visitor's manual currency choice is remembered on that device.
@@ -4650,6 +4644,170 @@ async function installRianderblogApp(){
     alert('To install RIANDERBLOG, open this website in Chrome, tap the three dots (⋮), then choose Install app or Add to Home screen.');
   }
 }
+</script>
+
+
+<script>
+/* RIANDERBLOG whole-site translation. Text is sent to Google Cloud Translation through a private-key Edge Function. */
+const RIANDER_TRANSLATE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co/functions/v1/translate-site";
+const RIANDER_TRANSLATE_PUBLIC_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+if (typeof siteLanguage === "undefined") {
+  var siteLanguage = localStorage.getItem("rianderblog_language") || ((navigator.language || "en").split("-")[0]);
+}
+const rianderOriginalText = new WeakMap();
+const rianderOriginalAttrs = new WeakMap();
+const rianderAppliedLanguage = new WeakMap();
+let rianderTranslationRunning = false;
+let rianderTranslationQueued = false;
+let rianderTranslationTimer = null;
+let rianderTranslationCache = {};
+try { rianderTranslationCache = JSON.parse(localStorage.getItem("rianderblog_translation_cache_v1") || "{}") || {}; } catch (_) {}
+
+function rianderIsExcluded(node) {
+  const el = node && (node.nodeType === 1 ? node : node.parentElement);
+  if (!el) return true;
+  return !!el.closest('script,style,noscript,textarea,input,select,option,code,pre,[contenteditable="true"],.price,.support-msg,.support-log,.private-chat,.user-entered-content');
+}
+function rianderRememberAttr(el, name) {
+  let attrs = rianderOriginalAttrs.get(el);
+  if (!attrs) { attrs = {}; rianderOriginalAttrs.set(el, attrs); }
+  if (!(name in attrs)) attrs[name] = el.getAttribute(name) || "";
+  return attrs[name];
+}
+function rianderSetDirection(code) {
+  const rtl = /^(ar|fa|ur|he)(-|$)/i.test(code);
+  document.documentElement.dir = rtl ? "rtl" : "ltr";
+  document.documentElement.lang = code;
+}
+function rianderSaveCache() {
+  const keys = Object.keys(rianderTranslationCache);
+  if (keys.length > 700) {
+    const trimmed = {};
+    keys.slice(-500).forEach(k => trimmed[k] = rianderTranslationCache[k]);
+    rianderTranslationCache = trimmed;
+  }
+  try { localStorage.setItem("rianderblog_translation_cache_v1", JSON.stringify(rianderTranslationCache)); } catch (_) {}
+}
+function rianderCollectTranslationJobs(target) {
+  const jobs = new Map();
+  const add = (original, apply) => {
+    const source = String(original || "");
+    const trimmed = source.trim();
+    if (!trimmed || trimmed.length > 1000 || !/[A-Za-z]/.test(trimmed)) return;
+    const key = target + "|" + trimmed;
+    if (Object.prototype.hasOwnProperty.call(rianderTranslationCache, key)) {
+      apply(source.replace(trimmed, rianderTranslationCache[key]));
+      return;
+    }
+    if (!jobs.has(trimmed)) jobs.set(trimmed, []);
+    jobs.get(trimmed).push(apply);
+  };
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    if (rianderIsExcluded(node)) continue;
+    let original = rianderOriginalText.get(node);
+    if (original === undefined) { original = node.nodeValue || ""; rianderOriginalText.set(node, original); }
+    if (target === "en") {
+      if (node.nodeValue !== original) node.nodeValue = original;
+      rianderAppliedLanguage.set(node, "en");
+      continue;
+    }
+    if (rianderAppliedLanguage.get(node) === target) continue;
+    add(original, translated => { if (siteLanguage === target) { node.nodeValue = translated; rianderAppliedLanguage.set(node, target); } });
+  }
+  const attrs = ["placeholder", "title", "aria-label", "alt"];
+  document.querySelectorAll("body *").forEach(el => {
+    if (rianderIsExcluded(el)) return;
+    attrs.forEach(name => {
+      if (!el.hasAttribute(name)) return;
+      const original = rianderRememberAttr(el, name);
+      const applied = el.dataset["rianderTranslated" + name.replace(/[^a-z]/gi, "")] || "";
+      if (target === "en") {
+        if (el.getAttribute(name) !== original) el.setAttribute(name, original);
+        delete el.dataset["rianderTranslated" + name.replace(/[^a-z]/gi, "")];
+      } else if (applied !== target) {
+        add(original, translated => {
+          if (siteLanguage === target && el.isConnected) {
+            el.setAttribute(name, translated);
+            el.dataset["rianderTranslated" + name.replace(/[^a-z]/gi, "")] = target;
+          }
+        });
+      }
+    });
+  });
+  return jobs;
+}
+async function translateWholeSite() {
+  if (rianderTranslationRunning) { rianderTranslationQueued = true; return; }
+  rianderTranslationRunning = true;
+  try {
+    do {
+      rianderTranslationQueued = false;
+      const target = siteLanguage || "en";
+      rianderSetDirection(target);
+      const jobs = rianderCollectTranslationJobs(target);
+      if (target === "en" || !jobs.size) continue;
+      const unique = Array.from(jobs.keys());
+      for (let i = 0; i < unique.length; i += 80) {
+        if (siteLanguage !== target) break;
+        const batch = unique.slice(i, i + 80);
+        const response = await fetch(RIANDER_TRANSLATE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": RIANDER_TRANSLATE_PUBLIC_KEY,
+            "Authorization": "Bearer " + RIANDER_TRANSLATE_PUBLIC_KEY
+          },
+          body: JSON.stringify({ target, texts: batch })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || "Translation request failed.");
+        const translated = result.translations || [];
+        batch.forEach((source, index) => {
+          if (typeof translated[index] !== "string") return;
+          const value = translated[index];
+          rianderTranslationCache[target + "|" + source] = value;
+          (jobs.get(source) || []).forEach(apply => apply(value));
+        });
+        rianderSaveCache();
+      }
+    } while (rianderTranslationQueued);
+  } catch (error) {
+    console.warn("RIANDERBLOG translation:", error);
+    const status = document.getElementById("siteLanguageStatus");
+    if (status) status.textContent = error.message || "Translation is temporarily unavailable.";
+  } finally {
+    rianderTranslationRunning = false;
+    if (rianderTranslationQueued) translateWholeSite();
+  }
+}
+function scheduleWholeSiteTranslation() {
+  clearTimeout(rianderTranslationTimer);
+  rianderTranslationTimer = setTimeout(() => translateWholeSite(), 250);
+}
+function setSiteLanguage(code) {
+  if (!/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(code)) return;
+  siteLanguage = code;
+  localStorage.setItem("rianderblog_language", code);
+  rianderSetDirection(code);
+  const select = document.getElementById("siteLanguageSelect");
+  if (select) select.value = code;
+  const status = document.getElementById("siteLanguageStatus");
+  if (status) status.textContent = code === "en" ? "Language changed to English." : "Changing the whole website language…";
+  translateWholeSite();
+}
+(function startRianderLanguage() {
+  const select = document.getElementById("siteLanguageSelect");
+  if (select) select.value = siteLanguage;
+  rianderSetDirection(siteLanguage);
+  const observer = new MutationObserver(records => {
+    if (records.some(record => record.type === "childList" && (record.addedNodes.length || record.removedNodes.length))) scheduleWholeSiteTranslation();
+  });
+  if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", translateWholeSite, { once: true });
+  else translateWholeSite();
+})();
 </script>
 
 </body>
