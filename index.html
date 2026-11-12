@@ -4651,9 +4651,7 @@ async function installRianderblogApp(){
 /* RIANDERBLOG whole-site translation. Text is translated by Gemini AI through a private-key Edge Function. */
 const RIANDER_TRANSLATE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co/functions/v1/translate-site";
 const RIANDER_TRANSLATE_PUBLIC_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
-if (typeof siteLanguage === "undefined") {
-  var siteLanguage = localStorage.getItem("rianderblog_language") || ((navigator.language || "en").split("-")[0]);
-}
+/* Use the existing siteLanguage variable declared by the main application script. */
 const rianderOriginalText = new WeakMap();
 const rianderOriginalAttrs = new WeakMap();
 const rianderAppliedLanguage = new WeakMap();
@@ -4750,9 +4748,18 @@ async function translateWholeSite() {
       const jobs = rianderCollectTranslationJobs(target);
       if (target === "en" || !jobs.size) continue;
       const unique = Array.from(jobs.keys());
-      for (let i = 0; i < unique.length; i += 50) {
+      let i = 0;
+      while (i < unique.length) {
         if (siteLanguage !== target) break;
-        const batch = unique.slice(i, i + 50);
+        const batch = [];
+        let batchChars = 0;
+        while (i < unique.length && batch.length < 40) {
+          const next = unique[i];
+          if (batch.length && batchChars + next.length > 6500) break;
+          batch.push(next);
+          batchChars += next.length;
+          i += 1;
+        }
         const response = await fetch(RIANDER_TRANSLATE_URL, {
           method: "POST",
           headers: {
