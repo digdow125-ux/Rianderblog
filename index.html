@@ -1344,6 +1344,10 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
           <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
           <label for="password">Password</label>
           <input id="password" type="password" placeholder="Enter your password" autocomplete="current-password">
+          <label id="termsAcceptanceRow" style="display:none;align-items:flex-start;gap:9px;margin:14px 0;font-weight:400;line-height:1.5">
+            <input id="acceptTerms" type="checkbox" style="width:auto;min-width:18px;margin-top:3px">
+            <span>I have read and agree to RIANDERBLOG's <a href="./policies.html#terms" target="_blank" rel="noopener" style="color:#b88932;text-decoration:underline">Terms and Conditions</a>.</span>
+          </label>
           <button id="accountSubmitButton" class="account-submit" type="button" onclick="submitAccountForm()">Sign in securely</button>
           <div class="account-divider"><span>or continue with</span></div>
           <button class="google-account-button" type="button" onclick="signInWithGoogle()"><strong>G</strong> Continue with Google</button>
@@ -2963,6 +2967,11 @@ async function signUp() {
     return;
   }
 
+  if (!document.getElementById("acceptTerms")?.checked) {
+    document.getElementById("message").textContent = "Please read and agree to the Terms and Conditions before creating your account.";
+    return;
+  }
+
   const {error} = await db.auth.signUp({
     email,password,
     options:{emailRedirectTo:window.location.origin + window.location.pathname}
@@ -2992,6 +3001,11 @@ async function signIn() {
 }
 
 async function signInWithGoogle() {
+  const creatingAccount=document.getElementById('accountSignUpTab')?.classList.contains('active');
+  if(creatingAccount && !document.getElementById("acceptTerms")?.checked) {
+    document.getElementById("message").textContent = "Please read and agree to the Terms and Conditions before continuing with Google.";
+    return;
+  }
   const { error } = await db.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -3120,6 +3134,8 @@ function setAccountMode(mode){
   if(submit)submit.textContent=signup?'Create my free account':'Sign in securely';
   const password=document.getElementById('password');
   if(password)password.autocomplete=signup?'new-password':'current-password';
+  const termsRow=document.getElementById('termsAcceptanceRow');
+  if(termsRow)termsRow.style.display=signup?'flex':'none';
 }
 async function submitAccountForm(){
   const signup=document.getElementById('accountSignUpTab')?.classList.contains('active');
