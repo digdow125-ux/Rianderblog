@@ -2688,10 +2688,10 @@ function updateCart() {
       ${safeUrl(item.image_url) ? `<img src="${safeUrl(item.image_url)}" alt="">` : ""}
       <div class="cart-info">
         <strong>${escapeHTML(item.name)}</strong>
-        <p>${escapeHTML(item.currency)} ${Number(item.price).toFixed(2)}</p>
+        <p>${escapeHTML(formatPrice(item.price,item.currency||'USD'))} <span class="small-note">(local display estimate)</span></p>
         <p>Minimum order: ${Number(item.minimum_order_quantity||1)} unit(s)</p>
         ${item.selected_colour?'<p>Colour: '+escapeHTML(item.selected_colour)+'</p>':''}
-        <p>Subtotal: ${escapeHTML(item.currency)} ${(item.price * item.quantity).toFixed(2)}</p>
+        <p>Subtotal: ${escapeHTML(formatPrice(item.price * item.quantity,item.currency||'USD'))}</p>
       </div>
       <button onclick="changeQuantity('${escapeHTML(item.id)}',-1)">−</button>
       <strong>${item.quantity}</strong>
@@ -2706,8 +2706,8 @@ function updateCart() {
     totals[c] = (totals[c] || 0) + item.price * item.quantity;
   });
 
-  totalElement.textContent = "Cart total: " +
-    Object.entries(totals).map(([c,v]) => c + " " + v.toFixed(2)).join(" + ");
+  totalElement.textContent = "Cart total (display estimate): " +
+    Object.entries(totals).map(([c,v]) => formatPrice(v,c)).join(" + ");
 
   note.textContent =
     "Complete your order and payment securely on RIANDERBLOG. Use Messages to contact the supplier without leaving the website.";
@@ -3323,33 +3323,56 @@ document.addEventListener('click',event=>{
   }
 });
 
-// Currency display: best-effort country detection, with a manual selector fallback.
+// Detect each visitor's country and show prices in its local currency.
+// A visitor's manual currency choice is remembered on that device.
 let displayCurrency = localStorage.getItem('rianderblog_currency') || 'USD';
 let exchangeRates = {};
-const currencyByCountry = {MW:'MWK',US:'USD',GB:'GBP',ZA:'ZAR',KE:'KES',NG:'NGN',GH:'GHS',IN:'INR',CA:'CAD',AU:'AUD',JP:'JPY',DE:'EUR',FR:'EUR',IT:'EUR',ES:'EUR',NL:'EUR'};
+const currencyByCountry = {MW:'MWK',US:'USD',GB:'GBP',ZA:'ZAR',KE:'KES',NG:'NGN',GH:'GHS',IN:'INR',CA:'CAD',AU:'AUD',JP:'JPY',DE:'EUR',FR:'EUR',IT:'EUR',ES:'EUR',NL:'EUR',BE:'EUR',AT:'EUR',IE:'EUR',PT:'EUR',FI:'EUR',GR:'EUR',CY:'EUR',LU:'EUR',MT:'EUR',SK:'EUR',SI:'EUR',EE:'EUR',LV:'EUR',LT:'EUR',CH:'CHF',CN:'CNY',HK:'HKD',SG:'SGD',MY:'MYR',ID:'IDR',PH:'PHP',TH:'THB',VN:'VND',PK:'PKR',BD:'BDT',LK:'LKR',NP:'NPR',UG:'UGX',TZ:'TZS',RW:'RWF',ZM:'ZMW',BW:'BWP',SZ:'SZL',LS:'LSL',MZ:'MZN',AO:'AOA',ET:'ETB',EG:'EGP',MA:'MAD',TN:'TND',TR:'TRY',IL:'ILS',SA:'SAR',AE:'AED',QA:'QAR',KW:'KWD',BH:'BHD',OM:'OMR',JO:'JOD',BR:'BRL',MX:'MXN',AR:'ARS',CL:'CLP',CO:'COP',PE:'PEN',UY:'UYU',PY:'PYG',BO:'BOB',CR:'CRC',PA:'PAB',DO:'DOP',JM:'JMD',TT:'TTD',BB:'BBD',BS:'BSD',GD:'XCD',VC:'XCD',LC:'XCD',AG:'XCD',DM:'XCD',KN:'XCD',AI:'XCD',US:'USD',NZ:'NZD',FJ:'FJD',PG:'PGK',KR:'KRW'};
 async function initialiseCurrency(){
+  let detectedCurrency='';
   try {
-    const saved=localStorage.getItem('rianderblog_currency');
-    if(saved){displayCurrency=saved;}
-    else {
-      const r=await fetch('https://ipapi.co/json/'); const geo=await r.json();
-      displayCurrency=currencyByCountry[geo.country_code] || geo.currency || 'USD';
-    }
-  } catch(e){displayCurrency=localStorage.getItem('rianderblog_currency')||'USD';}
+    const r=await fetch('https://ipapi.co/json/');
+    if(!r.ok)throw new Error('Country lookup failed');
+    const geo=await r.json();
+    detectedCurrency=currencyByCountry[geo.country_code] || geo.currency || '';
+  } catch(e) {}
+  displayCurrency=localStorage.getItem('rianderblog_currency') || detectedCurrency || 'USD';
+  await loadRates();
+  populateCurrencyOptions();
   const select=document.getElementById('currencySelect');
-  if([...select.options].some(o=>o.value===displayCurrency)) select.value=displayCurrency;
-  document.getElementById('currencyStatus').textContent='Showing '+displayCurrency+' (estimated from your country; you can change it).';
-  await loadRates(); displayProducts(); updateCart();
+  if(select)select.value=displayCurrency;
+  const status=document.getElementById('currencyStatus');
+  if(status)status.textContent='Prices shown in '+displayCurrency+(detectedCurrency?' based on your country.':' (country detection unavailable). You can change currency below.');
+  displayProducts(); updateCart();
 }
 async function loadRates(){
   try{const r=await fetch('https://open.er-api.com/v6/latest/USD');const j=await r.json();if(j.result==='success')exchangeRates=j.rates||{};}catch(e){exchangeRates={};}
 }
-function setCurrency(code){displayCurrency=code;localStorage.setItem('rianderblog_currency',code);document.getElementById('currencyStatus').textContent='Currency set to '+code+'.';displayProducts();updateCart();}
+function populateCurrencyOptions(){
+  const select=document.getElementById('currencySelect');if(!select)return;
+  const codes=Object.keys(exchangeRates).sort();
+  if(!codes.includes(displayCurrency))codes.push(displayCurrency);
+  const names=new Intl.DisplayNames([navigator.language||'en'],{type:'currency'});
+  select.innerHTML=codes.map(code=>{
+    let name=code;try{name=names.of(code)||code;}catch(e){}
+    return '<option value="'+escapeHTML(code)+'">'+escapeHTML(code+' – '+name)+'</option>';
+  }).join('');
+}
+function setCurrency(code){
+  if(!/^[A-Z]{3}$/.test(code))return;
+  displayCurrency=code;localStorage.setItem('rianderblog_currency',code);
+  const status=document.getElementById('currencyStatus');
+  if(status)status.textContent='Prices now shown in '+code+'.';
+  displayProducts();updateCart();
+}
 function formatPrice(amount,from){
-  const n=Number(amount||0); let converted=n;
-  if(from!==displayCurrency && exchangeRates[from] && exchangeRates[displayCurrency]) converted=n/exchangeRates[from]*exchangeRates[displayCurrency];
-  try{return new Intl.NumberFormat(undefined,{style:'currency',currency:displayCurrency,maximumFractionDigits:2}).format(converted)+(from!==displayCurrency?' (approx.)':'');}
-  catch(e){return displayCurrency+' '+converted.toFixed(2);}
+  const n=Number(amount||0);let converted=n;const source=String(from||'USD').toUpperCase();
+  if(source!==displayCurrency){
+    if(exchangeRates[source]&&exchangeRates[displayCurrency])converted=n/exchangeRates[source]*exchangeRates[displayCurrency];
+    else return source+' '+n.toFixed(2)+' (conversion unavailable)';
+  }
+  try{return new Intl.NumberFormat(undefined,{style:'currency',currency:displayCurrency,maximumFractionDigits:2}).format(converted)+(source!==displayCurrency?' (approx.)':'');}
+  catch(e){return displayCurrency+' '+converted.toFixed(2)+(source!==displayCurrency?' (approx.)':'');}
 }
 const paymentDescriptions={
  'PayChangu':'Customers are redirected to PayChangu secure checkout. International customers can use Visa or Mastercard where card payments are enabled for RIANDERBLOG; available methods depend on the merchant account.'
