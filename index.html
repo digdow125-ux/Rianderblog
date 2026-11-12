@@ -2877,14 +2877,24 @@ async function copyReferralLink(){
   catch(e){window.prompt('Copy your referral link:',link);}
 }
 async function loadReferralDashboard(user){
-  const {data,error}=await db.from('profiles').select('referral_code').eq('id',user.id).single();
-  if(error)throw error;
-  const {data:rows,error:refError}=await db.from('customer_referrals').select('id,status,reward_amount,currency,created_at').eq('referrer_user_id',user.id);
-  if(refError)throw refError;
-  const earned=(rows||[]).filter(x=>x.status==='rewarded').length*1000;
-  const link=window.location.origin+window.location.pathname+'?ref='+encodeURIComponent(data.referral_code);
   const el=document.getElementById('referralDashboard');
-  if(el)el.innerHTML='<h3>Invite friends & earn</h3><p>Share your link. When a friend signs up and completes a paid order over <strong>MK20,000</strong>, you receive <strong>MK1,000</strong> shopping credit once.</p><p><strong>Your referral code:</strong> '+escapeHTML(data.referral_code)+'</p><button class="primary" type="button" onclick="copyReferralLink()">Copy my invite link</button><p><strong>Friends invited:</strong> '+(rows||[]).length+' &nbsp; <strong>Rewards earned:</strong> MK'+earned.toLocaleString()+'</p>';
+  if(el)el.innerHTML='<h3>🎁 Invite friends & earn</h3><p>Loading your invitation details…</p>';
+  try{
+    const {data,error}=await db.from('profiles').select('referral_code').eq('id',user.id).maybeSingle();
+    if(error)throw error;
+    if(!data?.referral_code){
+      if(el)el.innerHTML='<h3>🎁 Invite friends & earn</h3><p>Your invitation profile is being prepared. Please refresh your dashboard in a moment.</p>';
+      return;
+    }
+    const {data:rows,error:refError}=await db.from('customer_referrals').select('id,status,reward_amount,currency,created_at').eq('referrer_user_id',user.id);
+    if(refError)throw refError;
+    const invited=rows||[];
+    const earned=invited.filter(x=>x.status==='rewarded').length*1000;
+    if(el)el.innerHTML='<h3>🎁 Invite friends & earn</h3><p>Share your link. When a friend signs up and completes a paid order over <strong>MK20,000</strong>, you receive <strong>MK1,000</strong> shopping credit once.</p><p><strong>Your referral code:</strong> '+escapeHTML(data.referral_code)+'</p><button class="primary" type="button" onclick="copyReferralLink()">Copy my invite link</button><p><strong>Friends invited:</strong> '+invited.length+' &nbsp; <strong>Rewards earned:</strong> MK'+earned.toLocaleString()+'</p>';
+  }catch(error){
+    console.error('Referral dashboard could not load:',error);
+    if(el)el.innerHTML='<h3>🎁 Invite friends & earn</h3><p>Your account is available, but invitation details could not be loaded. Please try Refresh Dashboard.</p>';
+  }
 }
 async function signUp() {
   const email = document.getElementById("email").value.trim();
