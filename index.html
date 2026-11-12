@@ -3334,7 +3334,7 @@ async function initialiseCurrency(){
     const r=await fetch('https://ipapi.co/json/');
     if(!r.ok)throw new Error('Country lookup failed');
     const geo=await r.json();
-    detectedCurrency=currencyByCountry[geo.country_code] || geo.currency || '';
+    detectedCurrency=String(geo.currency || currencyByCountry[geo.country_code] || '').toUpperCase();
   } catch(e) {}
   displayCurrency=localStorage.getItem('rianderblog_currency') || detectedCurrency || 'USD';
   await loadRates();
@@ -3350,8 +3350,10 @@ async function loadRates(){
 }
 function populateCurrencyOptions(){
   const select=document.getElementById('currencySelect');if(!select)return;
-  const codes=Object.keys(exchangeRates).sort();
+  let codes=Object.keys(exchangeRates);
+  try{if(typeof Intl.supportedValuesOf==='function')codes=[...new Set([...codes,...Intl.supportedValuesOf('currency')])];}catch(e){}
   if(!codes.includes(displayCurrency))codes.push(displayCurrency);
+  codes.sort();
   const names=new Intl.DisplayNames([navigator.language||'en'],{type:'currency'});
   select.innerHTML=codes.map(code=>{
     let name=code;try{name=names.of(code)||code;}catch(e){}
