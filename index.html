@@ -948,6 +948,8 @@ main{max-width:1220px}
 .product-row-rejected td{background:#fff0f0!important}
 .product-unapproved-notice{margin-top:8px;padding:8px 10px;background:#fff0c2;border-left:4px solid #d99a13;border-radius:5px;color:#795000;font-size:12px;font-weight:800}
 .product-approved-notice{margin-top:8px;padding:8px 10px;background:#e5f7ec;border-left:4px solid #29965a;border-radius:5px;color:#176b39;font-size:12px;font-weight:800}
+.share-product-btn{display:block;width:100%;margin-top:8px;padding:10px 12px;border:1px solid #d9e3ee;border-radius:7px;background:#f4f7fb;color:#173b63;font-size:12px;font-weight:800}
+.share-product-btn:hover{background:#e9f0f8;border-color:#aebfd2}
 </style>
 </head>
 <body>
@@ -2458,6 +2460,11 @@ async function loadProducts() {
   displayProducts();
   updateCart();
   renderAdminProducts();
+  const sharedProductId = new URLSearchParams(window.location.search).get('product');
+  if(sharedProductId){
+    const sharedProduct=allProducts.find(p=>String(p.id)===String(sharedProductId)&&p.is_active===true);
+    if(sharedProduct) openDetails(sharedProductId);
+  }
 }
 
 function displayProducts() {
@@ -2490,11 +2497,35 @@ function displayProducts() {
         <button class="details-btn" onclick="openDetails('${escapeHTML(p.id)}')">View Details</button>
         <button class="add" onclick="addToCart('${escapeHTML(p.id)}')">Add to Cart</button>
       </div>
+      <button class="share-product-btn" onclick="shareProduct('${escapeHTML(p.id)}')">↗ Share Product</button>
       <button class="buy" onclick="startSupplierConversation('${escapeHTML(p.id)}')">Message Supplier</button>
     </article>
   `).join("");
 }
 
+function getShareProductUrl(productId){
+  const url=new URL(window.location.href);
+  url.search='';
+  url.hash='';
+  url.searchParams.set('product',String(productId));
+  return url.toString();
+}
+async function shareProduct(productId){
+  const p=allProducts.find(x=>String(x.id)===String(productId));
+  if(!p)return;
+  const url=getShareProductUrl(p.id);
+  const text='Check out '+p.name+' on RIANDERBLOG — '+formatPrice(p.price,p.currency||'MWK');
+  try{
+    if(navigator.share){
+      await navigator.share({title:p.name,text,url});
+      return;
+    }
+  }catch(error){
+    if(error&&error.name==='AbortError')return;
+  }
+  const whatsapp='https://wa.me/?text='+encodeURIComponent(text+' '+url);
+  window.open(whatsapp,'_blank','noopener,noreferrer');
+}
 function filterCategory(category,button) {
   currentCategory = category;
   document.querySelectorAll(".categories button").forEach(b => b.classList.remove("active"));
@@ -2542,6 +2573,7 @@ function openDetails(id) {
         <div class="detail-actions">
           <button class="detail-add" onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">Add to Cart</button>
           <button class="detail-buy" onclick="startSupplierConversation('${escapeHTML(p.id)}');closeDetails()">Message Supplier</button>
+          <button class="share-product-btn" onclick="shareProduct('${escapeHTML(p.id)}')">↗ Share Product</button>
         </div>
       </div>
     </div>
