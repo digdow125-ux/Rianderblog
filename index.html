@@ -993,7 +993,9 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   <div class="nav-links" id="navLinks">
     <a href="#products" onclick="showSection('products');closeMenu();return false">🏠 Home – Shop products</a>
     <a href="#cart" onclick="showSection('cart');closeMenu();return false">🛒 My cart (<span id="cartCount">0</span>)</a>
-    <a href="#account" onclick="showSection('account');closeMenu();return false">👤 Sign in / My account</a>
+    <a href="#account" id="navMyAccount" style="display:none" onclick="showSection('account');closeMenu();return false">👤 My Account</a>
+    <a href="#account" id="navCreateAccount" onclick="showSection('account');setAccountMode('signup');closeMenu();return false">📝 Create Account</a>
+    <a href="#account" id="navSignIn" onclick="showSection('account');setAccountMode('signin');closeMenu();return false">🔐 Sign In</a>
     <a href="#messages" onclick="showSection('messages');closeMenu();return false">💬 My messages</a>
     <a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();closeMenu();return false">📦 Track my orders</a>
     <a href="#dashboard" onclick="showSection('dashboard');showDashboard();closeMenu();return false">📊 My dashboard</a>
@@ -3069,6 +3071,12 @@ async function submitAccountForm(){
 }
 function updateAccountExperience(user){
   const signedIn=!!user;
+  const myAccountLink=document.getElementById('navMyAccount');
+  const createAccountLink=document.getElementById('navCreateAccount');
+  const signInLink=document.getElementById('navSignIn');
+  if(myAccountLink)myAccountLink.style.display=signedIn?'block':'none';
+  if(createAccountLink)createAccountLink.style.display=signedIn?'none':'block';
+  if(signInLink)signInLink.style.display=signedIn?'none':'block';
   const guest=document.getElementById('guestSignupBanner');
   const welcome=document.getElementById('signedInWelcome');
   const signedOutPanel=document.getElementById('accountSignedOut');
