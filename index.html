@@ -4781,6 +4781,8 @@ async function translateWholeSite() {
         rianderSaveCache();
       }
     } while (rianderTranslationQueued);
+    const status = document.getElementById("siteLanguageStatus");
+    if (status && siteLanguage !== "en") status.textContent = "Website translation complete.";
   } catch (error) {
     console.warn("RIANDERBLOG translation:", error);
     const status = document.getElementById("siteLanguageStatus");
