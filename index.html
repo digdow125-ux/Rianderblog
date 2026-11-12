@@ -2717,10 +2717,8 @@ async function loadCustomerWalletCredit(){
     const balance=Math.max(0,Math.floor(Number(data)||0));
     const total=(cart||[]).reduce((sum,x)=>sum+Number(x.price||0)*Number(x.quantity||0),0);
     customerInviteDiscount=Math.min(balance,Math.floor(total));
-    if(customerInviteDiscount>0){
-      summary.textContent='🎁 Invite reward discount: −MK '+customerInviteDiscount.toLocaleString()+' · New total after discount: MK '+Math.max(0,Math.round(total)-customerInviteDiscount).toLocaleString();
-      summary.style.display='block';
-    }
+    summary.textContent='🎁 Invite reward discount: −MK '+customerInviteDiscount.toLocaleString()+' · New total after discount: MK '+Math.max(0,Math.round(total)-customerInviteDiscount).toLocaleString();
+    summary.style.display='block';
     return customerInviteDiscount;
   }catch(e){
     customerInviteDiscount=0;
