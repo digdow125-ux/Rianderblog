@@ -2721,8 +2721,9 @@ async function loadCustomerWalletCredit(){
     if(error)throw error;
     const balance=Math.max(0,Math.floor(Number(data)||0));
     const total=(cart||[]).reduce((sum,x)=>sum+Number(x.price||0)*Number(x.quantity||0),0);
-    customerInviteDiscount=Math.min(balance,Math.floor(total));
-    summary.textContent='🎁 Invite reward discount: −MK '+customerInviteDiscount.toLocaleString()+' · New total after discount: MK '+Math.max(0,Math.round(total)-customerInviteDiscount).toLocaleString();
+    const maximumDiscount=Math.max(0,Math.floor(total)-10000);
+    customerInviteDiscount=Math.min(balance,maximumDiscount);
+    summary.textContent='🎁 Invite reward discount: −MK '+customerInviteDiscount.toLocaleString()+' · PayChangu payment: MK '+Math.max(0,Math.round(total)-customerInviteDiscount).toLocaleString()+' (minimum MK 10,000)';
     summary.style.display='block';
     return customerInviteDiscount;
   }catch(e){
@@ -2765,6 +2766,10 @@ async function startPayChanguCheckout() {
     walletCreditRequested = cartCurrency === "MWK" ? await loadCustomerWalletCredit() : 0;
     if (cartCurrency === "MWK" && cartTotal < 10000) {
         message.textContent = "Minimum order value is MK 10,000. Add more products to your cart before checkout.";
+        return;
+    }
+    if (cartCurrency === "MWK" && Math.round(cartTotal - walletCreditRequested) < 10000) {
+        message.textContent = "At least MK 10,000 must remain payable through PayChangu. Invite credit is only applied to the amount above MK 10,000.";
         return;
     }
 
