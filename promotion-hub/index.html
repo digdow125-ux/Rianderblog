@@ -24,7 +24,14 @@ main{max-width:1180px;margin:28px auto;padding:0 18px}.hero{background:var(--whi
 <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Password"></div>
 <div class="row"><button id="login" class="btn">Sign in</button><button id="signup" class="btn gold">Create account</button></div>
 <div id="authMessage" class="notice hidden"></div></section>
-<section id="appPanel" class="hidden">
+<section id="appPanel" class="hidden">\n<section id="automationPanel" class="panel" style="margin-bottom:20px">
+<h2>Daily automatic content creation</h2>
+<p class="muted">When enabled, the Hub prepares up to 15 new items for each of Facebook, Instagram, TikTok, YouTube Shorts, X and WhatsApp Business every day (up to 90 drafts). Everything is saved as a draft for your review and approval. This uses your Gemini API quota. It does not publish automatically.</p>
+<div id="automationStatus" class="notice">Checking daily generation settings…</div>
+<div class="row" style="margin-top:12px"><button id="enableAutomation" class="btn gold">Enable daily generation</button><button id="pauseAutomation" class="btn light">Pause daily generation</button></div>
+<div id="automationMessage" class="notice hidden"></div>
+</section>
+
 <div class="grid">
 <section class="panel"><h2>Content studio</h2>
 <div class="field"><label>Content format</label><select id="contentType"><option value="social post">Social media post</option><option value="short video script">Short promotional video script (TikTok / Reels / Shorts)</option><option value="how-to tutorial">Teaching guide: how to use RIANDERBLOG</option><option value="news article">RIANDERBLOG news / announcement</option><option value="video storyboard">Video storyboard with scenes and on-screen text</option></select></div>
@@ -57,11 +64,40 @@ function message(id, text, type="") { const el=$(id); el.textContent=text; el.cl
 function clearMessage(id){$(id).classList.add("hidden")}
 function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 async function refreshSession(){const {data}=await sb.auth.getSession(); setUser(data.session?.user||null);}
-function setUser(user){currentUser=user;$("authPanel").classList.toggle("hidden",!!user);$("appPanel").classList.toggle("hidden",!user);$("signOut").classList.toggle("hidden",!user);$("userLabel").textContent=user?.email||"";if(user){loadProducts();loadPosts();}}
+function setUser(user){currentUser=user;$("authPanel").classList.toggle("hidden",!!user);$("appPanel").classList.toggle("hidden",!user);$("signOut").classList.toggle("hidden",!user);$("userLabel").textContent=user?.email||"";if(user){loadProducts();loadPosts();loadAutomationSettings();}}
 sb.auth.onAuthStateChange((_event,session)=>setUser(session?.user||null));
 $("login").onclick=async()=>{clearMessage("authMessage");const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)message("authMessage",error.message,"error");};
 $("signup").onclick=async()=>{clearMessage("authMessage");const {error}=await sb.auth.signUp({email:$("email").value.trim(),password:$("password").value,options:{emailRedirectTo:location.href}});if(error)message("authMessage",error.message,"error");else message("authMessage","Account created. Check your email if confirmation is required, then sign in.","success");};
 $("signOut").onclick=async()=>{await sb.auth.signOut();};
+async function loadAutomationSettings(){
+ if(!currentUser)return;
+ const status=$("automationStatus");
+ const {data,error}=await sb.from("promo_automation_settings").select("enabled,posts_per_platform,timezone").eq("user_id",currentUser.id).maybeSingle();
+ if(error){status.textContent="Could not read automation settings: "+error.message;return;}
+ if(!data){status.textContent="Daily generation is currently off. Enable it to start creating drafts each day.";}
+ else{status.textContent=data.enabled?"Daily generation is ON: up to "+(Number(data.posts_per_platform)*6)+" drafts each day, saved for your approval. Time zone: "+data.timezone+".":"Daily generation is paused.";}
+ const {data:run}=await sb.from("promo_generation_runs").select("run_date,status,generated_count").eq("user_id",currentUser.id).order("run_date",{ascending:false}).limit(1).maybeSingle();
+ if(run){status.textContent+=" Last run: "+run.run_date+" — "+run.status+" ("+run.generated_count+" drafts).";}
+}
+async function configureAutomation(enabled){
+ if(enabled&&!confirm("Enable up to 90 AI-generated drafts every day? This uses your Gemini API quota. All items will remain drafts for your approval; nothing will be published automatically."))return;
+ const b=enabled?$("enableAutomation"):$("pauseAutomation");b.disabled=true;
+ try{
+  const {data,error}=await sb.functions.invoke("promo-daily-generate",{body:{action:"configure",enabled}});
+  if(error)throw error;
+  if(data?.error)throw new Error(data.error);
+  $("automationMessage").textContent=data?.message||"Settings updated.";
+  $("automationMessage").className="notice success";
+  $("automationMessage").classList.remove("hidden");
+  await loadAutomationSettings();
+ }catch(e){
+  $("automationMessage").textContent=e.message||"Could not update daily generation settings.";
+  $("automationMessage").className="notice error";
+  $("automationMessage").classList.remove("hidden");
+ }finally{b.disabled=false;}
+}
+$("enableAutomation").onclick=()=>configureAutomation(true);
+$("pauseAutomation").onclick=()=>configureAutomation(false);
 async function loadProducts(){const select=$("product");select.innerHTML='<option value="">Select a product</option>';const {data,error}=await sb.from("products").select("id,name,description,category,price,currency,image_url").eq("is_active",true).order("created_at",{ascending:false});if(error){select.innerHTML='<option value="">Products could not load</option>';return;}productRows=data||[];productRows.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=p.name+(p.price?" · "+p.price+" "+(p.currency||""):"");select.appendChild(o);});}
 function selectedProduct(){return productRows.find(p=>String(p.id)===$("product").value);}
 $("generate").onclick=async()=>{const p=selectedProduct();if(!p && !["how-to tutorial","news article","video storyboard","short video script"].includes($("contentType").value)){message("createMessage","Choose a product or select a tutorial, news or video format.","error");return;}const b=$("generate");b.disabled=true;b.textContent="Generating…";clearMessage("createMessage");try{const {data,error}=await sb.functions.invoke("promo-generate",{body:{product:p,platform:$("platform").value,tone:$("tone").value,language:$("language").value,contentType:$("contentType").value,topic:$("topic").value.trim()}});if(error)throw error;const txt=data?.text||"";const split=txt.split(/\n(?=#)/);$("caption").value=split[0].trim();$("hashtags").value=split.slice(1).join("\n").trim()||((txt.match(/#\w+/g)||[]).join(" "));if(!$("hashtags").value)$("caption").value=txt;message("createMessage","AI draft generated. Review it before saving.","success");}catch(e){message("createMessage",e.message||"Could not generate content. Check the AI key in Supabase.","error");}finally{b.disabled=false;b.textContent="✦ Generate with AI";}};
