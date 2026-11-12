@@ -3168,6 +3168,7 @@ function updateAccountExperience(user){
     const msg=document.getElementById('message');
     if(msg)msg.textContent='You are browsing as a guest. Sign in or create a free account.';
   }
+  if(typeof loadCustomerWalletCredit==='function')loadCustomerWalletCredit();
 }
 async function uploadProfilePhoto(input){
  const message=document.getElementById('profilePhotoMessage');
