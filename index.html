@@ -1337,6 +1337,7 @@ main{max-width:1220px}
     <h2>👤 My Customer Dashboard</h2>
     <p id="dashboardStatus">Checking your account...</p>
     <div id="dashboardDetails"></div>
+    <div id="referralDashboard" class="market-card" style="margin-top:18px"></div>
     <button class="primary" onclick="showDashboard()">Refresh Dashboard</button>
     <p><a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();return false">Track my orders →</a></p>
     <p><a href="#cart">Go to My Shopping Cart</a></p>
@@ -2828,6 +2829,41 @@ async function startPayChanguCheckout() {
         button.innerHTML = "<span>Continue to secure payment</span><strong>→</strong>";
     }
 }
+function getPendingReferralCode(){
+  const params=new URLSearchParams(window.location.search);
+  const incoming=params.get('ref');
+  if(incoming){sessionStorage.setItem('riander_referral_code',incoming.toUpperCase());}
+  return sessionStorage.getItem('riander_referral_code')||'';
+}
+async function claimPendingReferral(){
+  const code=getPendingReferralCode();
+  if(!code)return;
+  try{
+    const {data,error}=await db.rpc('claim_customer_referral',{p_referral_code:code});
+    if(error)throw error;
+    sessionStorage.removeItem('riander_referral_code');
+    if(data===true){const msg=document.getElementById('message');if(msg)msg.textContent='Referral linked successfully. Your friend may earn MK1,000 shopping credit after your first completed purchase over MK20,000.';}
+  }catch(e){console.warn('Referral could not be linked:',e.message);}
+}
+async function copyReferralLink(){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user)return;
+  const {data,error}=await db.from('profiles').select('referral_code').eq('id',user.id).single();
+  if(error||!data?.referral_code)return;
+  const link=window.location.origin+window.location.pathname+'?ref='+encodeURIComponent(data.referral_code);
+  try{await navigator.clipboard.writeText(link);alert('Your referral link has been copied. Share it with friends!');}
+  catch(e){window.prompt('Copy your referral link:',link);}
+}
+async function loadReferralDashboard(user){
+  const {data,error}=await db.from('profiles').select('referral_code').eq('id',user.id).single();
+  if(error)throw error;
+  const {data:rows,error:refError}=await db.from('customer_referrals').select('id,status,reward_amount,currency,created_at').eq('referrer_user_id',user.id);
+  if(refError)throw refError;
+  const earned=(rows||[]).filter(x=>x.status==='rewarded').length*1000;
+  const link=window.location.origin+window.location.pathname+'?ref='+encodeURIComponent(data.referral_code);
+  const el=document.getElementById('referralDashboard');
+  if(el)el.innerHTML='<h3>Invite friends & earn</h3><p>Share your link. When a friend signs up and completes a paid order over <strong>MK20,000</strong>, you receive <strong>MK1,000</strong> shopping credit once.</p><p><strong>Your referral code:</strong> '+escapeHTML(data.referral_code)+'</p><button class="primary" type="button" onclick="copyReferralLink()">Copy my invite link</button><p><strong>Friends invited:</strong> '+(rows||[]).length+' &nbsp; <strong>Rewards earned:</strong> MK'+earned.toLocaleString()+'</p>';
+}
 async function signUp() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -2859,6 +2895,7 @@ async function signIn() {
   if(!error){
     const {data:{user}}=await db.auth.getUser();
     updateAccountExperience(user);
+    await claimPendingReferral();
     showSection("dashboard");
   }
   await showDashboard();
@@ -2957,6 +2994,7 @@ async function showDashboard() {
     status.textContent="Welcome to RIANDERBLOG!";
     const name=user.user_metadata?.full_name||user.user_metadata?.name||user.email||"Customer";
     details.innerHTML='<div class="customer-account-summary"><div><small>ACCOUNT EMAIL</small><strong>'+escapeHTML(user.email||"")+'</strong></div><div><small>ACCOUNT STATUS</small><strong>'+(user.email_confirmed_at?"Verified":"Not verified")+'</strong></div><div><small>MEMBER SINCE</small><strong>'+escapeHTML(new Date(user.created_at).toLocaleDateString())+'</strong></div></div><p>Welcome, '+escapeHTML(name)+'. Manage your profile and use the menu to track your purchases.</p>';
+    await loadReferralDashboard(user);
   }catch(error){status.textContent="Could not load your account.";details.textContent=error.message;}
 }
 async function showCustomerOrderTracking(){
@@ -3063,6 +3101,7 @@ let notificationChannel=null;
 db.auth.onAuthStateChange((event,session) => {
   const user=session?.user||null;
   updateAccountExperience(user);
+  if(user)claimPendingReferral();
   if(user)loadProfilePhoto(user);
   updateAdminVisibility(user);
   startNotifications(user);
