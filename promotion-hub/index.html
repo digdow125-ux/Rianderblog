@@ -51,7 +51,7 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 </section>
 <section class="panel tutorials"><h2>Make a customer tutorial video</h2><p class="sub">Create a short RIANDERBLOG-branded tutorial with animated scenes and captions. Works in a modern browser; keep this page open while it renders.</p>
 <div class="field"><label for="tutorialChoice">Choose a lesson</label><select id="tutorialChoice"><option value="account">1. Create an account and sign in</option><option value="search">2. Search and choose products</option><option value="cart">3. Use your cart and visit the supplier</option></select></div>
-<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><canvas id="tutorialCanvas" width="360" height="640" style="width:min(100%,220px);height:auto;background:#0d1b2e;border-radius:12px;border:1px solid #dce3ec"></canvas><div style="flex:1;min-width:190px"><div class="actions" style="margin-top:0"><button class="primary" id="makeTutorialBtn" onclick="makeTutorialVideo()">Create tutorial video</button><button class="secondary" id="downloadTutorialBtn" disabled onclick="downloadTutorialVideo()">Download video</button></div><div class="statusline" id="tutorialStatus">Choose a lesson, then create your video. Video is rendered on this device.</div><p class="sub">First version: animated branded scenes and on-screen captions, without AI voice narration. Export format: WebM.</p></div></div></section>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><canvas id="tutorialCanvas" width="360" height="640" style="width:min(100%,220px);height:auto;background:#0d1b2e;border-radius:12px;border:1px solid #dce3ec"></canvas><div style="flex:1;min-width:190px"><div class="actions" style="margin-top:0"><button class="primary" id="makeTutorialBtn" onclick="makeTutorialVideo()">Create tutorial video</button><button class="secondary" id="narrateTutorialBtn" onclick="playTutorialNarration()">▶ Listen to narration</button><button class="secondary" id="stopNarrationBtn" onclick="stopTutorialNarration()">Stop narration</button><button class="secondary" id="downloadTutorialBtn" disabled onclick="downloadTutorialVideo()">Download video</button></div><div class="statusline" id="tutorialStatus">Choose a lesson, then create your video. Video is rendered on this device.</div><p class="sub">Narration preview uses the voice available in your browser. The downloaded WebM currently contains the animated captions only; voice is not yet embedded in the file. Export format: WebM.</p></div></div></section>
 <section class="panel tutorials"><h2>Weekly customer tutorial videos</h2><p class="sub">Three short lessons each week to show customers how to use RIANDERBLOG.</p>
 <div class="times"><span>Monday · 20:00</span><span>Wednesday · 20:00</span><span>Friday · 20:00</span></div>
 <p class="sub" style="margin-top:12px">Planned lessons: create an account and sign in; search and choose products; add to cart and place an order; understand order updates and delivery. Videos should include narration, captions, and real screen demonstrations.</p>
@@ -135,6 +135,22 @@ async function makeTutorialVideo(){
  tutorialRecorder.start();const duration=3500;for(let i=0;i<lesson.scenes.length;i++){drawTutorialScene(ctx,lesson.scenes[i],i,lesson.scenes.length);status.textContent="Creating scene "+(i+1)+" of "+lesson.scenes.length+"…";await new Promise(r=>setTimeout(r,duration))}tutorialRecorder.stop();
  }catch(e){btn.disabled=false;status.textContent="Could not create video: "+(e.message||"Recording failed");stream.getTracks().forEach(t=>t.stop())}
 }
+let narrationRun=0;
+function playTutorialNarration(){
+ if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window)){msg("tutorialStatus","Voice narration is not supported by this browser.");return}
+ stopTutorialNarration();
+ const run=++narrationRun,lesson=tutorialLessons[document.getElementById("tutorialChoice").value];
+ let i=0;
+ function next(){
+  if(run!==narrationRun||i>=lesson.scenes.length){if(run===narrationRun)msg("tutorialStatus","Narration finished. The downloaded video remains captions-only.");return}
+  const scene=lesson.scenes[i++],utterance=new SpeechSynthesisUtterance(scene[0]+". "+scene[1]);
+  utterance.rate=0.94;utterance.pitch=1;utterance.onend=next;utterance.onerror=()=>{if(run===narrationRun)msg("tutorialStatus","Narration stopped by the browser.")};
+  msg("tutorialStatus","Speaking scene "+i+" of "+lesson.scenes.length+"…");
+  window.speechSynthesis.speak(utterance);
+ }
+ next();
+}
+function stopTutorialNarration(){narrationRun++;if("speechSynthesis" in window)window.speechSynthesis.cancel();msg("tutorialStatus","Narration stopped.");}
 function downloadTutorialVideo(){if(!tutorialVideoBlob||!tutorialVideoUrl)return;const a=document.createElement("a");a.href=tutorialVideoUrl;a.download="RIANDERBLOG-tutorial-"+document.getElementById("tutorialChoice").value+".webm";document.body.appendChild(a);a.click();a.remove()}
 drawTutorialScene(document.getElementById("tutorialCanvas").getContext("2d"),tutorialLessons.account.scenes[0],0,6);
 
