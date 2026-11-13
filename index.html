@@ -5088,29 +5088,48 @@ async function staffReviewFulfilment(id,action){
 
 
 <script>
-/* Independent Staff Panel bootstrap: also reports if the main staff script failed to load. */
+/* Independent Staff Panel diagnostic bootstrap. Uses a separate client so a main-script failure is visible. */
 (function(){
- function startStaffPanel(){
-  var panel=document.getElementById('staffPanel');
-  var status=document.getElementById('staffPanelStatus');
+ const url="https://yymdyxlbdgbrgrykdspx.supabase.co";
+ const key="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+ const ownerId="a32248b7-5745-4dd4-8af0-bce4eb465f66";
+ let diagnosticClient=null;
+ async function run(){
+  const panel=document.getElementById('staffPanel');
+  const status=document.getElementById('staffPanelStatus');
   if(!panel||!status)return;
-  if(typeof window.loadStaffPanel==='function'){
-   window.loadStaffPanel();
-  }else{
-   status.textContent='Staff Panel code did not initialise. Please reload the latest RIANDERBLOG page; if this message remains, send it to support.';
-   console.error('RIANDERBLOG: window.loadStaffPanel is unavailable. Check the main Staff Panel script for a JavaScript error.');
-  }
-  var refresh=panel.querySelector('.admin-heading button');
-  if(refresh){
-   refresh.onclick=function(){
-    status.textContent='Reconnecting to your RIANDERBLOG account…';
-    if(typeof window.loadStaffPanel==='function')window.loadStaffPanel();
-    else status.textContent='Staff Panel code did not initialise. Reload the latest page.';
-   };
+  status.textContent='Staff Panel diagnostic started…';
+  const refresh=panel.querySelector('.admin-heading button');
+  if(refresh)refresh.onclick=run;
+  try{
+   if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Supabase client library did not load.');
+   diagnosticClient=diagnosticClient||window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
+   const result=await Promise.race([diagnosticClient.auth.getSession(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Account session check timed out.')),12000))]);
+   if(result.error)throw result.error;
+   const user=result.data&&result.data.session&&result.data.session.user;
+   if(!user){status.textContent='No active RIANDERBLOG login was found. Sign in to the marketplace, then reopen Staff Panel.';return;}
+   if(user.id===ownerId){
+    status.textContent='Owner account verified. Checking Staff Panel application…';
+   }else{
+    status.textContent='Signed in, but this account is not the RIANDERBLOG owner. Checking staff membership…';
+    const member=await diagnosticClient.from('staff_members').select('id,status').eq('user_id',user.id).maybeSingle();
+    if(member.error)throw new Error('Staff membership database check failed: '+member.error.message);
+    if(!member.data||member.data.status!=='active'){status.textContent='This account is signed in but is not an active staff member.';return;}
+    status.textContent='Active staff account verified. Checking Staff Panel application…';
+   }
+   if(typeof window.loadStaffPanel==='function'){
+    await window.loadStaffPanel();
+   }else{
+    status.textContent+=' Main Staff Panel script did not initialise; its JavaScript failed before the loader was registered.';
+    console.error('RIANDERBLOG: independent diagnostic succeeded but window.loadStaffPanel is missing.');
+   }
+  }catch(error){
+   console.error('RIANDERBLOG independent Staff Panel diagnostic:',error);
+   status.textContent='Staff Panel diagnostic error: '+(error&&error.message?error.message:String(error));
   }
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startStaffPanel);
- else startStaffPanel();
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
+ else run();
 })();
 </script>
 
