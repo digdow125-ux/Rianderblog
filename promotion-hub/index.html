@@ -27,7 +27,10 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 @media(max-width:430px){.channels{grid-template-columns:1fr}.hero{padding:21px}.panel{padding:16px}}
 
 /* Sidebar dashboard and social platform table */
-.dashboard-shell{display:grid;grid-template-columns:235px minmax(0,1fr);gap:18px;align-items:start;margin-top:18px}.sidebar{background:#10233b;color:#fff;border:1px solid #243c58;border-radius:16px;padding:15px;position:sticky;top:14px}.sidebar h3{font-size:13px;color:#eac36f;letter-spacing:.08em;margin:5px 8px 10px;text-transform:uppercase}.sidebar a{display:flex;align-items:center;gap:9px;text-decoration:none;color:#e5edf7;padding:10px;border-radius:9px;font-size:13px;font-weight:700;margin:3px 0}.sidebar a:hover{background:#203d5d;color:#fff}.sidebar .social-link{border:1px solid #ffffff1c;background:#172f4c}.sidebar .side-note{font-size:11px;color:#aebed0;margin:12px 8px 4px}.dashboard-content{min-width:0}.dashboard-content .grid{margin-top:0}.channels-table{width:100%;border-collapse:collapse;font-size:13px}.channels-table th,.channels-table td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}.channels-table th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.channels-table td:first-child{width:34px}.channels-table input{width:17px;height:17px;accent-color:#17395c}.channels-table a{display:inline-block;color:#17395c;font-weight:750;text-decoration:none;padding:6px 9px;border-radius:7px;background:#edf2f7;white-space:nowrap}.channels-table a:hover{background:#e4ebf4}.channel-state{font-size:11px;color:#8a95a6}@media(max-width:800px){.dashboard-shell{grid-template-columns:1fr}.sidebar{position:static}.sidebar-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}.dashboard-content .products,.dashboard-content .settings{grid-column:1/-1}}@media(max-width:430px){.channels-table th,.channels-table td{padding:8px 5px}.channels-table{font-size:12px}.channels-table a{padding:6px}}
+
+
+/* Two-column catalogue and share workspace */
+.workspace{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.9fr);gap:16px;align-items:start;margin:20px 0}.catalogue-panel,.share-panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 5px 18px #152b4408;min-width:0}.catalogue-table{width:100%;border-collapse:collapse}.catalogue-table th,.catalogue-table td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}.catalogue-table th{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.05em}.catalogue-table img{width:54px;height:54px;object-fit:cover;border-radius:8px;background:#eef1f5}.catalogue-table button{background:#edf2f7;color:#20334d;border:0;border-radius:8px;padding:8px 11px;font-weight:750;cursor:pointer}.catalogue-table tr.selected{background:#fff9e9}.share-panel{background:linear-gradient(160deg,#fff,#f7f9fc)}.share-panel h2{margin:0 0 5px;font-size:18px}.selected-product{background:#f0f4f8;border-radius:10px;padding:11px;margin:12px 0;font-size:13px}.share-options{display:grid;gap:9px}.share-options button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 13px;border:1px solid #dfe6ef;border-radius:10px;background:white;color:#1d3049;font-weight:750;text-align:left;cursor:pointer}.share-options button:hover{border-color:var(--gold);background:#fffaf0}.share-options span{color:#758399;font-size:11px;font-weight:500}.workspace .product-list{display:block}.workspace .products,.workspace .settings{grid-column:auto}.workspace .panel{box-shadow:none}@media(max-width:800px){.workspace{grid-template-columns:1fr}.catalogue-table th,.catalogue-table td{padding:8px 5px}.catalogue-table{font-size:12px}}
 </style>
 <style id="adminOnlyHubGate">body:not(.hub-admin-ready) main > :not(.auth):not(.hero):not(.grid),body:not(.hub-admin-ready) .grid > :not(.products),body:not(.hub-admin-ready) footer{display:none!important}</style>
 </head>
@@ -38,9 +41,18 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 <section class="auth"><div><strong id="accountTitle">Checking your RIANDERBLOG account…</strong><p id="accountInfo">The Promotion Hub automatically uses the account already signed in to the RIANDERBLOG marketplace. No second sign-in is required.</p></div><button type="button" onclick="boot()">Retry account check</button></section>
 <div class="notice"><strong>Publishing status:</strong> The Hub can load your marketplace products and prepare a posting queue. Automatic publishing starts only after each social platform's official API connection is approved and securely connected. It will never pretend a draft has been published.</div>
 <div class="dashboard-shell"><aside class="sidebar"><h3>Hub navigation</h3><nav class="sidebar-nav"><a href="#products">▦ Products &amp; promotions</a><a href="#schedule">◷ Daily schedule</a><a href="#tutorial-maker">▶ Create tutorial</a><a href="#tutorial-plan">▤ Tutorial plan</a><a href="#queue">☷ Promotion checks &amp; queue</a></nav><h3>Open social accounts</h3><nav class="sidebar-nav"><a class="social-link" href="https://www.facebook.com/" target="_blank" rel="noopener">f&nbsp; Facebook</a><a class="social-link" href="https://www.instagram.com/" target="_blank" rel="noopener">◎&nbsp; Instagram</a><a class="social-link" href="https://www.tiktok.com/" target="_blank" rel="noopener">♪&nbsp; TikTok</a><a class="social-link" href="https://www.youtube.com/" target="_blank" rel="noopener">▶&nbsp; YouTube</a><a class="social-link" href="https://x.com/" target="_blank" rel="noopener">𝕏&nbsp; X</a><a class="social-link" href="https://web.whatsapp.com/" target="_blank" rel="noopener">◉&nbsp; WhatsApp Business</a></nav><p class="side-note">Shortcuts open each platform. Sign in there and complete publishing manually.</p></aside><div class="dashboard-content"><div class="grid">
-<section class="panel products" id="products"><h2>Your marketplace products</h2><p class="sub">Products are read directly from the RIANDERBLOG catalogue.</p><div id="productList" class="product-list"><div class="empty">Sign in to load products.</div></div><div class="statusline" id="productStatus"></div></section>
-<section class="panel settings" id="schedule"><h2>Daily promotion schedule</h2><p class="sub">Default plan: three promotions per day, Malawi time.</p>
-<div class="field"><label>Social accounts to publish to</label><table class="channels-table" id="channels"><thead><tr><th>Select</th><th>Social platform</th><th>Account status</th><th>Open</th></tr></thead><tbody>
+<div class="workspace">
+<section class="catalogue-panel" id="products"><h2>Product catalogue</h2><p class="sub">Choose a product from your RIANDERBLOG marketplace to share.</p><div id="productList"><div class="empty">Loading marketplace products…</div></div><div class="statusline" id="productStatus"></div></section>
+<aside class="share-panel"><h2>Share this product</h2><p class="sub">Choose a product on the left, then open the platform you want to share it on.</p><div class="selected-product" id="selectedProduct">Select a product from the catalogue to begin.</div><div class="share-options">
+<button type="button" onclick="shareSelected('facebook')">Facebook <span>Open share</span></button>
+<button type="button" onclick="shareSelected('instagram')">Instagram <span>Open app / website</span></button>
+<button type="button" onclick="shareSelected('tiktok')">TikTok <span>Open app / website</span></button>
+<button type="button" onclick="shareSelected('youtube')">YouTube <span>Open Studio</span></button>
+<button type="button" onclick="shareSelected('x')">X <span>Open post composer</span></button>
+<button type="button" onclick="shareSelected('whatsapp_business')">WhatsApp <span>Share product link</span></button>
+</div><div class="statusline" id="shareStatus">Sharing opens the chosen platform. You complete the post there.</div></aside>
+</div><section class="panel settings" id="schedule" style="grid-column:1/-1"><h2>Daily promotion schedule</h2><p class="sub">Default plan: three promotions per day, Malawi time.</p>
+<div class="field"><label>Platforms for saved promotion drafts</label><table class="channels-table" id="channels"><thead><tr><th>Select</th><th>Social platform</th><th>Account status</th><th>Open</th></tr></thead><tbody>
 <tr><td><input type="checkbox" value="facebook" checked aria-label="Select Facebook"></td><td>Facebook Page</td><td><span class="channel-state" id="s-facebook">Not connected</span></td><td><a href="https://www.facebook.com/" target="_blank" rel="noopener">Open</a></td></tr>
 <tr><td><input type="checkbox" value="instagram" checked aria-label="Select Instagram"></td><td>Instagram</td><td><span class="channel-state" id="s-instagram">Not connected</span></td><td><a href="https://www.instagram.com/" target="_blank" rel="noopener">Open</a></td></tr>
 <tr><td><input type="checkbox" value="tiktok" checked aria-label="Select TikTok"></td><td>TikTok</td><td><span class="channel-state" id="s-tiktok">Not connected</span></td><td><a href="https://www.tiktok.com/" target="_blank" rel="noopener">Open</a></td></tr>
@@ -61,7 +73,6 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 <p class="sub" style="margin-top:12px">Planned lessons: create an account and sign in; search and choose products; add to cart and place an order; understand order updates and delivery. Videos should include narration, captions, and real screen demonstrations.</p>
 <div class="statusline">Tutorial schedule: Africa/Blantyre time. Video generation and automatic publishing will activate after the video workflow and social account integrations are connected.</div></section>
 <section class="panel queue" id="queue"><h2>Promotion checks &amp; queue</h2><p class="sub">Review drafts and scheduled items. Publishing results will appear here when integrations are active.</p><div id="queueList" class="queue-list"><div class="empty">Your promotion queue is empty.</div></div><div class="statusline" id="queueStatus"></div></section>
-</div></div>
 </div>
 </main>
 <footer>RIANDERBLOG Promotion Hub · Your products, promoted from one place.</footer>
@@ -73,7 +84,7 @@ const SITE_URL="https://digdow125-ux.github.io/Rianderblog/";
 const ADMIN_USER_ID="a32248b7-5745-4dd4-8af0-bce4eb465f66";
 const HUB_URL=SITE_URL+"promotion-hub/";
 const db=window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}}) : null;
-let currentUser=null, products=[], connections=[], queueItems=[];
+let currentUser=null, products=[], connections=[], queueItems=[], selectedProductIndex=-1;
 const platforms=["facebook","instagram","tiktok","youtube","x","whatsapp_business"];
 const platformNames={facebook:"Facebook Page",instagram:"Instagram",tiktok:"TikTok",youtube:"YouTube Shorts",x:"X",whatsapp_business:"WhatsApp Business"};
 function msg(id,text){document.getElementById(id).textContent=text||""}
@@ -83,14 +94,26 @@ async function loadProducts(){const {data,error}=await db.from("products").selec
 function renderProducts(){
  const root=document.getElementById("productList");
  if(!products.length){root.innerHTML='<div class="empty">No active marketplace products found yet.</div>';return}
- root.innerHTML=products.map(function(p,index){
+ root.innerHTML='<table class="catalogue-table"><thead><tr><th>Image</th><th>Product</th><th>Price</th><th>Choose</th></tr></thead><tbody>'+products.map(function(p,index){
   const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";
-  const actions=currentUser&&currentUser.id===ADMIN_USER_ID
-   ? '<button onclick="makeProductDraft('+Number(p.id)+')">Create promo draft</button> <button onclick="shareProduct('+index+')">Share from phone</button> <button onclick="shareProductFacebook('+index+')">Facebook</button>'
-   : '<small>Administrator verification is needed to create promotions.</small>';
-  return '<article class="product"><img src="'+esc(image)+'" alt="" onerror="this.remove()"><div style="min-width:0"><strong>'+esc(p.name)+'</strong><small>'+esc(p.currency||"")+' '+esc(p.price)+' · '+esc(p.category||"Product")+'</small>'+actions+'</div></article>';
- }).join("");
+  return '<tr class="'+(selectedProductIndex===index?'selected':'')+'"><td><img src="'+esc(image)+'" alt="" onerror="this.style.visibility=\'hidden\'"></td><td><strong>'+esc(p.name)+'</strong><br><small>'+esc(p.category||"Product")+'</small></td><td>'+esc(p.currency||"")+' '+esc(p.price)+'</td><td><button type="button" onclick="selectProduct('+index+')">Select</button></td></tr>';
+ }).join("")+'</tbody></table>';
+ if(selectedProductIndex<0&&products.length)selectedProductIndex=0;
+ updateSelectedProduct();
  msg("productStatus",products.length+" active product(s) loaded from RIANDERBLOG.");
+}
+function selectProduct(index){if(!products[index])return;selectedProductIndex=index;renderProducts()}
+function updateSelectedProduct(){const p=products[selectedProductIndex];const el=document.getElementById("selectedProduct");if(!el)return;el.textContent=p?p.name+" · "+(p.currency||"")+" "+p.price:"Select a product from the catalogue."}
+async function shareSelected(platform){
+ const p=products[selectedProductIndex];if(!p){msg("shareStatus","Select a product first.");return}
+ if(!currentUser||currentUser.id!==ADMIN_USER_ID){msg("shareStatus","Administrator verification is required to share products.");return}
+ const caption=makeCaption(p,selectedProductIndex);
+ const link=String(p.affiliate_url||SITE_URL);
+ const text=caption;
+ const urls={facebook:"https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link)+"&quote="+encodeURIComponent(text),instagram:"https://www.instagram.com/",tiktok:"https://www.tiktok.com/upload",youtube:"https://studio.youtube.com/",x:"https://twitter.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(link),whatsapp_business:"https://wa.me/?text="+encodeURIComponent(text+" "+link)};
+ try{await navigator.clipboard.writeText(text)}catch(e){}
+ if(platform==="facebook"||platform==="x"||platform==="whatsapp_business"){window.open(urls[platform],"_blank","noopener,noreferrer");msg("shareStatus","Caption copied where supported. "+platformNames[platform]+" opened; finish and publish your post there.");}
+ else{window.open(urls[platform],"_blank","noopener,noreferrer");msg("shareStatus","Caption copied where supported. "+platformNames[platform]+" opened. Add the product picture and paste your caption before publishing.");}
 }
 function makeCaption(p,index,language){const messages={
  en:["Discover your next favourite find!","A great pick worth checking out.","Find it on RIANDERBLOG today!"],
