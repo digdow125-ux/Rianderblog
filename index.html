@@ -1015,7 +1015,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Change currency</a>
     <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment help</a>
-    <a href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/index.html" id="navPromotionHub" title="Open Promotion Hub">📣 Promotion Hub</a>
+    <a href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/index.html" id="navPromotionHub" class="admin-only" title="Open Promotion Hub">📣 Promotion Hub</a>
     <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin panel</a>
   </div>
 </nav>
@@ -1701,9 +1701,9 @@ function updateAdminVisibility(user) {
   const allowed = !!user && user.id === ADMIN_USER_ID;
 
   document.querySelectorAll(".admin-only").forEach(el => {
-    // Keep the admin navigation link visible to the administrator,
-    // but never expose the dashboard panel until Admin Panel is selected.
-    el.style.display = allowed && el.id === "adminNavLink" ? "block" : "none";
+    // Only the verified administrator sees the Promotion Hub and Admin Panel menu links.
+    // The dashboard panel itself stays hidden until selected.
+    el.style.display = allowed && (el.id === "adminNavLink" || el.id === "navPromotionHub") ? "block" : "none";
   });
 
   const status = document.getElementById("adminStatus");
