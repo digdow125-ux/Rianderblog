@@ -1436,7 +1436,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <section id="staffPanel" class="panel secondary-page" style="display:none">
 <div class="admin-heading"><div><span class="admin-kicker">RIANDERBLOG TEAM WORKSPACE</span><h2>Staff Panel</h2><p id="staffPanelStatus">Checking staff access…</p></div><button class="secondary" onclick="loadStaffPanel()">Refresh</button></div>
 <div id="staffOwnerTools" style="display:none;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
-<h3>Invite staff</h3><p class="small-note">Invite by email. Staff use their own account and never receive owner access.</p>
+<h3>Invite staff</h3><p class="small-note">Invite by email. Staff use their own account and never receive owner access. These category settings do not assign work; every job must be assigned separately below.</p>
 <input id="staffInviteEmail" type="email" placeholder="Staff email address" style="width:100%;max-width:420px;padding:12px;border:1px solid #dce3ec;border-radius:9px">
 <div class="staff-permission-grid">
 <label><input type="checkbox" id="staffPermSupplier"> Supplier approvals</label>
@@ -1801,11 +1801,15 @@ document.addEventListener("DOMContentLoaded",()=>{const nav=document.getElementB
 async function updateAdminVisibility(user) {
  window.currentAdminUser=user||null;
  const owner=!!user&&user.id===ADMIN_USER_ID;
- let staff=null;
- if(user&&!owner){const r=await db.from('staff_members').select('id,email,permissions,status').eq('user_id',user.id).maybeSingle();if(!r.error&&r.data?.status==='active')staff=r.data;}
+ let staff=null,hasHubTask=false;
+ if(user&&!owner){
+  const r=await db.from('staff_members').select('id,email,status').eq('user_id',user.id).maybeSingle();
+  if(!r.error&&r.data?.status==='active')staff=r.data;
+  if(staff){const task=await db.from('staff_tasks').select('id').eq('staff_user_id',user.id).eq('task_type','promotion_hub').in('status',['pending','in_progress']).limit(1);hasHubTask=!task.error&&!!task.data?.length;}
+ }
  window.rianderStaffMembership=staff;
  document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=owner&&(el.id==='adminNavLink'||el.id==='navPromotionHub')?'block':'none';});
- const hub=document.getElementById('navPromotionHub');if(hub)hub.style.display=owner||!!staff?.permissions?.social_media?'block':'none';
+ const hub=document.getElementById('navPromotionHub');if(hub)hub.style.display=owner||hasHubTask?'block':'none';
  const link=document.getElementById('navStaffPanel');if(link)link.style.display=owner||!!staff?'block':'none';
  const status=document.getElementById('adminStatus');if(status)status.textContent=owner?'Administrator verified. Open Admin Panel from the navigation to manage your marketplace.':'Administrator access is restricted.';
  if(owner){loadAdminDashboard();loadAdminSupportInbox();loadAdminOrdersTable();}
