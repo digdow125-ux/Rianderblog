@@ -5087,5 +5087,32 @@ async function staffReviewFulfilment(id,action){
 </script>
 
 
+<script>
+/* Independent Staff Panel bootstrap: also reports if the main staff script failed to load. */
+(function(){
+ function startStaffPanel(){
+  var panel=document.getElementById('staffPanel');
+  var status=document.getElementById('staffPanelStatus');
+  if(!panel||!status)return;
+  if(typeof window.loadStaffPanel==='function'){
+   window.loadStaffPanel();
+  }else{
+   status.textContent='Staff Panel code did not initialise. Please reload the latest RIANDERBLOG page; if this message remains, send it to support.';
+   console.error('RIANDERBLOG: window.loadStaffPanel is unavailable. Check the main Staff Panel script for a JavaScript error.');
+  }
+  var refresh=panel.querySelector('.admin-heading button');
+  if(refresh){
+   refresh.onclick=function(){
+    status.textContent='Reconnecting to your RIANDERBLOG account…';
+    if(typeof window.loadStaffPanel==='function')window.loadStaffPanel();
+    else status.textContent='Staff Panel code did not initialise. Reload the latest page.';
+   };
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startStaffPanel);
+ else startStaffPanel();
+})();
+</script>
+
 </body>
 </html>
