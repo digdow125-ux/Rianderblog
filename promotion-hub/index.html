@@ -50,7 +50,7 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 <div class="actions"><button class="primary" onclick="saveSettings()">Save schedule</button><button class="secondary" onclick="generateQueue()">Prepare today's posts</button></div><div class="statusline" id="settingsStatus"></div>
 </section>
 <section class="panel tutorials"><h2>Make a customer tutorial video</h2><p class="sub">Create a short RIANDERBLOG-branded tutorial with animated scenes and captions. Works in a modern browser; keep this page open while it renders.</p>
-<div class="field"><label for="tutorialChoice">Choose a lesson</label><select id="tutorialChoice"><option value="account">1. Create an account and sign in</option><option value="search">2. Search and choose products</option><option value="cart">3. Use your cart and visit the supplier</option></select></div>\n<div class="field"><label for="tutorialVoice">Narrator voice</label><select id="tutorialVoice"><option value="auto">African female English voice (best available)</option></select><p class="sub">Available voices depend on Chrome and voices installed on this device.</p></div>
+<div class="field"><label for="tutorialChoice">Choose a lesson</label><select id="tutorialChoice"><option value="account">1. Create an account and sign in</option><option value="search">2. Search and choose products</option><option value="cart">3. Use your cart and visit the supplier</option></select></div>\n<div class="field"><label for="tutorialVoice">Narrator voice</label><select id="tutorialVoice"><option value="auto">African female African-English voice (best available)</option></select><p class="sub">Prefers African English accents (Malawi, South Africa, Nigeria, Kenya, Ghana, Zimbabwe and Botswana) when your device provides them. Pitch is kept natural; pitch alone cannot create an African accent.</p></div>
 <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><canvas id="tutorialCanvas" width="360" height="640" style="width:min(100%,220px);height:auto;background:#0d1b2e;border-radius:12px;border:1px solid #dce3ec"></canvas><div style="flex:1;min-width:190px"><div class="actions" style="margin-top:0"><button class="primary" id="makeTutorialBtn" onclick="makeTutorialVideo()">Create tutorial video</button><button class="secondary" id="narrateTutorialBtn" onclick="playTutorialNarration()">▶ Listen to narration</button><button class="secondary" id="stopNarrationBtn" onclick="stopTutorialNarration()">Stop narration</button><button class="secondary" id="downloadTutorialBtn" disabled onclick="downloadTutorialVideo()">Download video</button></div><div class="statusline" id="tutorialStatus">Choose a lesson, then create your video. Video is rendered on this device.</div><p class="sub">Professional anime-inspired host, branded layouts and captions. Narration preview uses your selected device voice. Note: browser speech cannot yet be embedded in the exported WebM, so the download is currently video-only.</p></div></div></section>
 <section class="panel tutorials"><h2>Weekly customer tutorial videos</h2><p class="sub">Three short lessons each week to show customers how to use RIANDERBLOG.</p>
 <div class="times"><span>Monday · 20:00</span><span>Wednesday · 20:00</span><span>Friday · 20:00</span></div>
@@ -168,7 +168,7 @@ function refreshTutorialVoices(){
  const female=/female|woman|zira|samantha|victoria|karen|moira|tessa|serena|ava|aria|jenny|susan|linda|google uk english female/i;
  const african=/en[-_](ZA|NG|KE|GH|ZW|BW|MW)/i;
  const sorted=[...tutorialVoices].sort((a,b)=>{
-  const score=v=>(african.test(v.lang)?100:0)+(female.test(v.name)?30:0)+(/^en/i.test(v.lang)?10:0);
+  const score=v=>(african.test(v.lang)?120:0)+(female.test(v.name)?35:0)+(/^en/i.test(v.lang)?10:0);
   return score(b)-score(a);
  });
  sorted.forEach(v=>{const o=document.createElement("option");o.value=v.name;o.textContent=v.name+" — "+v.lang;select.appendChild(o)});
@@ -180,7 +180,7 @@ function selectedTutorialVoice(){
  const female=/female|woman|zira|samantha|victoria|karen|moira|tessa|serena|ava|aria|jenny|susan|linda|google uk english female/i;
  const african=/en[-_](ZA|NG|KE|GH|ZW|BW|MW)/i;
  return [...tutorialVoices].sort((a,b)=>{
-  const score=v=>(african.test(v.lang)?100:0)+(female.test(v.name)?30:0)+(/^en/i.test(v.lang)?10:0);
+  const score=v=>(african.test(v.lang)?120:0)+(female.test(v.name)?35:0)+(/^en/i.test(v.lang)?10:0);
   return score(b)-score(a);
  })[0]||null;
 }
@@ -193,7 +193,7 @@ function playTutorialNarration(){
   if(run!==narrationRun||i>=lesson.scenes.length){if(run===narrationRun)msg("tutorialStatus","Narration finished. This preview uses the selected device voice; video export is still silent.");return}
   const scene=lesson.scenes[i++],utterance=new SpeechSynthesisUtterance(scene[0]+". "+scene[1]);
   if(voice){utterance.voice=voice;utterance.lang=voice.lang}
-  utterance.rate=.91;utterance.pitch=1.13;utterance.volume=1;utterance.onend=next;utterance.onerror=()=>{if(run===narrationRun)msg("tutorialStatus","Narration stopped by the browser.")};
+  utterance.rate=.90;utterance.pitch=1.0;utterance.volume=1;utterance.onend=next;utterance.onerror=()=>{if(run===narrationRun)msg("tutorialStatus","Narration stopped by the browser.")};
   msg("tutorialStatus","Speaking scene "+i+" of "+lesson.scenes.length+(voice?" with "+voice.name:" with the default available voice")+"…");
   window.speechSynthesis.speak(utterance);
  }
