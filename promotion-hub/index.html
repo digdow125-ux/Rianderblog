@@ -217,20 +217,27 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 .rb-activity-grid>#tutorial-plan,.rb-activity-grid>#queue{grid-column:auto!important;margin:0!important;min-width:0!important}
 @media(max-width:800px){.rb-main-workspace,.rb-activity-grid{grid-template-columns:minmax(0,1fr)!important}.rb-main-workspace>#products,.rb-main-workspace>#tutorial-maker,.rb-activity-grid>#schedule,.rb-activity-grid>#tutorial-plan,.rb-activity-grid>#queue{grid-column:1/-1!important}.rb-activity-area{padding:12px}}
 </style><style id="rb-hub-menu-layout">
-.rb-hub-header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.rb-hub-menu{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.rb-hub-menu a{display:inline-flex;align-items:center;padding:9px 12px;border:1px solid #dce4ed;border-radius:9px;color:#e9eef5;text-decoration:none;font-size:13px;font-weight:750}
-.rb-hub-menu a.active,.rb-hub-menu a:hover{background:#b58d3d;color:#14243a;border-color:#b58d3d}
-.rb-hub-menu a.button{background:#fff;color:#14243a}
+.rb-hub-header{display:block;padding:0;background:linear-gradient(120deg,#0b182a,#17395c);color:#fff}
+.rb-hub-brand{max-width:1180px;margin:0 auto;padding:16px 18px}
+.rb-hub-brand .brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
+.rb-hub-brand .mark{width:45px;height:45px;border:2px solid var(--gold);border-radius:12px;display:grid;place-items:center;color:var(--gold);font-size:24px;font-weight:900}
+.rb-hub-brand .brand strong{display:block;font-size:24px;letter-spacing:1px}
+.rb-hub-brand .brand small{display:block;color:#cbd4e2;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+.rb-hub-menu{display:block;background:var(--navy2);padding:0 18px}
+.rb-hub-nav-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px;min-height:48px}
+.rb-hub-links{display:flex;align-items:center;gap:23px;flex-wrap:wrap}
+.rb-hub-menu a{display:inline-flex;align-items:center;padding:15px 0;color:#fff;text-decoration:none;font-size:13px;font-weight:750;white-space:nowrap;border:0;border-radius:0;background:transparent}
+.rb-hub-menu a.active,.rb-hub-menu a:hover{color:var(--gold);background:transparent;border-color:transparent}
+.rb-hub-menu-toggle{display:none;background:var(--gold);color:#172238;font-size:23px;padding:7px 13px;border-radius:7px}
 .rb-activity-area{display:none!important}
 .rb-activity-area.rb-view-open{display:block!important}
 .rb-activity-grid{display:block!important}
 .rb-activity-grid>.panel{display:none!important}
 .rb-activity-grid>.panel.rb-view-open{display:block!important}
-@media(max-width:700px){.rb-hub-header{align-items:flex-start}.rb-hub-menu{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:5px}.rb-hub-menu a{white-space:nowrap}}
+@media(max-width:650px){.rb-hub-nav-inner{display:block;padding:10px 0}.rb-hub-menu-toggle{display:block}.rb-hub-links{display:none;flex-direction:column;align-items:stretch;gap:0;padding-top:8px}.rb-hub-links.open{display:flex}.rb-hub-menu a{padding:12px 5px;border-top:1px solid rgba(255,255,255,.12)}}
 </style></head>
 <body>
-<header class="rb-hub-header"><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><nav class="rb-hub-menu" aria-label="Promotion Hub menu"><a href="#main" data-hub-view="main" class="active">Main</a><a href="#schedule" data-hub-view="schedule">Social accounts &amp; schedule</a><a href="#tutorial-plan" data-hub-view="tutorial-plan">Tutorial plan</a><a href="#queue" data-hub-view="queue">Promotion queue</a><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></nav></header>
+<header class="rb-hub-header"><div class="rb-hub-brand"><a class="brand" href="https://digdow125-ux.github.io/Rianderblog/"><div class="mark">R</div><div><strong>RIANDERBLOG</strong><small>Global marketplace · Promotion Hub</small></div></a></div><nav class="rb-hub-menu" aria-label="RIANDERBLOG navigation"><div class="rb-hub-nav-inner"><button class="rb-hub-menu-toggle" id="hubMenuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleHubMenu()">☰</button><div class="rb-hub-links" id="hubNavLinks"><a href="#main" data-hub-view="main" class="active">🏠 Main</a><a href="#schedule" data-hub-view="schedule">📱 Social accounts &amp; schedule</a><a href="#tutorial-plan" data-hub-view="tutorial-plan">🎬 Tutorial plan</a><a href="#queue" data-hub-view="queue">📣 Promotion queue</a><a href="https://digdow125-ux.github.io/Rianderblog/">← Back to marketplace</a></div></div></nav></header>
 <main>
 <section class="hero"><div><h1>Promote your products automatically.</h1><p>One product catalogue. One promotion workspace. Prepare campaigns for your social channels and manage your daily publishing schedule.</p></div><div class="pill">CONNECTED TO YOUR MARKETPLACE</div></section>
 <section class="auth"><div><strong id="accountTitle">Checking your RIANDERBLOG account…</strong><p id="accountInfo">The Promotion Hub automatically uses the account already signed in to the RIANDERBLOG marketplace. No second sign-in is required.</p></div><button type="button" onclick="boot()">Retry account check</button></section>
@@ -272,6 +279,7 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="rb-hub-menu-controller">
 (function(){
+ function toggleHubMenu(){const links=document.getElementById('hubNavLinks');const button=document.getElementById('hubMenuToggle');if(!links||!button)return;const open=links.classList.toggle('open');button.setAttribute('aria-expanded',open?'true':'false');}
  function showHubView(view){
   const main=document.querySelector('.rb-main-workspace');
   const activities=document.getElementById('otherActivities');
@@ -282,6 +290,7 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
   activities.classList.toggle('rb-view-open',!isMain);
   Object.entries(panels).forEach(([key,node])=>{if(node)node.classList.toggle('rb-view-open',key===view);});
   document.querySelectorAll('[data-hub-view]').forEach(a=>a.classList.toggle('active',a.getAttribute('data-hub-view')===view));
+  const links=document.getElementById('hubNavLinks');const toggle=document.getElementById('hubMenuToggle');if(links)links.classList.remove('open');if(toggle)toggle.setAttribute('aria-expanded','false');
   if(!isMain)activities.scrollIntoView({behavior:'smooth',block:'start'});
   else window.scrollTo({top:0,behavior:'smooth'});
  }
