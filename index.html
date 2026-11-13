@@ -4945,8 +4945,11 @@ async function assignStaffTask(){
   if(!staff_user_id||!title)throw new Error('Choose a staff member and enter a task title.');
   if(needsRecord&&!rawId)throw new Error('Enter the record ID for this task.');
   const dueRaw=document.getElementById('staffTaskDue').value;
-  const staff=await db.from('staff_members').select('user_id,status').eq('user_id',staff_user_id).maybeSingle();
+  const staff=await db.from('staff_members').select('user_id,status,permissions').eq('user_id',staff_user_id).maybeSingle();
   if(staff.error||!staff.data||staff.data.status!=='active')throw new Error('Choose an active staff member.');
+  const deliveryOnly=staff.data.permissions?.staff_type==='delivery_assembly';
+  if(deliveryOnly&&task_type!=='delivery_assembly')throw new Error('Delivery & assembly staff can only receive delivery / assembly tasks.');
+  if(!deliveryOnly&&task_type==='delivery_assembly')throw new Error('Only Delivery & assembly staff can receive delivery / assembly tasks.');
   const payload={staff_user_id,assigned_by:window.currentAdminUser.id,task_type,title,instructions,related_record_id:rawId||null,due_at:dueRaw?new Date(dueRaw).toISOString():null};
   const r=await db.from('staff_tasks').insert(payload);if(r.error)throw r.error;
   document.getElementById('staffTaskTitle').value='';document.getElementById('staffTaskInstructions').value='';document.getElementById('staffTaskRecordId').value='';document.getElementById('staffTaskDue').value='';
@@ -4972,6 +4975,7 @@ async function saveStaffPermissions(id){
  if(!staffOwner())return;
  const panel=document.getElementById('staffPermissionEditor-'+id),status=document.getElementById('staffPermissionStatus-'+id);if(!panel||!status)return;
  const permissions={staff_type:panel.dataset.staffType||'general'};panel.querySelectorAll('[data-staff-permission]').forEach(input=>{permissions[input.dataset.staffPermission]=input.checked;});
+ if(permissions.staff_type==='delivery_assembly'){Object.keys(STAFF_LABELS).forEach(k=>permissions[k]=k==='delivery_updates');}
  status.textContent='Saving…';
  const r=await db.from('staff_members').update({permissions,updated_at:new Date().toISOString()}).eq('id',id);
  if(r.error){status.textContent='Could not save: '+r.error.message;return;}
