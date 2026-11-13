@@ -1398,7 +1398,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <label><input type="checkbox" id="staffPermProducts"> Product approvals</label>
 <label for="staffPermAddProducts" style="display:flex;align-items:center;gap:12px;padding:14px 16px;margin:8px 0;background:#fff8e8;border:2px solid #c99a32;border-radius:12px;font-weight:800;color:#14233f;cursor:pointer"><input type="checkbox" id="staffPermAddProducts" name="staffPermAddProducts" style="width:22px;height:22px;min-width:22px;accent-color:#c99a32"> <span>ALLOW THIS STAFF MEMBER TO ADD MARKETPLACE PRODUCTS</span></label>
 <label><input type="checkbox" id="staffPermOrders"> Order approvals</label>
-<label><input type="checkbox" id="staffPermDelivery"> Shipping and delivery</label>
+<label for="staffPermDelivery" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #c99a32;border-radius:10px;background:#fff8e8"><input type="checkbox" id="staffPermDelivery" style="width:20px;height:20px"> Delivery / assembly staff (show assigned customer orders)</label>
 <label><input type="checkbox" id="staffPermSocial"> Social-media promotions</label>
 </div>
 <button class="primary" onclick="inviteStaffMember()">Send invitation</button><p id="staffInviteStatus" class="small-note"></p>
@@ -1865,13 +1865,15 @@ async function loadAdminOrdersTable() {
     const { data, error } = await db.from("orders").select("*").order("created_at", { ascending: false }).limit(100);
     if (error) throw error;
     if (!data || data.length === 0) { box.textContent = "No customer orders found."; return; }
+    const deliveryStaffResult=await db.from("staff_members").select("user_id,email,permissions,status").eq("status","active");
+    const deliveryStaff=(deliveryStaffResult.data||[]).filter(s=>s.user_id&&s.permissions?.delivery_updates);
     const approverIds=[...new Set(data.map(o=>o.approved_by).filter(Boolean))];
     let approverNames={};
     if(approverIds.length){const pr=await db.from("profiles").select("id,full_name").in("id",approverIds);if(!pr.error)approverNames=Object.fromEntries((pr.data||[]).map(p=>[p.id,p.full_name||"Staff member"]));}
     box.innerHTML = `
       <div class="admin-orders-table-scroll">
         <table class="admin-orders-table">
-          <thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Order status</th><th>Confirmed by</th><th>Date</th><th>Manage / tracking</th></tr></thead>
+          <thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Order status</th><th>Confirmed by</th><th>Delivery / assembly assigned to</th><th>Date</th><th>Manage / tracking</th></tr></thead>
           <tbody>
             ${data.map(order => `
               <tr>
@@ -1881,6 +1883,7 @@ async function loadAdminOrdersTable() {
                 <td><span class="admin-order-pill">${escapeHTML(order.payment_status||'unknown')}</span></td>
                 <td><span class="customer-order-status">${escapeHTML(orderStatusLabel(order.order_status))}</span></td>
                 <td>${order.approved_by?`<strong>${escapeHTML(approverNames[order.approved_by]||"Staff member")}</strong><small>${order.approved_at?escapeHTML(new Date(order.approved_at).toLocaleString()):"Approval recorded"}</small>`:"—"}</td>
+                <td><select aria-label="Assign delivery or assembly staff" onchange="adminAssignOrderDeliverer(\'${escapeHTML(order.id)}\',this.value)" style="max-width:190px"><option value="">Not assigned</option>${deliveryStaff.map(s=>`<option value="${escapeHTML(s.user_id)}" ${order.delivery_assigned_to===s.user_id?'selected':''}>${escapeHTML(s.email)}</option>`).join('')}</select></td>
                 <td>${order.created_at?escapeHTML(new Date(order.created_at).toLocaleDateString()):'—'}</td>
                 <td><details class="admin-order-manage"><summary>Update order</summary>
                   <div class="admin-order-track-fields">
@@ -1900,6 +1903,7 @@ async function loadAdminOrdersTable() {
     box.textContent = "Could not load orders: " + error.message;
   }
 }
+async function adminAssignOrderDeliverer(orderId,userId){try{await adminGuard();const {data:{user}}=await db.auth.getUser();const payload={delivery_assigned_to:userId||null,delivery_assigned_by:userId?user.id:null,delivery_assigned_at:userId?new Date().toISOString():null};const {error}=await db.from("orders").update(payload).eq("id",orderId);if(error)throw error;alert(userId?"Delivery / assembly staff assigned.":"Assignment cleared.");await loadAdminOrdersTable();}catch(e){alert("Could not assign staff: "+e.message);}}
 async function adminSaveOrderTracking(orderId){
   try{
     await adminGuard();
@@ -4752,7 +4756,7 @@ async function loadStaffTasks(p){
  if(p.supplier_approvals){const r=await db.from('supplier_applications').select('id,business_name,contact_name,country,email').eq('status','pending').limit(40);const b=document.getElementById(boxes.supplier);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No applications waiting.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.business_name)+'</strong><small>'+escapeHTML(x.contact_name)+' · '+escapeHTML(x.country)+' · '+escapeHTML(x.email)+'</small><button class="primary" onclick="staffReviewSupplier(\''+x.id+'\',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewSupplier(\''+x.id+'\',\'rejected\')">Reject</button></div>').join(''));}
  if(p.product_approvals){const r=await db.from('products').select('id,name,category,price,currency').not('supplier_id','is',null).eq('review_status','pending').limit(40);const b=document.getElementById(boxes.product);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No products waiting.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.name)+'</strong><small>'+escapeHTML(x.category)+' · '+escapeHTML(x.currency)+' '+Number(x.price||0).toFixed(2)+'</small><button class="primary" onclick="staffReviewProduct('+Number(x.id)+',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewProduct('+Number(x.id)+',\'rejected\')">Reject</button></div>').join(''));}
  if(p.order_approvals){const r=await db.from('orders').select('id,order_number,customer_name,total_amount,currency,payment_status').eq('order_status','awaiting_admin_approval').limit(40);const b=document.getElementById(boxes.order);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No orders awaiting approval.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.order_number||x.id)+'</strong><small>'+escapeHTML(x.customer_name||'Customer')+' · '+escapeHTML(x.currency)+' '+Number(x.total_amount||0).toFixed(2)+' · '+escapeHTML(x.payment_status)+'</small><button class="primary" onclick="staffReviewOrder(\''+x.id+'\',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewOrder(\''+x.id+'\',\'rejected\')">Reject</button></div>').join(''));}
- if(p.delivery_updates){const r=await db.from('orders').select('id,order_number,customer_name,order_status').in('order_status',['approved','processing','shipped']).limit(40);const b=document.getElementById(boxes.delivery);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No delivery updates needed.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.order_number||x.id)+'</strong><small>'+escapeHTML(x.customer_name||'Customer')+' · '+escapeHTML(x.order_status)+'</small>'+(x.order_status!=='shipped'?'<button class="primary" onclick="staffUpdateDelivery(\''+x.id+'\',\'shipped\')">Mark shipped</button>':'')+'<button class="secondary" onclick="staffUpdateDelivery(\''+x.id+'\',\'completed\')">Mark delivered</button></div>').join(''));}
+ if(p.delivery_updates){const u=await db.auth.getUser();const q=db.from('orders').select('id,order_number,customer_name,customer_email,customer_phone,shipping_address,total_amount,currency,order_status,created_at').in('order_status',['processing','approved','shipped']).order('created_at',{ascending:false}).limit(100);if(!staffOwner())q.eq('delivery_assigned_to',u.data.user.id);const r=await q;const b=document.getElementById(boxes.delivery);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No customer orders assigned to you yet. Ask the owner to assign orders in Admin Panel → Orders.':'<h3>My assigned customer deliveries / assembly</h3>'+r.data.map(x=>'<div class="staff-task-row" style="padding:14px;border:1px solid #dce3ec;border-radius:12px;margin:10px 0"><strong>Order '+escapeHTML(x.order_number||x.id)+'</strong><small><b>Customer:</b> '+escapeHTML(x.customer_name||'Customer')+'<br><b>Email:</b> '+escapeHTML(x.customer_email||'Not provided')+'<br><b>Phone:</b> '+escapeHTML(x.customer_phone||'Not provided')+'<br><b>Physical address:</b> '+escapeHTML(x.shipping_address||'Not provided')+'<br><b>Order total:</b> '+escapeHTML(x.currency||'')+' '+Number(x.total_amount||0).toFixed(2)+'<br><b>Placed:</b> '+(x.created_at?escapeHTML(new Date(x.created_at).toLocaleString()):'—')+'<br><b>Status:</b> '+escapeHTML(x.order_status)+'</small>'+(x.order_status!=='shipped'?'<button class="primary" onclick="staffUpdateDelivery(\''+x.id+'\',\'shipped\')">Mark collected / shipped</button>':'')+'<button class="secondary" onclick="staffUpdateDelivery(\''+x.id+'\',\'completed\')">Mark delivered / assembled</button></div>').join(''));}
 }
 async function staffReviewSupplier(id,status){const r=await db.rpc('admin_review_supplier_application',{p_application_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
 async function staffReviewProduct(id,status){if(!confirm('Confirm '+status+'?'))return;const r=await db.rpc('staff_review_product',{p_product_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
