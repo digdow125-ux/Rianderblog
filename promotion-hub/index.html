@@ -26,6 +26,7 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 @media(max-width:800px){.products,.settings{grid-column:1/-1}.product-list{grid-template-columns:1fr}}
 @media(max-width:430px){.channels{grid-template-columns:1fr}.hero{padding:21px}.panel{padding:16px}}
 </style>
+<style id="adminOnlyHubGate">body:not(.hub-admin-ready) main > :not(.auth):not(.hero),body:not(.hub-admin-ready) footer{display:none!important}</style>
 </head>
 <body>
 <header><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></header>
@@ -65,6 +66,7 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
 const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
 const SITE_URL="https://digdow125-ux.github.io/Rianderblog/";
+const ADMIN_USER_ID="a32248b7-5745-4dd4-8af0-bce4eb465f66";
 const HUB_URL=SITE_URL+"promotion-hub/";
 const db=window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}}) : null;
 let currentUser=null, products=[], connections=[];
@@ -72,7 +74,7 @@ const platforms=["facebook","instagram","tiktok","youtube","x","whatsapp_busines
 const platformNames={facebook:"Facebook Page",instagram:"Instagram",tiktok:"TikTok",youtube:"YouTube Shorts",x:"X",whatsapp_business:"WhatsApp Business"};
 function msg(id,text){document.getElementById(id).textContent=text||""}
 function esc(v){return String(v??"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-async function signIn(){const buttons=[document.getElementById("signInTop"),document.getElementById("signInButton")];buttons.forEach(b=>{if(b){b.disabled=true;b.textContent="Checking RIANDERBLOG login…"}});msg("settingsStatus","Checking your existing marketplace login…");try{if(!db)throw new Error("The secure sign-in library did not load. Refresh this page and try again.");const existing=await db.auth.getSession();if(existing.error)throw existing.error;if(existing.data?.session){currentUser=existing.data.session.user;await boot();msg("settingsStatus","Your existing RIANDERBLOG account is connected.");return;}localStorage.setItem("rianderblog_return_to_promotion_hub",String(Date.now()));msg("settingsStatus","Opening your usual Google sign-in…");const {data,error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:SITE_URL+"index.html",queryParams:{prompt:"select_account"}}});if(error)throw error;if(!data?.url)throw new Error("Google did not return a sign-in link. Please try again.");}catch(error){localStorage.removeItem("rianderblog_return_to_promotion_hub");msg("settingsStatus","Sign-in problem: "+(error?.message||"Could not connect. Please try again."));buttons.forEach((b,i)=>{if(b){b.disabled=false;b.textContent=i===0?"Sign in with Google":"Continue with Google"}})}}
+function signIn(){msg("settingsStatus","Sign in to RIANDERBLOG first, then reopen this private Promotion Hub.");}
 async function loadProducts(){const {data,error}=await db.from("products").select("id,name,description,category,price,currency,image_url,product_image_urls,affiliate_url,is_active").eq("is_active",true).order("created_at",{ascending:false}).limit(100);if(error){msg("productStatus","Could not load products: "+error.message);return}products=data||[];renderProducts()}
 function renderProducts(){const root=document.getElementById("productList");if(!products.length){root.innerHTML='<div class="empty">No active marketplace products found yet.</div>';return}root.innerHTML=products.map(function(p,index){const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";return '<article class="product"><img src="'+esc(image)+'" alt="" onerror="this.style.visibility=\\'hidden\\'"><div style="min-width:0"><strong>'+esc(p.name)+'</strong><small>'+esc(p.currency||"")+' '+esc(p.price)+' · '+esc(p.category||"Product")+'</small><button onclick="makeProductDraft('+Number(p.id)+')">Create promo draft</button> <button onclick="shareProduct('+index+')">Share from phone</button> <button onclick="shareProductFacebook('+index+')">Facebook</button></div></article>'}).join("");msg("productStatus",products.length+" active product(s) loaded from RIANDERBLOG.")}
 function shareProduct(index){const p=products[index];if(!p)return;const caption=makeCaption(p,index);if(navigator.share){navigator.share({title:p.name,text:caption,url:SITE_URL}).then(()=>msg("productStatus","Share sheet opened. Choose Facebook or another app to publish.")).catch(e=>{if(e.name!=="AbortError")msg("productStatus","Sharing was unavailable. Try the Facebook button.")});}else{const textToCopy=caption+" "+SITE_URL;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(textToCopy).then(()=>msg("productStatus","Promotion text copied. Open Facebook and paste it into your post."));}else msg("productStatus","Copy this promotion text and paste it into Facebook: "+caption);}}
@@ -207,7 +209,36 @@ if("speechSynthesis" in window){refreshTutorialVoices();window.speechSynthesis.o
 function downloadTutorialVideo(){if(!tutorialVideoBlob||!tutorialVideoUrl)return;const a=document.createElement("a");a.href=tutorialVideoUrl;a.download="RIANDERBLOG-tutorial-"+document.getElementById("tutorialChoice").value+".webm";document.body.appendChild(a);a.click();a.remove()}
 drawTutorialScene(document.getElementById("tutorialCanvas").getContext("2d"),tutorialLessons.account.scenes[0],0,6);
 
-async function boot(){if(!db){document.getElementById("accountTitle").textContent="Sign-in service could not load";document.getElementById("accountInfo").textContent="Refresh the page when your internet connection is available, then try again.";msg("settingsStatus","The Supabase sign-in library did not load.");return}const {data,error}=await db.auth.getSession();if(error){msg("settingsStatus","Could not check your existing session: "+error.message);return}currentUser=data.session?.user||null;if(!currentUser){document.getElementById("accountTitle").textContent="RIANDERBLOG account not detected";document.getElementById("accountInfo").textContent="Sign in to RIANDERBLOG in this same browser, then open Promotion Hub from the marketplace menu. You will not need a separate Hub login.";msg("productStatus","No active marketplace session was found in this browser.");return}document.getElementById("accountTitle").textContent="Signed in: "+(currentUser.email||"RIANDERBLOG account");document.getElementById("accountInfo").textContent="Your existing marketplace login is active. Products and promotion drafts are linked to this account.";document.getElementById("signInButton").textContent="Signed in";document.getElementById("signInButton").disabled=true;document.getElementById("signInTop").textContent="Account connected";document.getElementById("signInTop").disabled=true;await Promise.all([loadProducts(),loadSettings(),loadConnections(),loadQueue()])}
+async function boot(){
+ if(!db){
+  document.getElementById("accountTitle").textContent="Sign-in service unavailable";
+  document.getElementById("accountInfo").textContent="Refresh the page when your internet connection is available.";
+  msg("settingsStatus","The Supabase sign-in library did not load.");
+  return;
+ }
+ const {data,error}=await db.auth.getSession();
+ if(error){
+  document.getElementById("accountTitle").textContent="Could not verify administrator";
+  document.getElementById("accountInfo").textContent="Return to RIANDERBLOG and try again.";
+  msg("settingsStatus","Could not check your existing session: "+error.message);
+  return;
+ }
+ currentUser=data.session?.user||null;
+ if(!currentUser || currentUser.id!==ADMIN_USER_ID){
+  document.body.classList.remove("hub-admin-ready");
+  document.getElementById("accountTitle").textContent="Promotion Hub — administrator only";
+  document.getElementById("accountInfo").textContent=currentUser
+   ? "This workspace is restricted to the RIANDERBLOG administrator account. Sign out and use the administrator account."
+   : "Sign in to your RIANDERBLOG administrator account in this same browser, then open Promotion Hub from the marketplace menu. No separate Hub sign-in is used.";
+  msg("productStatus","Access denied. This workspace is private to the RIANDERBLOG administrator.");
+  msg("settingsStatus","Administrator verification is required.");
+  return;
+ }
+ document.body.classList.add("hub-admin-ready");
+ document.getElementById("accountTitle").textContent="Administrator verified";
+ document.getElementById("accountInfo").textContent="Signed in as "+(currentUser.email||"RIANDERBLOG administrator")+". This private workspace uses your existing marketplace login.";
+ await Promise.all([loadProducts(),loadSettings(),loadConnections(),loadQueue()]);
+}
 db.auth.onAuthStateChange(function(){setTimeout(boot,0)});
 boot();
 </script>
