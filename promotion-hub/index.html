@@ -26,7 +26,7 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 @media(max-width:800px){.products,.settings{grid-column:1/-1}.product-list{grid-template-columns:1fr}}
 @media(max-width:430px){.channels{grid-template-columns:1fr}.hero{padding:21px}.panel{padding:16px}}
 </style>
-<style id="adminOnlyHubGate">body:not(.hub-admin-ready) main > :not(.auth):not(.hero),body:not(.hub-admin-ready) footer{display:none!important}</style>
+<style id="adminOnlyHubGate">body:not(.hub-admin-ready) main > :not(.auth):not(.hero):not(.grid),body:not(.hub-admin-ready) .grid > :not(.products),body:not(.hub-admin-ready) footer{display:none!important}</style>
 </head>
 <body>
 <header><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></header>
@@ -76,7 +76,18 @@ function msg(id,text){document.getElementById(id).textContent=text||""}
 function esc(v){return String(v??"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function signIn(){msg("settingsStatus","Sign in to RIANDERBLOG first, then reopen this private Promotion Hub.");}
 async function loadProducts(){const {data,error}=await db.from("products").select("id,name,description,category,price,currency,image_url,product_image_urls,affiliate_url,is_active").eq("is_active",true).order("created_at",{ascending:false}).limit(100);if(error){msg("productStatus","Could not load products: "+error.message);return}products=data||[];renderProducts()}
-function renderProducts(){const root=document.getElementById("productList");if(!products.length){root.innerHTML='<div class="empty">No active marketplace products found yet.</div>';return}root.innerHTML=products.map(function(p,index){const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";return '<article class="product"><img src="'+esc(image)+'" alt="" onerror="this.style.visibility=\\'hidden\\'"><div style="min-width:0"><strong>'+esc(p.name)+'</strong><small>'+esc(p.currency||"")+' '+esc(p.price)+' · '+esc(p.category||"Product")+'</small><button onclick="makeProductDraft('+Number(p.id)+')">Create promo draft</button> <button onclick="shareProduct('+index+')">Share from phone</button> <button onclick="shareProductFacebook('+index+')">Facebook</button></div></article>'}).join("");msg("productStatus",products.length+" active product(s) loaded from RIANDERBLOG.")}
+function renderProducts(){
+ const root=document.getElementById("productList");
+ if(!products.length){root.innerHTML='<div class="empty">No active marketplace products found yet.</div>';return}
+ root.innerHTML=products.map(function(p,index){
+  const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";
+  const actions=currentUser&&currentUser.id===ADMIN_USER_ID
+   ? '<button onclick="makeProductDraft('+Number(p.id)+')">Create promo draft</button> <button onclick="shareProduct('+index+')">Share from phone</button> <button onclick="shareProductFacebook('+index+')">Facebook</button>'
+   : '<small>Administrator verification is needed to create promotions.</small>';
+  return '<article class="product"><img src="'+esc(image)+'" alt="" onerror="this.style.visibility=\\'hidden\\'"><div style="min-width:0"><strong>'+esc(p.name)+'</strong><small>'+esc(p.currency||"")+' '+esc(p.price)+' · '+esc(p.category||"Product")+'</small>'+actions+'</div></article>';
+ }).join("");
+ msg("productStatus",products.length+" active product(s) loaded from RIANDERBLOG.");
+}
 function shareProduct(index){const p=products[index];if(!p)return;const caption=makeCaption(p,index);if(navigator.share){navigator.share({title:p.name,text:caption,url:SITE_URL}).then(()=>msg("productStatus","Share sheet opened. Choose Facebook or another app to publish.")).catch(e=>{if(e.name!=="AbortError")msg("productStatus","Sharing was unavailable. Try the Facebook button.")});}else{const textToCopy=caption+" "+SITE_URL;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(textToCopy).then(()=>msg("productStatus","Promotion text copied. Open Facebook and paste it into your post."));}else msg("productStatus","Copy this promotion text and paste it into Facebook: "+caption);}}
 function shareProductFacebook(index){const p=products[index];if(!p)return;const shareUrl="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(SITE_URL);window.open(shareUrl,"_blank","noopener,noreferrer");msg("productStatus","Facebook share opened. Add this product to your post: "+p.name+" — "+(p.currency||"")+" "+p.price+".");}
 function makeCaption(p,index){const lines=["Discover your next favourite find!","A great pick worth checking out.","Find it on RIANDERBLOG today!"];const desc=String(p.description||"").replace(/\\s+/g," ").slice(0,180);return p.name+" — "+lines[index%lines.length]+" "+(desc?desc+" ":"")+"Price: "+(p.currency||"")+" "+p.price+". Explore and shop: "+SITE_URL+" #RIANDERBLOG #OnlineShopping"}
@@ -224,6 +235,7 @@ async function boot(){
    msg("settingsStatus","The Supabase sign-in library did not load.");
    return;
   }
+  await loadProducts();
   let result=await db.auth.getSession();
   if(result.error)throw result.error;
   let session=result.data.session;
