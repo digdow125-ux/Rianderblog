@@ -50,8 +50,8 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 <div class="actions"><button class="primary" onclick="saveSettings()">Save schedule</button><button class="secondary" onclick="generateQueue()">Prepare today's posts</button></div><div class="statusline" id="settingsStatus"></div>
 </section>
 <section class="panel tutorials"><h2>Make a customer tutorial video</h2><p class="sub">Create a short RIANDERBLOG-branded tutorial with animated scenes and captions. Works in a modern browser; keep this page open while it renders.</p>
-<div class="field"><label for="tutorialChoice">Choose a lesson</label><select id="tutorialChoice"><option value="account">1. Create an account and sign in</option><option value="search">2. Search and choose products</option><option value="cart">3. Use your cart and visit the supplier</option></select></div>
-<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><canvas id="tutorialCanvas" width="360" height="640" style="width:min(100%,220px);height:auto;background:#0d1b2e;border-radius:12px;border:1px solid #dce3ec"></canvas><div style="flex:1;min-width:190px"><div class="actions" style="margin-top:0"><button class="primary" id="makeTutorialBtn" onclick="makeTutorialVideo()">Create tutorial video</button><button class="secondary" id="narrateTutorialBtn" onclick="playTutorialNarration()">▶ Listen to narration</button><button class="secondary" id="stopNarrationBtn" onclick="stopTutorialNarration()">Stop narration</button><button class="secondary" id="downloadTutorialBtn" disabled onclick="downloadTutorialVideo()">Download video</button></div><div class="statusline" id="tutorialStatus">Choose a lesson, then create your video. Video is rendered on this device.</div><p class="sub">Narration preview uses the voice available in your browser. The downloaded WebM currently contains the animated captions only; voice is not yet embedded in the file. Export format: WebM.</p></div></div></section>
+<div class="field"><label for="tutorialChoice">Choose a lesson</label><select id="tutorialChoice"><option value="account">1. Create an account and sign in</option><option value="search">2. Search and choose products</option><option value="cart">3. Use your cart and visit the supplier</option></select></div>\n<div class="field"><label for="tutorialVoice">Narrator voice</label><select id="tutorialVoice"><option value="auto">African female English voice (best available)</option></select><p class="sub">Available voices depend on Chrome and voices installed on this device.</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><canvas id="tutorialCanvas" width="360" height="640" style="width:min(100%,220px);height:auto;background:#0d1b2e;border-radius:12px;border:1px solid #dce3ec"></canvas><div style="flex:1;min-width:190px"><div class="actions" style="margin-top:0"><button class="primary" id="makeTutorialBtn" onclick="makeTutorialVideo()">Create tutorial video</button><button class="secondary" id="narrateTutorialBtn" onclick="playTutorialNarration()">▶ Listen to narration</button><button class="secondary" id="stopNarrationBtn" onclick="stopTutorialNarration()">Stop narration</button><button class="secondary" id="downloadTutorialBtn" disabled onclick="downloadTutorialVideo()">Download video</button></div><div class="statusline" id="tutorialStatus">Choose a lesson, then create your video. Video is rendered on this device.</div><p class="sub">Professional anime-inspired host, branded layouts and captions. Narration preview uses your selected device voice. Note: browser speech cannot yet be embedded in the exported WebM, so the download is currently video-only.</p></div></div></section>
 <section class="panel tutorials"><h2>Weekly customer tutorial videos</h2><p class="sub">Three short lessons each week to show customers how to use RIANDERBLOG.</p>
 <div class="times"><span>Monday · 20:00</span><span>Wednesday · 20:00</span><span>Friday · 20:00</span></div>
 <p class="sub" style="margin-top:12px">Planned lessons: create an account and sign in; search and choose products; add to cart and place an order; understand order updates and delivery. Videos should include narration, captions, and real screen demonstrations.</p>
@@ -111,20 +111,43 @@ const tutorialLessons={
  ]}
 };
 let tutorialVideoUrl=null,tutorialVideoBlob=null,tutorialRecorder=null;
+function drawAnimeHost(ctx,phase){
+ // Original vector anime-style presenter, drawn directly into the video.
+ ctx.save();
+ ctx.translate(250,420+Math.sin(phase*.7)*3);
+ ctx.fillStyle="rgba(0,0,0,.22)";ctx.beginPath();ctx.ellipse(0,150,78,15,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#e7b85e";ctx.beginPath();ctx.moveTo(-58,128);ctx.quadraticCurveTo(-70,55,-42,28);ctx.lineTo(42,28);ctx.quadraticCurveTo(70,55,58,128);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#f3c6a6";ctx.beginPath();ctx.ellipse(0,-28,48,61,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#20243b";ctx.beginPath();ctx.moveTo(-49,-40);ctx.quadraticCurveTo(-65,-115,2,-112);ctx.quadraticCurveTo(65,-110,51,-34);ctx.lineTo(39,-2);ctx.quadraticCurveTo(30,-63,4,-65);ctx.quadraticCurveTo(-18,-30,-48,-12);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#20243b";ctx.beginPath();ctx.moveTo(-45,-58);ctx.quadraticCurveTo(-80,-120,-32,-118);ctx.quadraticCurveTo(-48,-83,-45,-58);ctx.fill();
+ ctx.fillStyle="#ffffff";ctx.beginPath();ctx.ellipse(-18,-28,11,15,0,0,Math.PI*2);ctx.ellipse(18,-28,11,15,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#5a3b31";ctx.beginPath();ctx.ellipse(-17,-26,4,8,0,0,Math.PI*2);ctx.ellipse(17,-26,4,8,0,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle="#9d5b59";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-5,9,.2,Math.PI-.2);ctx.stroke();
+ ctx.fillStyle="rgba(224,117,120,.45)";ctx.beginPath();ctx.ellipse(-32,-4,9,5,0,0,Math.PI*2);ctx.ellipse(32,-4,9,5,0,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+}
 function drawTutorialScene(ctx,scene,index,total){
- const W=360,H=640;ctx.fillStyle="#0d1b2e";ctx.fillRect(0,0,W,H);
- const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,"#142b49");grad.addColorStop(1,"#1c4c71");ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
- ctx.fillStyle="#d9b45b";ctx.fillRect(28,46,52,5);
- ctx.fillStyle="#f5d98e";ctx.font="bold 17px Arial";ctx.fillText("RIANDERBLOG",28,88);
- ctx.fillStyle="#ffffff";ctx.font="bold 26px Arial";
+ const W=360,H=640;ctx.clearRect(0,0,W,H);
+ const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,"#081426");grad.addColorStop(.55,"#12365a");grad.addColorStop(1,"#07101e");ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle="rgba(217,180,91,.10)";ctx.beginPath();ctx.arc(325,110,110,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle="rgba(239,204,128,.25)";ctx.lineWidth=1;for(let r=42;r<150;r+=28){ctx.beginPath();ctx.arc(330,120,r,0,Math.PI*2);ctx.stroke()}
+ ctx.fillStyle="#d9b45b";ctx.fillRect(24,35,42,4);
+ ctx.fillStyle="#f7d990";ctx.font="bold 15px Arial";ctx.fillText("RIANDERBLOG",24,68);
+ ctx.fillStyle="#b8cbe0";ctx.font="11px Arial";ctx.fillText("GLOBAL SHOPPING • CUSTOMER ACADEMY",24,91);
+ ctx.fillStyle="rgba(255,255,255,.09)";ctx.beginPath();ctx.roundRect(22,120,316,185,18);ctx.fill();
+ ctx.fillStyle="#eac36f";ctx.font="bold 11px Arial";ctx.fillText("LESSON "+String(index+1).padStart(2,"0")+"  /  "+String(total).padStart(2,"0"),40,149);
+ ctx.fillStyle="#ffffff";ctx.font="bold 23px Arial";
  const words=scene[0].split(" ");let lines=[],line="";
- words.forEach(w=>{const test=line?line+" "+w:w;if(ctx.measureText(test).width>300){lines.push(line);line=w}else line=test});if(line)lines.push(line);
- let y=230-(lines.length-1)*18;lines.forEach(t=>{ctx.fillText(t,28,y);y+=38});
- ctx.fillStyle="#dce7f3";ctx.font="18px Arial";const desc=scene[1].split(" ");let dlines=[],dline="";
- desc.forEach(w=>{const test=dline?dline+" "+w:w;if(ctx.measureText(test).width>300){dlines.push(dline);dline=w}else dline=test});if(dline)dlines.push(dline);
- y+=30;dlines.forEach(t=>{ctx.fillText(t,28,y);y+=29});
- ctx.fillStyle="#d9b45b";ctx.fillRect(28,548,304,5);ctx.fillStyle="#ffffff";ctx.fillRect(28,548,304*(index+1)/total,5);
- ctx.fillStyle="#c7d3e1";ctx.font="13px Arial";ctx.fillText("RIANDERBLOG · CUSTOMER GUIDE",28,588);ctx.fillText((index+1)+" / "+total,292,618);
+ words.forEach(w=>{const test=line?line+" "+w:w;if(ctx.measureText(test).width>278){lines.push(line);line=w}else line=test});if(line)lines.push(line);
+ let y=190-(lines.length-1)*14;lines.forEach(t=>{ctx.fillText(t,40,y);y+=31});
+ ctx.fillStyle="#d6e2f0";ctx.font="15px Arial";const desc=scene[1].split(" ");let dlines=[],dline="";
+ desc.forEach(w=>{const test=dline?dline+" "+w:w;if(ctx.measureText(test).width>278){dlines.push(dline);dline=w}else dline=test});if(dline)dlines.push(dline);
+ y=267;dlines.slice(0,2).forEach(t=>{ctx.fillText(t,40,y);y+=21});
+ drawAnimeHost(ctx,index);
+ ctx.fillStyle="rgba(5,13,25,.72)";ctx.beginPath();ctx.roundRect(22,545,316,58,13);ctx.fill();
+ ctx.fillStyle="#eac36f";ctx.font="bold 10px Arial";ctx.fillText("YOUR GATEWAY TO GLOBAL SHOPPING",38,568);
+ ctx.fillStyle="#ffffff";ctx.font="12px Arial";ctx.fillText("Discover. Shop. Enjoy.",38,587);
+ ctx.fillStyle="rgba(255,255,255,.18)";ctx.fillRect(24,620,312,4);ctx.fillStyle="#eac36f";ctx.fillRect(24,620,312*(index+1)/total,4);
 }
 async function makeTutorialVideo(){
  const choice=document.getElementById("tutorialChoice").value,lesson=tutorialLessons[choice],canvas=document.getElementById("tutorialCanvas"),ctx=canvas.getContext("2d"),status=document.getElementById("tutorialStatus"),btn=document.getElementById("makeTutorialBtn"),download=document.getElementById("downloadTutorialBtn");
@@ -136,21 +159,49 @@ async function makeTutorialVideo(){
  }catch(e){btn.disabled=false;status.textContent="Could not create video: "+(e.message||"Recording failed");stream.getTracks().forEach(t=>t.stop())}
 }
 let narrationRun=0;
+let tutorialVoices=[];
+function refreshTutorialVoices(){
+ if(!("speechSynthesis" in window))return;
+ tutorialVoices=window.speechSynthesis.getVoices()||[];
+ const select=document.getElementById("tutorialVoice");if(!select)return;
+ const previous=select.value;select.innerHTML='<option value="auto">African female English voice (best available)</option>';
+ const female=/female|woman|zira|samantha|victoria|karen|moira|tessa|serena|ava|aria|jenny|susan|linda|google uk english female/i;
+ const african=/en[-_](ZA|NG|KE|GH|ZW|BW|MW)/i;
+ const sorted=[...tutorialVoices].sort((a,b)=>{
+  const score=v=>(african.test(v.lang)?100:0)+(female.test(v.name)?30:0)+(/^en/i.test(v.lang)?10:0);
+  return score(b)-score(a);
+ });
+ sorted.forEach(v=>{const o=document.createElement("option");o.value=v.name;o.textContent=v.name+" — "+v.lang;select.appendChild(o)});
+ if([...select.options].some(o=>o.value===previous))select.value=previous;
+}
+function selectedTutorialVoice(){
+ const wanted=document.getElementById("tutorialVoice")?.value;
+ if(wanted&&wanted!=="auto")return tutorialVoices.find(v=>v.name===wanted)||null;
+ const female=/female|woman|zira|samantha|victoria|karen|moira|tessa|serena|ava|aria|jenny|susan|linda|google uk english female/i;
+ const african=/en[-_](ZA|NG|KE|GH|ZW|BW|MW)/i;
+ return [...tutorialVoices].sort((a,b)=>{
+  const score=v=>(african.test(v.lang)?100:0)+(female.test(v.name)?30:0)+(/^en/i.test(v.lang)?10:0);
+  return score(b)-score(a);
+ })[0]||null;
+}
 function playTutorialNarration(){
  if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window)){msg("tutorialStatus","Voice narration is not supported by this browser.");return}
  stopTutorialNarration();
- const run=++narrationRun,lesson=tutorialLessons[document.getElementById("tutorialChoice").value];
+ const run=++narrationRun,lesson=tutorialLessons[document.getElementById("tutorialChoice").value],voice=selectedTutorialVoice();
  let i=0;
  function next(){
-  if(run!==narrationRun||i>=lesson.scenes.length){if(run===narrationRun)msg("tutorialStatus","Narration finished. The downloaded video remains captions-only.");return}
+  if(run!==narrationRun||i>=lesson.scenes.length){if(run===narrationRun)msg("tutorialStatus","Narration finished. This preview uses the selected device voice; video export is still silent.");return}
   const scene=lesson.scenes[i++],utterance=new SpeechSynthesisUtterance(scene[0]+". "+scene[1]);
-  utterance.rate=0.94;utterance.pitch=1;utterance.onend=next;utterance.onerror=()=>{if(run===narrationRun)msg("tutorialStatus","Narration stopped by the browser.")};
-  msg("tutorialStatus","Speaking scene "+i+" of "+lesson.scenes.length+"…");
+  if(voice){utterance.voice=voice;utterance.lang=voice.lang}
+  utterance.rate=.91;utterance.pitch=1.13;utterance.volume=1;utterance.onend=next;utterance.onerror=()=>{if(run===narrationRun)msg("tutorialStatus","Narration stopped by the browser.")};
+  msg("tutorialStatus","Speaking scene "+i+" of "+lesson.scenes.length+(voice?" with "+voice.name:" with the default available voice")+"…");
   window.speechSynthesis.speak(utterance);
  }
  next();
 }
 function stopTutorialNarration(){narrationRun++;if("speechSynthesis" in window)window.speechSynthesis.cancel();msg("tutorialStatus","Narration stopped.");}
+if("speechSynthesis" in window){refreshTutorialVoices();window.speechSynthesis.onvoiceschanged=refreshTutorialVoices;}
+
 function downloadTutorialVideo(){if(!tutorialVideoBlob||!tutorialVideoUrl)return;const a=document.createElement("a");a.href=tutorialVideoUrl;a.download="RIANDERBLOG-tutorial-"+document.getElementById("tutorialChoice").value+".webm";document.body.appendChild(a);a.click();a.remove()}
 drawTutorialScene(document.getElementById("tutorialCanvas").getContext("2d"),tutorialLessons.account.scenes[0],0,6);
 
