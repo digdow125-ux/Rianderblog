@@ -1471,8 +1471,8 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <button class="primary" onclick="assignStaffTask()">Assign task</button><p id="staffTaskAssignStatus" class="small-note"></p>
 </div>
 <div id="staffManagementList" class="admin-workspace-panel" style="display:none">
-<h3>Assigned work</h3><div id="ownerStaffTasksList">Loading…</div>
-<h3>Your staff</h3><div id="staffMembersList">Loading…</div>
+<h3>Assigned work</h3><div id="ownerStaffTasksList">Loading assigned work…</div>
+<h3>My Staff</h3><p class="small-note">All invited General and Delivery &amp; Assembly staff appear in this table.</p><div id="staffMembersList" aria-live="polite">Loading staff…</div>
 </div>
 </div>
 <div id="staffTaskWorkspace" style="display:none">
@@ -4895,6 +4895,7 @@ async function loadStaffPanel(){
 // Explicitly expose the loader so navigation and the Refresh button always reach the same function.
 window.loadStaffPanel = loadStaffPanel;
 
+
 async function inviteStaffMember(){
  const email=document.getElementById('staffInviteEmail').value.trim(),status=document.getElementById('staffInviteStatus');
  const staff_type=document.getElementById('staffInviteType')?.value||'general';
@@ -4916,12 +4917,32 @@ async function inviteStaffMember(){
 }
 async function loadStaffMembers(){
  const box=document.getElementById('staffMembersList'),select=document.getElementById('staffTaskAssignee');
- const r=await db.from('staff_members').select('id,email,user_id,status,permissions').order('created_at',{ascending:false});
- if(r.error){box.textContent='Could not load staff: '+r.error.message;return;}
- const active=(r.data||[]).filter(x=>x.status==='active'&&x.user_id);
- if(select)select.innerHTML='<option value="">Choose staff member</option>'+active.map(x=>'<option value="'+escapeHTML(x.user_id)+'">'+escapeHTML(x.email)+'</option>').join('');
- if(!r.data?.length){box.textContent='No staff invited yet.';return;}
- box.innerHTML=r.data.map(x=>{const role=x.permissions?.staff_type==='delivery_assembly'?'Delivery & assembly staff':'General staff';const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'No automatic marketplace duties';const next=x.status==='active'?'suspended':'active';return '<div class="staff-member" style="display:block;margin:10px 0;padding:14px;border:1px solid #e3e8ef;border-radius:12px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><strong>'+escapeHTML(x.email)+'</strong><small style="display:block">'+escapeHTML(x.status)+' · '+escapeHTML(role)+' · '+escapeHTML(labels)+'</small></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\''+x.id+'\')">Edit what they can do</button><button class="secondary" type="button" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div></div><div id="staffPermissionEditor-'+x.id+'" data-staff-type="'+(x.permissions?.staff_type||'general')+'" style="display:none;margin-top:12px;padding:12px;background:#f7f9fc;border-radius:10px"><strong>Staff permissions</strong><div class="staff-permission-grid">'+Object.entries(STAFF_LABELS).map(([k,label])=>'<label><input type="checkbox" data-staff-permission="'+k+'" '+(x.permissions?.[k]?'checked':'')+'> '+escapeHTML(label)+'</label>').join('')+'</div><button class="primary" type="button" onclick="saveStaffPermissions(\''+x.id+'\')">Save changes</button><span id="staffPermissionStatus-'+x.id+'" class="small-note"></span></div></div>';}).join('');
+ if(!box)return;
+ box.textContent='Loading staff…';
+ try{
+  const r=await db.from('staff_members').select('id,email,user_id,status,permissions,created_at').order('created_at',{ascending:false});
+  if(r.error)throw r.error;
+  const staff=r.data||[];
+  const active=staff.filter(x=>x.status==='active'&&x.user_id);
+  if(select)select.innerHTML='<option value="">Choose staff member</option>'+active.map(x=>'<option value="'+escapeHTML(x.user_id)+'">'+escapeHTML(x.email)+'</option>').join('');
+  if(!staff.length){
+   box.innerHTML='<p class="small-note">No staff invited yet. Use “Invite staff” to add your first team member.</p>';
+   return;
+  }
+  const rows=staff.map(x=>{
+   const role=x.permissions?.staff_type==='delivery_assembly'?'Delivery &amp; Assembly':'General';
+   const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'No additional marketplace permissions';
+   const next=x.status==='active'?'suspended':'active';
+   const action=next==='active'?'Activate':'Suspend';
+   const statusClass=x.status==='active'?'staff-status-active':'staff-status-other';
+   const editor='<div id="staffPermissionEditor-'+x.id+'" data-staff-type="'+escapeHTML(x.permissions?.staff_type||'general')+'" style="display:none;padding:12px;background:#f7f9fc;border-radius:10px"><strong>Staff permissions</strong><div class="staff-permission-grid">'+Object.entries(STAFF_LABELS).map(([k,label])=>'<label><input type="checkbox" data-staff-permission="'+k+'" '+(x.permissions?.[k]?'checked':'')+'> '+escapeHTML(label)+'</label>').join('')+'</div><button class="primary" type="button" onclick="saveStaffPermissions(\''+x.id+'\')">Save changes</button> <span id="staffPermissionStatus-'+x.id+'" class="small-note"></span></div>';
+   return '<tr><td data-label="Email"><strong>'+escapeHTML(x.email)+'</strong></td><td data-label="Staff type">'+role+'</td><td data-label="Permissions"><span title="'+escapeHTML(labels)+'">'+escapeHTML(labels)+'</span></td><td data-label="Status"><span class="'+statusClass+'">'+escapeHTML(x.status)+'</span></td><td data-label="Actions"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\''+x.id+'\')">Edit permissions</button><button class="secondary" type="button" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+action+'</button></div></td></tr><tr><td colspan="5">'+editor+'</td></tr>';
+  }).join('');
+  box.innerHTML='<div style="width:100%;overflow-x:auto"><table class="staff-members-table" style="width:100%;border-collapse:collapse;min-width:760px"><thead><tr><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Staff email</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Staff type</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Permissions</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Status</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Actions</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+ }catch(error){
+  console.error('RIANDERBLOG My Staff list:',error);
+  if(box)box.textContent='Could not load My Staff: '+(error?.message||'Unknown database error')+'. Tap Refresh to try again.';
+ }
 }
 async function loadTaskRecordOptions(){
  const type=document.getElementById('staffTaskType')?.value,select=document.getElementById('staffTaskRecordSelect'),idInput=document.getElementById('staffTaskRecordId');
