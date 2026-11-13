@@ -84,7 +84,7 @@ function renderProducts(){
   const actions=currentUser&&currentUser.id===ADMIN_USER_ID
    ? '<button onclick="makeProductDraft('+Number(p.id)+')">Create promo draft</button> <button onclick="shareProduct('+index+')">Share from phone</button> <button onclick="shareProductFacebook('+index+')">Facebook</button>'
    : '<small>Administrator verification is needed to create promotions.</small>';
-  return '<article class="product"><img src="'+esc(image)+'" alt="" onerror="this.style.visibility=\\'hidden\\'"><div style="min-width:0"><strong>'+esc(p.name)+'</strong><small>'+esc(p.currency||"")+' '+esc(p.price)+' · '+esc(p.category||"Product")+'</small>'+actions+'</div></article>';
+  return '<article class="product"><img src="'+esc(image)+'" alt="" onerror="this.remove()"><div style="min-width:0"><strong>'+esc(p.name)+'</strong><small>'+esc(p.currency||"")+' '+esc(p.price)+' · '+esc(p.category||"Product")+'</small>'+actions+'</div></article>';
  }).join("");
  msg("productStatus",products.length+" active product(s) loaded from RIANDERBLOG.");
 }
