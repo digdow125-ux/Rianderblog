@@ -4902,7 +4902,17 @@ async function inviteStaffMember(){
  if(staff_type==='delivery_assembly'){Object.keys(permissions).forEach(k=>permissions[k]=false);permissions.delivery_updates=true;}
  status.textContent='Sending invitation…';
  try{if(!staffOwner())throw new Error('Only the owner can invite staff.');const r=await db.functions.invoke('staff-invite',{body:{email,staff_type,permissions}});if(r.error)throw r.error;if(r.data?.error)throw new Error(r.data.error);status.textContent=r.data.invitation_sent?'Invitation email sent. Ask the staff member to accept it.':'Existing account added to staff.';document.getElementById('staffInviteEmail').value='';await loadStaffMembers();}
- catch(e){status.textContent='Invitation failed: '+e.message;}
+ catch(e){
+ let message=e&&e.message?e.message:'Unknown invitation error.';
+ try{
+  const response=e&&e.context;
+  if(response&&typeof response.clone==='function'){
+   const payload=await response.clone().json();
+   if(payload&&payload.error)message=payload.error;
+  }
+ }catch(_){}
+ status.textContent='Invitation failed: '+message;
+}
 }
 async function loadStaffMembers(){
  const box=document.getElementById('staffMembersList'),select=document.getElementById('staffTaskAssignee');
