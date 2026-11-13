@@ -5101,14 +5101,6 @@ async function staffReviewFulfilment(id,action){
       if(status) status.textContent = 'Staff Panel error: ' + (error && error.message ? error.message : String(error));
     }
   };
-  document.addEventListener('DOMContentLoaded', function(){
-    const link=document.getElementById('navStaffPanel');
-    if(link) link.addEventListener('click', function(){
-      const panel=document.getElementById('staffPanel');
-      if(panel) panel.style.display='block';
-      window.setTimeout(function(){ window.loadStaffPanel(); }, 0);
-    });
-  });
 })();
 </script>
 </body>
