@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0d1b2e">
+<title>RIANDERBLOG Promotion Hub</title>
+<style>
+:root{--navy:#0d1b2e;--navy2:#142b49;--gold:#d9b45b;--ink:#18263a;--muted:#738096;--line:#e5eaf1;--bg:#f4f6fa;--white:#fff;--green:#17835d;--red:#b84a4a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:linear-gradient(120deg,#0b182a,#17395c);color:white;padding:18px max(18px,calc((100% - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}.mark{width:42px;height:42px;border:1px solid var(--gold);border-radius:12px;display:grid;place-items:center;color:var(--gold);font-weight:900;font-size:20px}.brand strong{display:block;letter-spacing:.08em}.brand small{color:#c4cedb}
+header button,.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:750;cursor:pointer;background:var(--gold);color:#142238}button:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:1180px;margin:26px auto;padding:0 18px 60px}.hero{background:linear-gradient(120deg,#142b49,#1c4c71);color:white;padding:26px;border-radius:18px;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;box-shadow:0 12px 32px #142b491c}.hero h1{margin:0 0 6px;font-size:clamp(24px,4vw,34px)}.hero p{margin:0;color:#d5dfeb;max-width:680px}.hero .pill{border:1px solid #ffffff40;border-radius:999px;padding:8px 12px;color:#f7df9b;font-size:12px;font-weight:800;letter-spacing:.06em}
+.auth{margin:20px 0;padding:22px;background:white;border:1px solid var(--line);border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.auth p{margin:4px 0;color:var(--muted)}.auth button{background:var(--navy);color:white;border:0;border-radius:10px;padding:12px 18px;font-weight:750}
+.notice{padding:12px 15px;background:#fff9e9;border:1px solid #f0dfb5;color:#624d1c;border-radius:12px;margin:16px 0;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:18px}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 5px 18px #152b4408}.products{grid-column:span 7}.settings{grid-column:span 5}.queue{grid-column:1/-1}.panel h2{font-size:18px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+.product-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.product{border:1px solid var(--line);border-radius:13px;overflow:hidden;display:flex;gap:11px;padding:10px;min-width:0}.product img{width:88px;height:88px;object-fit:cover;border-radius:9px;background:#eef1f5}.product strong{display:block;font-size:14px;line-height:1.3}.product small{display:block;color:var(--muted);margin:4px 0}.product button{background:#edf2f7;color:#20334d;border:0;padding:7px 10px;border-radius:8px;font-weight:700;font-size:12px}
+.channels{display:grid;grid-template-columns:1fr 1fr;gap:9px}.channel{border:1px solid var(--line);border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;font-size:13px}.channel input{width:17px;height:17px;accent-color:#17395c}.state{font-size:10px;color:#8a95a6;margin-left:auto;white-space:nowrap}
+.field{margin:14px 0}.field label{display:block;font-weight:700;font-size:13px;margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border:1px solid #dce3ec;border-radius:9px;background:white;color:var(--ink)}
+.times{display:flex;gap:8px;flex-wrap:wrap}.times span{background:#f0f4f8;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:750}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.actions button{padding:11px 14px;border-radius:9px;border:0;font-weight:750;cursor:pointer}.primary{background:var(--navy);color:white}.secondary{background:#edf1f6;color:#263b56}
+.queue-list{display:grid;gap:9px}.queue-item{border:1px solid var(--line);padding:12px;border-radius:11px;display:grid;grid-template-columns:1fr auto;gap:8px}.queue-item strong{font-size:13px}.queue-item small{display:block;color:var(--muted)}.tag{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:#edf1f6;color:#46566c;height:max-content}.tag.draft{background:#fff3d8;color:#785d17}.tag.published{background:#e4f5ed;color:#146746}
+.statusline{font-size:13px;color:var(--muted);margin-top:12px;min-height:20px}.empty{padding:24px;text-align:center;border:1px dashed #d5dde7;border-radius:12px;color:var(--muted);font-size:13px}
+footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
+@media(max-width:800px){.products,.settings{grid-column:1/-1}.product-list{grid-template-columns:1fr}}
+@media(max-width:430px){.channels{grid-template-columns:1fr}.hero{padding:21px}.panel{padding:16px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><button id="signInTop" onclick="signIn()">Sign in with Google</button></header>
+<main>
+<section class="hero"><div><h1>Promote your products automatically.</h1><p>One product catalogue. One promotion workspace. Prepare campaigns for your social channels and manage your daily publishing schedule.</p></div><div class="pill">CONNECTED TO YOUR MARKETPLACE</div></section>
+<section class="auth"><div><strong id="accountTitle">Sign in to your RIANDERBLOG account</strong><p id="accountInfo">Use the same Google account you use on RIANDERBLOG. Your marketplace products will load here.</p></div><button id="signInButton" onclick="signIn()">Continue with Google</button></section>
+<div class="notice"><strong>Publishing status:</strong> The Hub can load your marketplace products and prepare a posting queue. Automatic publishing starts only after each social platform's official API connection is approved and securely connected. It will never pretend a draft has been published.</div>
+<div class="grid">
+<section class="panel products"><h2>Your marketplace products</h2><p class="sub">Products are read directly from the RIANDERBLOG catalogue.</p><div id="productList" class="product-list"><div class="empty">Sign in to load products.</div></div><div class="statusline" id="productStatus"></div></section>
+<section class="panel settings"><h2>Daily promotion schedule</h2><p class="sub">Default plan: three product promotions per day, Malawi time.</p>
+<div class="field"><label>Social accounts to publish to</label><div class="channels" id="channels">
+<label class="channel"><input type="checkbox" value="facebook" checked> Facebook Page <span class="state" id="s-facebook">Not connected</span></label>
+<label class="channel"><input type="checkbox" value="instagram" checked> Instagram <span class="state" id="s-instagram">Not connected</span></label>
+<label class="channel"><input type="checkbox" value="tiktok" checked> TikTok <span class="state" id="s-tiktok">Not connected</span></label>
+<label class="channel"><input type="checkbox" value="youtube" checked> YouTube Shorts <span class="state" id="s-youtube">Not connected</span></label>
+<label class="channel"><input type="checkbox" value="x" checked> X <span class="state" id="s-x">Not connected</span></label>
+<label class="channel"><input type="checkbox" value="whatsapp_business"> WhatsApp Business <span class="state" id="s-whatsapp_business">Not connected</span></label>
+</div></div>
+<div class="field"><label for="postsPerDay">Posts per day, per connected platform</label><select id="postsPerDay"><option value="1">1 post</option><option value="2">2 posts</option><option value="3" selected>3 posts</option></select></div>
+<div class="field"><label>Suggested posting times (Africa/Blantyre)</label><div class="times"><span>07:00</span><span>13:00</span><span>19:00</span></div></div>
+<div class="field"><label for="automation">Automation</label><select id="automation"><option value="off">Paused — prepare drafts only</option><option value="on">Enable automatic daily publishing</option></select></div>
+<div class="actions"><button class="primary" onclick="saveSettings()">Save schedule</button><button class="secondary" onclick="generateQueue()">Prepare today's posts</button></div><div class="statusline" id="settingsStatus"></div>
+</section>
+<section class="panel queue"><h2>Promotion queue</h2><p class="sub">Review drafts and scheduled items. Publishing results will appear here when integrations are active.</p><div id="queueList" class="queue-list"><div class="empty">Your promotion queue is empty.</div></div><div class="statusline" id="queueStatus"></div></section>
+</div>
+</main>
+<footer>RIANDERBLOG Promotion Hub · Your products, promoted from one place.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
+const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const SITE_URL="https://digdow125-ux.github.io/Rianderblog/";
+const HUB_URL=SITE_URL+"promotion-hub/";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null, products=[], connections=[];
+const platforms=["facebook","instagram","tiktok","youtube","x","whatsapp_business"];
+const platformNames={facebook:"Facebook Page",instagram:"Instagram",tiktok:"TikTok",youtube:"YouTube Shorts",x:"X",whatsapp_business:"WhatsApp Business"};
+function msg(id,text){document.getElementById(id).textContent=text||""}
+function esc(v){return String(v??"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+async function signIn(){msg("settingsStatus","Opening secure Google sign-in…");const {error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:SITE_URL}});if(error)msg("settingsStatus",error.message)}
+async function loadProducts(){const {data,error}=await db.from("products").select("id,name,description,category,price,currency,image_url,product_image_urls,affiliate_url,is_active").eq("is_active",true).order("created_at",{ascending:false}).limit(100);if(error){msg("productStatus","Could not load products: "+error.message);return}products=data||[];renderProducts()}
+function renderProducts(){const root=document.getElementById("productList");if(!products.length){root.innerHTML='<div class="empty">No active marketplace products found yet.</div>';return}root.innerHTML=products.map(function(p){const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";return '<article class="product"><img src="'+esc(image)+'" alt="" onerror="this.style.visibility=\'hidden\'"><div style="min-width:0"><strong>'+esc(p.name)+'</strong><small>'+esc(p.currency||"")+' '+esc(p.price)+' · '+esc(p.category||"Product")+'</small><button onclick="makeProductDraft('+Number(p.id)+')">Create promo draft</button></div></article>'}).join("");msg("productStatus",products.length+" active product(s) loaded from RIANDERBLOG.")}
+function makeCaption(p,index){const lines=["Discover your next favourite find!","A great pick worth checking out.","Find it on RIANDERBLOG today!"];const desc=String(p.description||"").replace(/\\s+/g," ").slice(0,180);return p.name+" — "+lines[index%lines.length]+" "+(desc?desc+" ":"")+"Price: "+(p.currency||"")+" "+p.price+". Explore and shop: "+SITE_URL+" #RIANDERBLOG #OnlineShopping"}
+async function makeProductDraft(id){if(!currentUser){msg("productStatus","Please sign in first.");return}const p=products.find(function(x){return Number(x.id)===Number(id)});if(!p)return;const chosen=selectedPlatforms();if(!chosen.length){msg("productStatus","Select at least one social platform.");return}const rows=chosen.map(function(platform){return {user_id:currentUser.id,product_id:p.id,platform:platform,caption:makeCaption(p,0),media_url:(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||null,status:"draft"}});const {error}=await db.from("promotion_posts").insert(rows);if(error){msg("productStatus","Could not save drafts: "+error.message);return}msg("productStatus","Created "+rows.length+" draft(s) for "+p.name+".");loadQueue()}
+function selectedPlatforms(){return Array.from(document.querySelectorAll("#channels input:checked")).map(function(x){return x.value})}
+async function generateQueue(){if(!currentUser){msg("settingsStatus","Sign in before preparing posts.");return}if(!products.length){msg("settingsStatus","There are no active products to promote yet.");return}const chosen=selectedPlatforms();if(!chosen.length){msg("settingsStatus","Select at least one platform.");return}const count=Number(document.getElementById("postsPerDay").value);const times=["07:00","13:00","19:00"];const rows=[];const now=new Date();for(let i=0;i<count;i++){const p=products[i%products.length];for(const platform of chosen){rows.push({user_id:currentUser.id,product_id:p.id,platform:platform,caption:makeCaption(p,i),media_url:(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||null,status:"draft",scheduled_at:null})}}const {error}=await db.from("promotion_posts").insert(rows);if(error){msg("settingsStatus","Could not create queue: "+error.message);return}msg("settingsStatus","Prepared "+rows.length+" drafts. They are saved as drafts until social publishing connections are approved.");loadQueue()}
+async function saveSettings(){if(!currentUser){msg("settingsStatus","Sign in before saving your schedule.");return}const enabled=document.getElementById("automation").value==="on";if(enabled&&!connections.some(function(c){return c.connection_status==="connected"})){document.getElementById("automation").value="off";msg("settingsStatus","Automatic publishing cannot be enabled yet. Connect and approve at least one social account first.");return}const row={user_id:currentUser.id,automation_enabled:enabled,posts_per_day:Number(document.getElementById("postsPerDay").value),posting_time:"07:00",timezone:"Africa/Blantyre",updated_at:new Date().toISOString()};const {error}=await db.from("promotion_settings").upsert(row,{onConflict:"user_id"});msg("settingsStatus",error?"Could not save settings: "+error.message:"Schedule saved. Publishing stays paused until approved platform connections and the scheduler are configured.")}
+async function loadSettings(){const {data}=await db.from("promotion_settings").select("*").eq("user_id",currentUser.id).maybeSingle();if(data){document.getElementById("postsPerDay").value=String(data.posts_per_day||3);document.getElementById("automation").value=data.automation_enabled?"on":"off"}}
+async function loadConnections(){const {data,error}=await db.from("promotion_connections").select("platform,account_name,connection_status").eq("user_id",currentUser.id);if(error)return;connections=data||[];platforms.forEach(function(p){const c=connections.find(function(x){return x.platform===p&&x.connection_status==="connected"});document.getElementById("s-"+p).textContent=c?"Connected":"Not connected"})}
+async function loadQueue(){const {data,error}=await db.from("promotion_posts").select("id,platform,caption,status,scheduled_at,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);if(error){msg("queueStatus","Could not load queue: "+error.message);return}const root=document.getElementById("queueList");if(!data||!data.length){root.innerHTML='<div class="empty">Your promotion queue is empty. Choose a product and prepare your first post.</div>';return}root.innerHTML=data.map(function(x){return '<div class="queue-item"><div><strong>'+esc(platformNames[x.platform]||x.platform)+'</strong><small>'+esc(x.caption.slice(0,150))+'</small><small>'+new Date(x.created_at).toLocaleString()+'</small></div><span class="tag '+(x.status==="published"?"published":"draft")+'">'+esc(x.status)+'</span></div>'}).join("");msg("queueStatus","Showing latest "+data.length+" item(s).")}
+async function boot(){const {data}=await db.auth.getSession();currentUser=data.session?.user||null;if(!currentUser){document.getElementById("accountTitle").textContent="Sign in to your RIANDERBLOG account";return}document.getElementById("accountTitle").textContent="Signed in: "+(currentUser.email||"RIANDERBLOG account");document.getElementById("accountInfo").textContent="Your existing marketplace login is active. Products and promotion drafts are linked to this account.";document.getElementById("signInButton").textContent="Signed in";document.getElementById("signInButton").disabled=true;document.getElementById("signInTop").textContent="Account connected";document.getElementById("signInTop").disabled=true;await Promise.all([loadProducts(),loadSettings(),loadConnections(),loadQueue()])}
+db.auth.onAuthStateChange(function(){setTimeout(boot,0)});
+boot();
+</script>
+</body>
+</html>
