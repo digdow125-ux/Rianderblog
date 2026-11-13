@@ -2435,7 +2435,13 @@ async function loadAdminDashboard() {
       `;
     }
 
-    message.textContent = "Wallet loaded successfully.";
+    const hasCommissionBalance = balances.some(wallet =>
+      Number(wallet.available_balance || 0) > 0 ||
+      Number(wallet.pending_balance || 0) > 0
+    );
+    message.textContent = hasCommissionBalance
+      ? "Wallet loaded successfully. Commission balances are up to date."
+      : "Wallet loaded successfully. No verified commissions have been posted yet. Balances update after eligible orders are paid and approved.";
 
   } catch (error) {
     message.textContent =
