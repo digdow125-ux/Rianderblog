@@ -31,6 +31,7 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 
 /* Two-column catalogue and share workspace */
 .workspace{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.9fr);gap:16px;align-items:start;margin:20px 0}.catalogue-panel,.share-panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 5px 18px #152b4408;min-width:0}.catalogue-table{width:100%;border-collapse:collapse}.catalogue-table th,.catalogue-table td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}.catalogue-table th{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.05em}.catalogue-table img{width:54px;height:54px;object-fit:cover;border-radius:8px;background:#eef1f5}.catalogue-table button{background:#edf2f7;color:#20334d;border:0;border-radius:8px;padding:8px 11px;font-weight:750;cursor:pointer}.catalogue-table tr.selected{background:#fff9e9}.share-panel{background:linear-gradient(160deg,#fff,#f7f9fc)}.share-panel h2{margin:0 0 5px;font-size:18px}.selected-product{background:#f0f4f8;border-radius:10px;padding:11px;margin:12px 0;font-size:13px}.share-options{display:grid;gap:9px}.share-options button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 13px;border:1px solid #dfe6ef;border-radius:10px;background:white;color:#1d3049;font-weight:750;text-align:left;cursor:pointer}.share-options button:hover{border-color:var(--gold);background:#fffaf0}.share-options span{color:#758399;font-size:11px;font-weight:500}.workspace .product-list{display:block}.workspace .products,.workspace .settings{grid-column:auto}.workspace .panel{box-shadow:none}@media(max-width:800px){.workspace{grid-template-columns:1fr}.catalogue-table th,.catalogue-table td{padding:8px 5px}.catalogue-table{font-size:12px}}
+body.hub-staff-ready #schedule,body.hub-staff-ready #tutorial-plan{display:none!important}
 </style>
 <style id="adminOnlyHubGate">body:not(.hub-admin-ready) main > :not(.auth):not(.hero):not(.grid),body:not(.hub-admin-ready) .grid > :not(.products),body:not(.hub-admin-ready) footer{display:none!important}</style>
 </head>
@@ -289,19 +290,28 @@ async function boot(){
    session=result.data.session;
   }
   currentUser=session?.user||null;
-  if(!currentUser || currentUser.id!==ADMIN_USER_ID){
-   document.body.classList.remove("hub-admin-ready");
-   document.getElementById("accountTitle").textContent=currentUser?"Different account detected":"RIANDERBLOG login not detected";
+  let staffMember=null;
+  const isOwner=!!currentUser&&currentUser.id===ADMIN_USER_ID;
+  if(currentUser&&!isOwner){
+   const staffResult=await db.from("staff_members").select("id,email,permissions,status").eq("user_id",currentUser.id).maybeSingle();
+   if(!staffResult.error&&staffResult.data?.status==="active"&&staffResult.data.permissions?.social_media===true)staffMember=staffResult.data;
+  }
+  if(!isOwner&&!staffMember){
+   document.body.classList.remove("hub-admin-ready","hub-staff-ready");
+   document.getElementById("accountTitle").textContent=currentUser?"No Promotion Hub permission":"RIANDERBLOG login not detected";
    document.getElementById("accountInfo").textContent=currentUser
-    ?"This page is signed in with a different RIANDERBLOG account. Return to the marketplace, switch to the administrator account, then reopen this Hub."
-    :"Your marketplace login has not appeared in this tab yet. Return to RIANDERBLOG, confirm the administrator account is still signed in, then reopen this Hub or tap Retry account check.";
-   msg("productStatus","Products are protected until administrator verification succeeds.");
-   msg("settingsStatus","No separate Hub login is needed. Waiting for the shared RIANDERBLOG administrator session.");
+    ?"This account has no active social-media staff permission. Ask the RIANDERBLOG owner to enable it."
+    :"Your marketplace login has not appeared in this tab yet. Return to RIANDERBLOG and sign in, then reopen this Hub.";
+   msg("productStatus","Products are protected until your account is verified.");
+   msg("settingsStatus","The Hub uses your existing marketplace login. No second sign-in is needed.");
    return;
   }
-  document.body.classList.add("hub-admin-ready");
-  document.getElementById("accountTitle").textContent="Administrator verified";
-  document.getElementById("accountInfo").textContent="Signed in as "+(currentUser.email||"RIANDERBLOG administrator")+". This private workspace uses your existing marketplace login.";
+  document.body.classList.toggle("hub-admin-ready",isOwner);
+  document.body.classList.toggle("hub-staff-ready",!isOwner&&!!staffMember);
+  document.getElementById("accountTitle").textContent=isOwner?"Administrator verified":"Staff access verified";
+  document.getElementById("accountInfo").textContent=isOwner
+   ?"Signed in as "+(currentUser.email||"RIANDERBLOG administrator")+". This private workspace uses your existing marketplace login."
+   :"Signed in as "+(currentUser.email||"RIANDERBLOG staff")+". Social-media access is enabled by the marketplace owner.";
   await Promise.all([loadProducts(),loadSettings(),loadConnections(),loadQueue()]);
  }catch(error){
   document.getElementById("accountTitle").textContent="Could not load your RIANDERBLOG account";
