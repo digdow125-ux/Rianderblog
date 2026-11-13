@@ -4643,5 +4643,29 @@ async function installRianderblogApp(){
 
 
 
+
+<script>
+/* Return to Promotion Hub after the existing marketplace Google login completes. */
+(function returnToPromotionHubAfterLogin(){
+  function checkPromotionHubReturn(session){
+    const requestedAt = Number(localStorage.getItem("rianderblog_return_to_promotion_hub") || 0);
+    if (requestedAt && Date.now() - requestedAt < 10 * 60 * 1000 && session) {
+      localStorage.removeItem("rianderblog_return_to_promotion_hub");
+      window.location.replace("https://digdow125-ux.github.io/Rianderblog/promotion-hub/index.html");
+    } else if (requestedAt && Date.now() - requestedAt >= 10 * 60 * 1000) {
+      localStorage.removeItem("rianderblog_return_to_promotion_hub");
+    }
+  }
+  try {
+    db.auth.onAuthStateChange(function(event, session){
+      if (session) setTimeout(function(){ checkPromotionHubReturn(session); }, 0);
+    });
+    db.auth.getSession().then(function(result){ checkPromotionHubReturn(result.data && result.data.session); });
+  } catch (error) {
+    console.warn("Promotion Hub return:", error);
+  }
+})();
+</script>
+
 </body>
 </html>
