@@ -4915,6 +4915,15 @@ async function inviteStaffMember(){
  status.textContent='Invitation failed: '+message;
 }
 }
+// Shared labels used by the My Staff table and permission editor.
+const STAFF_LABELS = {
+ supplier_approvals: 'Supplier approvals',
+ product_approvals: 'Product approvals',
+ add_products: 'Add products',
+ order_approvals: 'Order approvals',
+ delivery_updates: 'Delivery updates',
+ social_media: 'Social media promotions'
+};
 async function loadStaffMembers(){
  const box=document.getElementById('staffMembersList'),select=document.getElementById('staffTaskAssignee');
  if(!box)return;
