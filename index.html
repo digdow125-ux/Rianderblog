@@ -1472,9 +1472,9 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <h3>Assign a task</h3>
 <p class="small-note">Core work appears automatically according to each staff member’s category. Use this form only for extra or special tasks.</p>
 <div class="form-grid">
-<label>Staff member<select id="staffTaskAssignee"><option value="">Choose staff member</option></select></label>
+<label>Staff member<select id="staffTaskAssignee" onchange="updateExtraTaskTypes()"><option value="">Choose staff member</option></select></label>
 <label>Task type<select id="staffTaskType" onchange="loadTaskRecordOptions()">
-<option value="custom">General / custom task</option><option value="add_product">Add marketplace product</option><option value="supplier_application">Review supplier application</option><option value="product_approval">Review supplier product</option><option value="order_approval">Approve customer order</option><option value="delivery_assembly">Delivery / assembly</option><option value="fulfilment_approval">Review shipment / delivery proof</option><option value="promotion_hub">Promotion Hub work</option>
+<option value="custom">General / custom task</option><option value="supplier_application">Supplier application review</option><option value="affiliate_application">Affiliate application review</option><option value="product_approval">Product approval</option><option value="order_approval">Customer order approval</option><option value="promotion_hub">Promotion Hub / social promotion</option><option value="delivery_assembly">Delivery / assembly</option><option value="fulfilment_approval">Shipment / delivery proof review</option>
 </select></label>
 <label>Task title<input id="staffTaskTitle" type="text" placeholder="What should the staff member do?"></label>
 <label>Choose a record (for review / delivery tasks)<select id="staffTaskRecordSelect" onchange="document.getElementById('staffTaskRecordId').value=this.value"><option value="">Load records by task type</option></select></label>
@@ -4938,7 +4938,7 @@ async function loadStaffMembers(){
   if(r.error)throw r.error;
   const staff=r.data||[];
   const active=staff.filter(x=>x.status==='active'&&x.user_id);
-  if(select)select.innerHTML='<option value="">Choose staff member</option>'+active.map(x=>'<option value="'+escapeHTML(x.user_id)+'">'+escapeHTML(x.email)+'</option>').join('');
+  if(select){select.innerHTML='<option value="">Choose staff member</option>'+active.map(x=>'<option value="'+escapeHTML(x.user_id)+'" data-staff-type="'+escapeHTML(x.permissions?.staff_type||'general')+'">'+escapeHTML(x.email)+' · '+escapeHTML(x.permissions?.staff_type==='delivery_assembly'?'Delivery & Assembly':'General')+'</option>').join('');updateExtraTaskTypes();}
   if(!staff.length){
    box.innerHTML='<p class="small-note">No staff invited yet. Use “Invite staff” to add your first team member.</p>';
    return;
@@ -4958,6 +4958,30 @@ async function loadStaffMembers(){
   if(box)box.textContent='Could not load My Staff: '+(error?.message||'Unknown database error')+'. Tap Refresh to try again.';
  }
 }
+function updateExtraTaskTypes(){
+ const staffSelect=document.getElementById('staffTaskAssignee');
+ const typeSelect=document.getElementById('staffTaskType');
+ if(!staffSelect||!typeSelect)return;
+ const selected=staffSelect.options[staffSelect.selectedIndex];
+ const staffType=selected?.dataset?.staffType||'general';
+ const previous=typeSelect.value;
+ const allowed=staffType==='delivery_assembly'
+  ? ['custom','delivery_assembly','fulfilment_approval']
+  : ['custom','supplier_application','affiliate_application','product_approval','order_approval','promotion_hub'];
+ const labels={
+  custom:'General / custom task',
+  supplier_application:'Supplier application review',
+  affiliate_application:'Affiliate application review',
+  product_approval:'Product approval',
+  order_approval:'Customer order approval',
+  promotion_hub:'Promotion Hub / social promotion',
+  delivery_assembly:'Delivery / assembly',
+  fulfilment_approval:'Shipment / delivery proof review'
+ };
+ typeSelect.innerHTML=allowed.map(v=>'<option value="'+v+'">'+labels[v]+'</option>').join('');
+ typeSelect.value=allowed.includes(previous)?previous:'custom';
+ loadTaskRecordOptions();
+}
 async function loadTaskRecordOptions(){
  const type=document.getElementById('staffTaskType')?.value,select=document.getElementById('staffTaskRecordSelect'),idInput=document.getElementById('staffTaskRecordId');
  if(!select)return;
@@ -4966,6 +4990,8 @@ async function loadTaskRecordOptions(){
  try{
   if(type==='supplier_application'){
    const r=await db.from('supplier_applications').select('id,business_name,email').eq('status','pending').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;rows=r.data||[];label=x=>(x.business_name||'Supplier')+' · '+(x.email||'');
+  }else if(type==='affiliate_application'){
+   const r=await db.from('affiliate_applications').select('id,applicant_name,full_name,email').eq('status','pending').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;rows=r.data||[];label=x=>(x.applicant_name||x.full_name||'Affiliate applicant')+' · '+(x.email||'');
   }else if(type==='product_approval'){
    const r=await db.from('products').select('id,name,category').not('supplier_id','is',null).eq('review_status','pending').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;rows=r.data||[];label=x=>(x.name||'Product')+' · '+(x.category||'');
   }else if(type==='order_approval'){
@@ -4986,15 +5012,16 @@ async function assignStaffTask(){
   const staff_user_id=document.getElementById('staffTaskAssignee').value,task_type=document.getElementById('staffTaskType').value;
   const title=document.getElementById('staffTaskTitle').value.trim(),instructions=document.getElementById('staffTaskInstructions').value.trim();
   const rawId=document.getElementById('staffTaskRecordId').value.trim();
-  const needsRecord=['supplier_application','product_approval','order_approval','delivery_assembly','fulfilment_approval'].includes(task_type);
+  const needsRecord=['supplier_application','affiliate_application','product_approval','order_approval','delivery_assembly','fulfilment_approval'].includes(task_type);
   if(!staff_user_id||!title)throw new Error('Choose a staff member and enter a task title.');
   if(needsRecord&&!rawId)throw new Error('Enter the record ID for this task.');
   const dueRaw=document.getElementById('staffTaskDue').value;
   const staff=await db.from('staff_members').select('user_id,status,permissions').eq('user_id',staff_user_id).maybeSingle();
   if(staff.error||!staff.data||staff.data.status!=='active')throw new Error('Choose an active staff member.');
   const deliveryOnly=staff.data.permissions?.staff_type==='delivery_assembly';
-  if(deliveryOnly&&task_type!=='delivery_assembly')throw new Error('Delivery & assembly staff can only receive delivery / assembly tasks.');
-  if(!deliveryOnly&&task_type==='delivery_assembly')throw new Error('Only Delivery & assembly staff can receive delivery / assembly tasks.');
+  if(deliveryOnly&&!['delivery_assembly','fulfilment_approval','custom'].includes(task_type))throw new Error('Delivery & Assembly staff can only receive delivery, fulfilment, or custom tasks.');
+  if(!deliveryOnly&&['delivery_assembly','fulfilment_approval'].includes(task_type))throw new Error('Delivery and fulfilment tasks can only be assigned to Delivery & Assembly staff.');
+  if(task_type==='add_product')throw new Error('Use the Add Product button instead of assigning Add Product as a task.');
   const payload={staff_user_id,assigned_by:window.currentAdminUser.id,task_type,title,instructions,related_record_id:rawId||null,due_at:dueRaw?new Date(dueRaw).toISOString():null};
   const r=await db.from('staff_tasks').insert(payload);if(r.error)throw r.error;
   document.getElementById('staffTaskTitle').value='';document.getElementById('staffTaskInstructions').value='';document.getElementById('staffTaskRecordId').value='';document.getElementById('staffTaskDue').value='';
