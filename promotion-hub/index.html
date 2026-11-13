@@ -85,7 +85,7 @@ $("googleLogin").onclick=async()=>{
  clearMessage("authMessage");
  const b=$("googleLogin"); b.disabled=true; b.textContent="Opening Google sign-in…";
  try{
-  const {data,error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:SHOP_URL,skipBrowserRedirect:true}});
+  const {data,error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.origin+window.location.pathname,skipBrowserRedirect:true}});
   if(error)throw error;
   if(!data?.url)throw new Error("Supabase did not return the Google sign-in URL. Check that Google is enabled in Supabase Authentication providers.");
   window.location.assign(data.url);
