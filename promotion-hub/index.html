@@ -216,9 +216,21 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 .rb-activity-grid>#schedule{grid-column:1/-1!important;margin:0!important}
 .rb-activity-grid>#tutorial-plan,.rb-activity-grid>#queue{grid-column:auto!important;margin:0!important;min-width:0!important}
 @media(max-width:800px){.rb-main-workspace,.rb-activity-grid{grid-template-columns:minmax(0,1fr)!important}.rb-main-workspace>#products,.rb-main-workspace>#tutorial-maker,.rb-activity-grid>#schedule,.rb-activity-grid>#tutorial-plan,.rb-activity-grid>#queue{grid-column:1/-1!important}.rb-activity-area{padding:12px}}
+</style><style id="rb-hub-menu-layout">
+.rb-hub-header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.rb-hub-menu{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rb-hub-menu a{display:inline-flex;align-items:center;padding:9px 12px;border:1px solid #dce4ed;border-radius:9px;color:#e9eef5;text-decoration:none;font-size:13px;font-weight:750}
+.rb-hub-menu a.active,.rb-hub-menu a:hover{background:#b58d3d;color:#14243a;border-color:#b58d3d}
+.rb-hub-menu a.button{background:#fff;color:#14243a}
+.rb-activity-area{display:none!important}
+.rb-activity-area.rb-view-open{display:block!important}
+.rb-activity-grid{display:block!important}
+.rb-activity-grid>.panel{display:none!important}
+.rb-activity-grid>.panel.rb-view-open{display:block!important}
+@media(max-width:700px){.rb-hub-header{align-items:flex-start}.rb-hub-menu{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:5px}.rb-hub-menu a{white-space:nowrap}}
 </style></head>
 <body>
-<header><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></header>
+<header class="rb-hub-header"><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><nav class="rb-hub-menu" aria-label="Promotion Hub menu"><a href="#main" data-hub-view="main" class="active">Main</a><a href="#schedule" data-hub-view="schedule">Social accounts &amp; schedule</a><a href="#tutorial-plan" data-hub-view="tutorial-plan">Tutorial plan</a><a href="#queue" data-hub-view="queue">Promotion queue</a><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></nav></header>
 <main>
 <section class="hero"><div><h1>Promote your products automatically.</h1><p>One product catalogue. One promotion workspace. Prepare campaigns for your social channels and manage your daily publishing schedule.</p></div><div class="pill">CONNECTED TO YOUR MARKETPLACE</div></section>
 <section class="auth"><div><strong id="accountTitle">Checking your RIANDERBLOG account…</strong><p id="accountInfo">The Promotion Hub automatically uses the account already signed in to the RIANDERBLOG marketplace. No second sign-in is required.</p></div><button type="button" onclick="boot()">Retry account check</button></section>
@@ -258,6 +270,27 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 </main>
 <footer>RIANDERBLOG Promotion Hub · Your products, promoted from one place.</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script id="rb-hub-menu-controller">
+(function(){
+ function showHubView(view){
+  const main=document.querySelector('.rb-main-workspace');
+  const activities=document.getElementById('otherActivities');
+  const panels={schedule:document.getElementById('schedule'),'tutorial-plan':document.getElementById('tutorial-plan'),queue:document.getElementById('queue')};
+  if(!main||!activities)return;
+  const isMain=view==='main';
+  main.style.display=isMain?'grid':'none';
+  activities.classList.toggle('rb-view-open',!isMain);
+  Object.entries(panels).forEach(([key,node])=>{if(node)node.classList.toggle('rb-view-open',key===view);});
+  document.querySelectorAll('[data-hub-view]').forEach(a=>a.classList.toggle('active',a.getAttribute('data-hub-view')===view));
+  if(!isMain)activities.scrollIntoView({behavior:'smooth',block:'start'});
+  else window.scrollTo({top:0,behavior:'smooth'});
+ }
+ document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('[data-hub-view]').forEach(a=>a.addEventListener('click',function(e){e.preventDefault();showHubView(a.getAttribute('data-hub-view'));}));
+  showHubView('main');
+ });
+})();
+</script>
 <script>
 const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
 const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
