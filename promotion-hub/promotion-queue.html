@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0d1b2e">
+<title>RIANDERBLOG Promotion Hub</title>
+<style>
+:root{--navy:#0d1b2e;--navy2:#142b49;--gold:#d9b45b;--ink:#18263a;--muted:#738096;--line:#e5eaf1;--bg:#f4f6fa;--white:#fff;--green:#17835d;--red:#b84a4a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:linear-gradient(120deg,#0b182a,#17395c);color:white;padding:18px max(18px,calc((100% - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}.mark{width:42px;height:42px;border:1px solid var(--gold);border-radius:12px;display:grid;place-items:center;color:var(--gold);font-weight:900;font-size:20px}.brand strong{display:block;letter-spacing:.08em}.brand small{color:#c4cedb}
+header button,.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:750;cursor:pointer;background:var(--gold);color:#142238}button:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:1180px;margin:26px auto;padding:0 18px 60px}.hero{background:linear-gradient(120deg,#142b49,#1c4c71);color:white;padding:26px;border-radius:18px;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;box-shadow:0 12px 32px #142b491c}.hero h1{margin:0 0 6px;font-size:clamp(24px,4vw,34px)}.hero p{margin:0;color:#d5dfeb;max-width:680px}.hero .pill{border:1px solid #ffffff40;border-radius:999px;padding:8px 12px;color:#f7df9b;font-size:12px;font-weight:800;letter-spacing:.06em}
+.auth{margin:20px 0;padding:22px;background:white;border:1px solid var(--line);border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.auth p{margin:4px 0;color:var(--muted)}.auth button{background:var(--navy);color:white;border:0;border-radius:10px;padding:12px 18px;font-weight:750}
+.notice{padding:12px 15px;background:#fff9e9;border:1px solid #f0dfb5;color:#624d1c;border-radius:12px;margin:16px 0;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:18px}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 5px 18px #152b4408}.products{grid-column:span 7}.settings{grid-column:span 5}.tutorials,.queue{grid-column:1/-1}.panel h2{font-size:18px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+.product-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.product{border:1px solid var(--line);border-radius:13px;overflow:hidden;display:flex;gap:11px;padding:10px;min-width:0}.product img{width:88px;height:88px;object-fit:cover;border-radius:9px;background:#eef1f5}.product strong{display:block;font-size:14px;line-height:1.3}.product small{display:block;color:var(--muted);margin:4px 0}.product button{background:#edf2f7;color:#20334d;border:0;padding:7px 10px;border-radius:8px;font-weight:700;font-size:12px}
+.channels{display:grid;grid-template-columns:1fr 1fr;gap:9px}.channel{border:1px solid var(--line);border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;font-size:13px}.channel input{width:17px;height:17px;accent-color:#17395c}.state{font-size:10px;color:#8a95a6;margin-left:auto;white-space:nowrap}
+.field{margin:14px 0}.field label{display:block;font-weight:700;font-size:13px;margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border:1px solid #dce3ec;border-radius:9px;background:white;color:var(--ink)}
+.times{display:flex;gap:8px;flex-wrap:wrap}.times span{background:#f0f4f8;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:750}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.actions button{padding:11px 14px;border-radius:9px;border:0;font-weight:750;cursor:pointer}.primary{background:var(--navy);color:white}.secondary{background:#edf1f6;color:#263b56}
+.queue-list{display:grid;gap:9px}.queue-item{border:1px solid var(--line);padding:12px;border-radius:11px;display:grid;grid-template-columns:1fr auto;gap:8px}.queue-item strong{font-size:13px}.queue-item small{display:block;color:var(--muted)}.tag{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:#edf1f6;color:#46566c;height:max-content}.tag.draft{background:#fff3d8;color:#785d17}.tag.published{background:#e4f5ed;color:#146746}
+.statusline{font-size:13px;color:var(--muted);margin-top:12px;min-height:20px}.empty{padding:24px;text-align:center;border:1px dashed #d5dde7;border-radius:12px;color:var(--muted);font-size:13px}
+footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
+@media(max-width:800px){.products,.settings{grid-column:1/-1}.product-list{grid-template-columns:1fr}}
+@media(max-width:430px){.channels{grid-template-columns:1fr}.hero{padding:21px}.panel{padding:16px}}
+
+/* Sidebar dashboard and social platform table */
+/* Compact professional table: preserve real column headers on every screen */
+.table-scroll{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.catalogue-table{width:100%;min-width:640px;table-layout:fixed;border-collapse:collapse}
+.catalogue-table th,.catalogue-table td{overflow-wrap:anywhere;word-break:normal;vertical-align:top}
+.catalogue-table th,.catalogue-table td{padding:7px 6px;font-size:11px;line-height:1.3}
+.catalogue-table th{font-size:10px;white-space:normal}
+.catalogue-table th:nth-child(1){width:11%}
+.catalogue-table th:nth-child(2){width:15%}
+.catalogue-table th:nth-child(3){width:20%}
+.catalogue-table th:nth-child(4){width:10%}
+.catalogue-table th:nth-child(5){width:11%}
+.catalogue-table th:nth-child(6){width:33%}
+.product-share-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;min-width:0}
+.product-share-option{display:flex;align-items:center;justify-content:space-between;gap:2px;padding:3px;border:1px solid var(--line);border-radius:5px;background:#fff;white-space:normal;min-width:0}
+.product-share-option label{display:flex;align-items:center;gap:2px;font-size:9px;line-height:1.15;min-width:0}
+.product-share-option input{accent-color:#c59a3b;flex:0 0 auto;width:12px;height:12px;margin:0}
+.product-share-option button{padding:3px 4px;font-size:9px;line-height:1.1;flex:0 0 auto}
+@media(max-width:900px){.workspace{grid-template-columns:1fr}.catalogue-panel{padding:10px}.catalogue-table{min-width:600px}.catalogue-table th,.catalogue-table td{padding:6px 4px;font-size:10px}.catalogue-table th{font-size:9px}.product-share-list{gap:2px}.product-share-option{padding:2px}.product-share-option label{font-size:8px}.product-share-option button{font-size:8px;padding:2px 3px}}
+@media(max-width:430px){.catalogue-panel{padding:8px}.catalogue-table{min-width:580px}.catalogue-table th,.catalogue-table td{padding:5px 3px;font-size:9px}.catalogue-table th{font-size:8px}}
+
+
+/* Two-column catalogue and share workspace */
+.workspace{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.9fr);gap:16px;align-items:start;margin:20px 0}.catalogue-panel,.share-panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 5px 18px #152b4408;min-width:0}.catalogue-table{width:100%;border-collapse:collapse}.catalogue-table th,.catalogue-table td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}.catalogue-table th{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.05em}.catalogue-table img{width:54px;height:54px;object-fit:cover;border-radius:8px;background:#eef1f5}.catalogue-table button{background:#edf2f7;color:#20334d;border:0;border-radius:8px;padding:8px 11px;font-weight:750;cursor:pointer}.catalogue-table tr.selected{background:#fff9e9}.share-panel{background:linear-gradient(160deg,#fff,#f7f9fc)}.share-panel h2{margin:0 0 5px;font-size:18px}.selected-product{background:#f0f4f8;border-radius:10px;padding:11px;margin:12px 0;font-size:13px}.share-options{display:grid;gap:9px}.share-options button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 13px;border:1px solid #dfe6ef;border-radius:10px;background:white;color:#1d3049;font-weight:750;text-align:left;cursor:pointer}.share-options button:hover{border-color:var(--gold);background:#fffaf0}.share-options span{color:#758399;font-size:11px;font-weight:500}.workspace .product-list{display:block}.workspace .products,.workspace .settings{grid-column:auto}.workspace .panel{box-shadow:none}@media(max-width:800px){.workspace{grid-template-columns:1fr}.catalogue-table th,.catalogue-table td{padding:8px 5px}.catalogue-table{font-size:12px}}
+/* Match the approved sample: one full-width six-column catalogue table. */
+.workspace{display:block!important;width:100%!important;margin:20px 0!important}.catalogue-panel{width:100%!important;max-width:none!important}.catalogue-table{min-width:680px!important}.catalogue-table th,.catalogue-table td{padding:10px 9px!important;font-size:12px!important}.catalogue-table th{font-size:11px!important}.product-share-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}.product-share-option{padding:5px!important}.product-share-option label{font-size:10px!important}.product-share-option button{font-size:10px!important;padding:5px 7px!important}
+@media(max-width:900px){.catalogue-panel{padding:12px!important}.catalogue-table{min-width:650px!important}.catalogue-table th,.catalogue-table td{padding:7px 5px!important;font-size:10px!important}.product-share-option label,.product-share-option button{font-size:9px!important}}
+@media(max-width:430px){.catalogue-panel{padding:9px!important}.catalogue-table{min-width:620px!important}}
+/* Keep catalogue as a conventional table on phones and tablets */
+@media(max-width:900px){.catalogue-table thead{display:table-header-group!important}.catalogue-table,.catalogue-table tbody{display:table!important;width:100%!important}.catalogue-table tr{display:table-row!important;width:auto!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important}.catalogue-table td{display:table-cell!important;width:auto!important;grid-template:none!important}.catalogue-table td:before{content:none!important}.catalogue-table th{display:table-cell!important}}
+body.hub-staff-ready #schedule,body.hub-staff-ready #tutorial-plan{display:none!important}
+</style>
+<style id="adminOnlyHubGate">body:not(.hub-admin-ready):not(.hub-staff-ready) main > :not(.auth):not(.hero):not(.grid),body:not(.hub-admin-ready):not(.hub-staff-ready) .grid > :not(.products),body:not(.hub-admin-ready):not(.hub-staff-ready) footer{display:none!important}</style>
+<style id="clear-in-page-panels">
+/* Keep the caption composer in the page flow, not as a floating overlay */
+#captionComposer{position:static!important;inset:auto!important;z-index:auto!important;display:block!important;
+ background:transparent!important;padding:0!important;margin-top:16px!important}
+#captionComposer>section{width:100%!important;max-width:none!important;max-height:none!important;
+ overflow:visible!important;box-shadow:none!important}
+</style>
+<style id="no-floating-hub-panels">
+/* All Promotion Hub panels stay in page flow; no panel covers another panel. */
+.workspace,.grid,.products,.settings{min-width:0}
+.modal,.overlay,.drawer,.popup,.dropdown-menu{position:static!important;inset:auto!important;transform:none!important;max-width:100%!important;width:100%!important;max-height:none!important;box-shadow:none!important}
+#captionComposer{position:static!important;inset:auto!important;z-index:auto!important;display:block!important}
+</style>
+
+<style id="premium-hub-redesign">
+:root{--navy:#101f35;--navy2:#172d49;--gold:#c9a34e;--ink:#17263b;--muted:#718096;--line:#e4e9f0;--bg:#f2f5f9;--white:#fff}
+html{scroll-behavior:smooth}body{background:#f2f5f9;color:#17263b;font-family:Inter,"Segoe UI",Arial,sans-serif;letter-spacing:.005em}
+header{position:relative;padding:18px max(24px,calc((100% - 1380px)/2));min-height:78px;background:#101f35;border-bottom:1px solid #293c55;box-shadow:0 8px 24px #0b172722}
+.brand{gap:13px}.mark{width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,#d8bd78,#b88b35);color:#14243a;border:0;box-shadow:0 5px 14px #0002}.brand strong{font-size:15px;letter-spacing:.14em}.brand small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#b9c5d4;margin-top:2px}
+header a.button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #52647a;border-radius:9px;padding:10px 15px;color:#eaf0f7;font-size:12px;font-weight:700;background:#ffffff0b}
+main{max-width:1380px;margin:30px auto;padding:0 24px 72px}
+.hero{position:relative;overflow:hidden;min-height:190px;padding:34px 38px;border:1px solid #294461;border-radius:18px;background:linear-gradient(112deg,#11243d 0%,#1b3b5c 60%,#244d70 100%);box-shadow:0 14px 35px #132a451c}
+.hero:after{content:"";position:absolute;width:310px;height:310px;border:1px solid #d5b66b33;border-radius:50%;right:-78px;top:-125px;box-shadow:0 0 0 35px #d5b66b0b,0 0 0 70px #d5b66b08}
+.hero h1{font-size:clamp(26px,3.2vw,38px);font-weight:750;letter-spacing:-.035em;line-height:1.15;margin-bottom:11px}.hero p{font-size:14px;line-height:1.7;max-width:680px;color:#d4deea}
+.hero .pill{position:relative;z-index:1;background:#ffffff0b;border:1px solid #d9bc775c;padding:10px 14px;color:#f0d99f;font-size:10px;letter-spacing:.11em}
+.auth{background:#fff;border:1px solid #e2e8f0;border-left:4px solid #c9a34e;border-radius:12px;padding:17px 20px;margin:18px 0 20px;box-shadow:0 5px 18px #132a4508}
+.auth strong{font-size:14px}.auth p{font-size:12px;line-height:1.6}.auth button{border-radius:8px;background:#172d49;padding:10px 14px;font-size:12px}
+.notice{background:#fffaf0;border:1px solid #ead9b3;border-left:4px solid #c9a34e;color:#65542f;border-radius:10px;padding:13px 16px;font-size:12px;line-height:1.6}
+.workspace{margin:20px 0 24px!important}
+.catalogue-panel,.share-panel,.panel{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;box-shadow:0 7px 22px #172d4909}
+.catalogue-panel h2,.panel h2{font-size:17px;letter-spacing:-.015em;font-weight:750;color:#172a43;margin:0 0 5px}
+.sub{font-size:12px;line-height:1.6;color:#77869a;margin-bottom:17px}
+.table-scroll{border:1px solid #e5eaf1;border-radius:11px;overflow:auto;background:#fff}
+.catalogue-table{min-width:1040px!important;border-collapse:separate!important;border-spacing:0!important;table-layout:fixed}
+.catalogue-table th{position:sticky;top:0;background:#f5f7fa;color:#637187;font-size:10px!important;font-weight:800;letter-spacing:.075em;text-transform:uppercase;padding:14px 12px!important;border-bottom:1px solid #e1e7ef!important;white-space:normal}
+.catalogue-table th:nth-child(1){width:11%}.catalogue-table th:nth-child(2){width:18%}.catalogue-table th:nth-child(3){width:19%}.catalogue-table th:nth-child(4){width:10%}.catalogue-table th:nth-child(5){width:10%}.catalogue-table th:nth-child(6){width:32%}
+.catalogue-table td{padding:13px 12px!important;font-size:12px!important;line-height:1.55;vertical-align:middle!important;border-bottom:1px solid #edf0f4!important;color:#40516a}
+.catalogue-table tbody tr:last-child td{border-bottom:0!important}.catalogue-table tbody tr:hover{background:#fbfcfe}.catalogue-table tr.selected{background:#fffaf0!important}
+.category-chip{display:inline-flex;padding:5px 8px;border-radius:6px;background:#f0f3f7;color:#52637a;font-size:10px;font-weight:700}
+.product-cell{display:flex;align-items:center;gap:10px;min-width:0}.product-cell strong{font-size:12px;color:#1b2d45;line-height:1.4}
+.catalogue-thumb{width:48px;height:48px;flex:0 0 48px;object-fit:cover;border-radius:8px;border:1px solid #e6ebf1;background:#f4f6f8}
+.placeholder-thumb{display:grid;place-items:center;color:#b18b40;font-weight:900;font-size:12px;background:#f7f2e6}
+.price-value{white-space:nowrap;color:#1a304b;font-size:12px}.stock-value{display:inline-flex;min-width:28px;justify-content:center;padding:4px 7px;border-radius:6px;background:#edf6f1;color:#26704e;font-weight:750}
+.product-share-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
+.product-share-option{border:1px solid #e6eaf0!important;border-radius:7px!important;background:#fff!important;padding:5px 6px!important;gap:5px!important}
+.product-share-option label{font-size:10px!important;font-weight:650;color:#45566d;gap:5px!important}
+.product-share-option input{accent-color:#b58d3d!important;width:13px!important;height:13px!important}
+.product-share-option button{border-radius:5px!important;background:#edf2f7!important;color:#253b56!important;padding:5px 7px!important;font-size:9px!important;font-weight:750}
+.product-share-option button:hover{background:#172d49!important;color:white!important}
+.settings{margin-top:22px}.settings .field{padding:15px 0;margin:0;border-bottom:1px solid #edf0f4}.settings .field:last-of-type{border:0}
+.settings .field label{font-size:12px;color:#2b3e57;font-weight:750}.settings .sub{margin:6px 0 0}
+.times span{background:#f4f6f9;border:1px solid #e3e8ef;color:#314660;padding:8px 12px;border-radius:7px;font-size:11px}
+.channels-table{width:100%;border-collapse:collapse;border:1px solid #e5eaf1;border-radius:9px;overflow:hidden}
+.channels-table th{background:#f5f7fa;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:11px;border-bottom:1px solid #e5eaf1}
+.channels-table td{font-size:12px;padding:10px 11px;border-bottom:1px solid #edf0f4;color:#344760}
+.channels-table tr:last-child td{border-bottom:0}.channels-table input{accent-color:#b68d3d;width:15px;height:15px}
+.channels-table a{color:#8b6b2b;font-weight:750;text-decoration:none}.channel-state{font-size:11px;color:#8a6c32;background:#faf5e9;border-radius:5px;padding:4px 7px}
+.field input,.field select,.field textarea{border:1px solid #dce3ec;border-radius:8px;padding:11px 12px;font:inherit;font-size:12px}.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid #d9c18b55;border-color:#c9a34e}
+.actions{gap:8px}.actions button,.btn{border-radius:8px!important;padding:10px 15px!important;font-size:12px!important;font-weight:750!important}
+.primary{background:#172d49!important;color:#fff!important}.primary:hover{background:#244666!important}.secondary{background:#f0f3f7!important;color:#334962!important;border:1px solid #e2e7ee!important}
+.queue-list{gap:8px}.queue-item{border:1px solid #e5eaf1;border-radius:9px;padding:13px;background:#fff}.queue-item strong{color:#263b55}.tag{border-radius:6px}
+.empty{border:1px dashed #d6dee8;border-radius:10px;background:#fafbfd;padding:25px 16px;color:#8491a3}
+.statusline{font-size:11px;color:#748399;line-height:1.6}
+footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spacing:.04em}
+#tutorial-maker,#tutorial-plan,#queue{margin-top:20px}
+#tutorialCanvas{border-radius:12px!important;box-shadow:0 7px 20px #12233a20}
+@media(max-width:700px){main{padding:0 13px 48px;margin:18px auto}.hero{padding:25px 22px;min-height:0}.hero .pill{font-size:9px}.auth{padding:14px}.catalogue-panel,.panel{padding:15px}.catalogue-table{min-width:980px!important}.catalogue-table th,.catalogue-table td{padding:10px 8px!important}.product-share-option label{font-size:9px!important}.product-share-option button{font-size:9px!important}.channels-table td{padding:8px 6px;font-size:11px}}
+</style>
+
+
+<style id="simple-readable-product-table">
+/* Compact, orderly product table with clear reading order. */
+.catalogue-panel{padding:16px!important}
+.catalogue-panel .sub{margin-bottom:12px!important;line-height:1.5!important}
+.table-scroll{border:1px solid #e3e9f0!important;border-radius:10px!important;overflow:auto!important;max-height:72vh!important;background:#fff}
+.catalogue-table{width:100%!important;min-width:940px!important;table-layout:fixed!important;border-collapse:separate!important;border-spacing:0!important}
+.catalogue-table thead th{position:sticky!important;top:0!important;z-index:2!important;background:#f4f6fa!important;color:#34445a!important;padding:12px 10px!important;font-size:10px!important;line-height:1.35!important;letter-spacing:.035em!important;text-align:left!important;border-bottom:1px solid #dfe5ed!important;white-space:normal!important}
+.catalogue-table tbody td{padding:12px 10px!important;font-size:12px!important;line-height:1.5!important;color:#46566b!important;vertical-align:middle!important;border-bottom:1px solid #edf0f4!important;overflow-wrap:anywhere!important}
+.catalogue-table th:nth-child(1){width:12%}
+.catalogue-table th:nth-child(2){width:20%}
+.catalogue-table th:nth-child(3){width:21%}
+.catalogue-table th:nth-child(4){width:10%}
+.catalogue-table th:nth-child(5){width:11%}
+.catalogue-table th:nth-child(6){width:26%}
+.catalogue-table td:nth-child(3){display:table-cell!important;vertical-align:top!important}.catalogue-table .description-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;max-height:5.3em;overflow-wrap:anywhere}
+.catalogue-table td:nth-child(4),.catalogue-table td:nth-child(5){text-align:center!important}
+.product-cell{display:flex!important;gap:9px!important;align-items:center!important;min-width:0!important}
+.catalogue-thumb{width:42px!important;height:42px!important;flex:0 0 42px!important;object-fit:cover!important;border-radius:7px!important}
+.product-cell strong{font-size:11px!important;line-height:1.4!important;font-weight:700!important;color:#1e2c40!important;overflow-wrap:anywhere!important}
+.category-chip{display:inline-block!important;font-size:9px!important;line-height:1.3!important;padding:5px 7px!important;border-radius:6px!important;white-space:normal!important}
+.price-value{font-size:11px!important;white-space:nowrap!important;color:#172b46!important}
+.stock-value{display:inline-block!important;font-size:10px!important;min-width:28px!important;padding:4px 7px!important;border-radius:6px!important;text-align:center!important}
+.product-share-list{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
+.product-share-option{display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:29px!important;padding:4px 6px!important;border:1px solid #e8edf3!important;border-radius:6px!important;gap:5px!important;background:#fbfcfe!important}
+.product-share-option label{display:flex!important;align-items:center!important;font-size:9px!important;line-height:1.25!important;white-space:nowrap!important;gap:4px!important;color:#35445a!important}
+.product-share-option input{width:12px!important;height:12px!important;margin:0!important}
+.product-share-option button{font-size:9px!important;padding:5px 7px!important;line-height:1.1!important;border-radius:5px!important;white-space:nowrap!important}
+.catalogue-table tbody tr:nth-child(even){background:#fafbfd!important}
+.catalogue-table tbody tr:hover{background:#f4f7fb!important}
+.catalogue-table tr.selected{background:#fffaf0!important}
+@media(max-width:700px){
+ .catalogue-panel{padding:12px!important}
+ .catalogue-table{min-width:900px!important}
+ .catalogue-table th,.catalogue-table td{padding:9px 7px!important}
+ .catalogue-table tbody td{font-size:11px!important}
+ .product-cell{gap:7px!important}
+ .catalogue-thumb{width:36px!important;height:36px!important;flex-basis:36px!important}
+}
+</style>
+
+
+<style id="table-column-alignment-fix">
+/* Lock each heading and its matching data cell to the same real table column. */
+.table-scroll{display:block!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;direction:ltr!important}
+.catalogue-table{display:table!important;width:1400px!important;min-width:1400px!important;max-width:none!important;table-layout:fixed!important;border-collapse:collapse!important}
+.catalogue-table col:nth-child(1){width:140px!important}.catalogue-table col:nth-child(2){width:220px!important}.catalogue-table col:nth-child(3){width:320px!important}.catalogue-table col:nth-child(4){width:140px!important}.catalogue-table col:nth-child(5){width:160px!important}.catalogue-table col:nth-child(6){width:420px!important}
+.catalogue-table thead{display:table-header-group!important}.catalogue-table tbody{display:table-row-group!important}.catalogue-table tr{display:table-row!important}
+.catalogue-table th,.catalogue-table td{display:table-cell!important;box-sizing:border-box!important;float:none!important;position:static;vertical-align:top!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere!important}
+.catalogue-table th{position:sticky!important;top:0!important;z-index:3!important;background:#f2f5f9!important}
+.catalogue-table td:nth-child(1),.catalogue-table th:nth-child(1){width:140px!important}
+.catalogue-table td:nth-child(2),.catalogue-table th:nth-child(2){width:220px!important}
+.catalogue-table td:nth-child(3),.catalogue-table th:nth-child(3){width:320px!important}
+.catalogue-table td:nth-child(4),.catalogue-table th:nth-child(4){width:140px!important}
+.catalogue-table td:nth-child(5),.catalogue-table th:nth-child(5){width:160px!important}
+.catalogue-table td:nth-child(6),.catalogue-table th:nth-child(6){width:420px!important}
+.catalogue-table td:nth-child(3){display:table-cell!important;max-height:none!important;overflow:visible!important}
+.catalogue-table .description-text{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:4!important;overflow:hidden!important;max-height:6em!important}
+.catalogue-table .product-cell{display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important}
+.catalogue-table .product-cell strong{display:block!important;min-width:0!important}
+</style>
+<style id="rebuilt-rb-product-table">
+#productList .rb-product-table-scroll{display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;background:#fff!important;border:1px solid #e1e7ef!important;border-radius:10px!important}
+#productList table.rb-product-table{display:table!important;width:1360px!important;min-width:1360px!important;max-width:none!important;table-layout:fixed!important;border-collapse:collapse!important;border-spacing:0!important;margin:0!important}
+#productList .rb-product-table col.rb-col-category{width:140px!important}#productList .rb-product-table col.rb-col-product{width:220px!important}#productList .rb-product-table col.rb-col-description{width:320px!important}#productList .rb-product-table col.rb-col-price{width:140px!important}#productList .rb-product-table col.rb-col-stock{width:160px!important}#productList .rb-product-table col.rb-col-share{width:380px!important}
+#productList .rb-product-table thead{display:table-header-group!important}#productList .rb-product-table tbody{display:table-row-group!important}#productList .rb-product-table tr{display:table-row!important}
+#productList .rb-product-table th,#productList .rb-product-table td{display:table-cell!important;float:none!important;position:static;box-sizing:border-box!important;vertical-align:top!important;text-align:left!important;padding:12px 10px!important;border-bottom:1px solid #e8edf3!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;font-size:12px!important;line-height:1.45!important}
+#productList .rb-product-table th{position:sticky!important;top:0!important;z-index:2!important;background:#f2f5f9!important;color:#34445a!important;font-size:11px!important;font-weight:750!important;text-transform:uppercase!important;letter-spacing:.035em!important}
+#productList .rb-product-table td.rb-category-cell,#productList .rb-product-table th:nth-child(1){width:140px!important}#productList .rb-product-table td.rb-product-cell,#productList .rb-product-table th:nth-child(2){width:220px!important}#productList .rb-product-table td.rb-description-cell,#productList .rb-product-table th:nth-child(3){width:320px!important}#productList .rb-product-table td.rb-price-cell,#productList .rb-product-table th:nth-child(4){width:140px!important}#productList .rb-product-table td.rb-stock-cell,#productList .rb-product-table th:nth-child(5){width:160px!important}#productList .rb-product-table td.rb-share-cell,#productList .rb-product-table th:nth-child(6){width:380px!important}
+#productList .rb-product-identity{display:flex!important;align-items:flex-start!important;gap:9px!important;min-width:0!important}#productList .rb-product-identity img,#productList .rb-no-image{display:block!important;flex:0 0 52px!important;width:52px!important;height:52px!important;object-fit:contain!important;border-radius:7px!important;background:#f2f5f8!important}#productList .rb-no-image{display:flex!important;align-items:center!important;justify-content:center!important;font-weight:800!important;color:#b18a3b!important}#productList .rb-product-name{display:block!important;font-weight:750!important;color:#172b46!important}
+#productList .rb-description-cell>div{display:block!important;max-height:6.2em!important;overflow:hidden!important;line-height:1.55!important}#productList .rb-price-cell strong{white-space:nowrap!important;color:#172b46!important;font-size:13px!important}
+#productList .rb-in-stock,#productList .rb-out-stock{display:inline-block!important;padding:5px 7px!important;border-radius:6px!important;font-size:11px!important;font-weight:700!important;white-space:nowrap!important}#productList .rb-in-stock{background:#eaf5ee!important;color:#26704e!important}#productList .rb-out-stock{background:#fff0ed!important;color:#a33b2d!important}
+#productList .rb-share-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;min-width:0!important}#productList .rb-share-option{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:5px!important;min-width:0!important;padding:5px 7px!important;border:1px solid #e3e9f0!important;border-radius:6px!important;background:#fbfcfe!important}#productList .rb-share-option label{display:flex!important;align-items:center!important;gap:5px!important;min-width:0!important;font-size:10px!important;color:#45566d!important}#productList .rb-share-option input{width:13px!important;height:13px!important;flex:0 0 auto!important;margin:0!important;accent-color:#b58d3d!important}#productList .rb-share-option button{padding:4px 8px!important;border:0!important;border-radius:5px!important;background:#edf2f7!important;color:#203650!important;font-size:10px!important;font-weight:700!important;white-space:nowrap!important}
+@media(max-width:700px){#productList .rb-product-table-scroll{max-width:calc(100vw - 46px)!important}#productList .rb-product-table th,#productList .rb-product-table td{padding:10px 8px!important}}
+</style>
+<style id="rb-main-panel-layout">
+.rb-main-workspace{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;align-items:start!important;gap:18px!important;margin-top:20px!important}
+.rb-main-workspace>#products,.rb-main-workspace>#tutorial-maker{grid-column:auto!important;min-width:0!important;margin:0!important}
+.rb-main-workspace>#tutorial-maker{display:block!important}
+.rb-activity-area{margin:24px 0 10px;padding:18px;border:1px solid var(--line);border-radius:16px;background:#f7f9fc}
+.rb-activity-heading h2{margin:0 0 4px;color:var(--navy);font-size:20px}
+.rb-activity-nav{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}
+.rb-activity-nav a{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid #dce4ed;border-radius:9px;background:#fff;color:#203650;text-decoration:none;font-size:13px;font-weight:750}
+.rb-activity-nav a:hover{border-color:#b58d3d;background:#fffaf0}
+.rb-activity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.rb-activity-grid>#schedule{grid-column:1/-1!important;margin:0!important}
+.rb-activity-grid>#tutorial-plan,.rb-activity-grid>#queue{grid-column:auto!important;margin:0!important;min-width:0!important}
+@media(max-width:800px){.rb-main-workspace,.rb-activity-grid{grid-template-columns:minmax(0,1fr)!important}.rb-main-workspace>#products,.rb-main-workspace>#tutorial-maker,.rb-activity-grid>#schedule,.rb-activity-grid>#tutorial-plan,.rb-activity-grid>#queue{grid-column:1/-1!important}.rb-activity-area{padding:12px}}
+</style><style id="rb-hub-menu-layout">
+.rb-hub-header{display:block;padding:0;background:linear-gradient(120deg,#0b182a,#17395c);color:#fff}
+.rb-hub-brand{max-width:1180px;margin:0 auto;padding:16px 18px}
+.rb-hub-brand .brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
+.rb-hub-brand .mark{width:45px;height:45px;border:2px solid var(--gold);border-radius:12px;display:grid;place-items:center;color:var(--gold);font-size:24px;font-weight:900}
+.rb-hub-brand .brand strong{display:block;font-size:24px;letter-spacing:1px}
+.rb-hub-brand .brand small{display:block;color:#cbd4e2;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+.rb-hub-menu{display:block;background:var(--navy2);padding:0 18px}
+.rb-hub-nav-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px;min-height:48px}
+.rb-hub-links{display:flex;align-items:center;gap:23px;flex-wrap:wrap}
+.rb-hub-menu a{display:inline-flex;align-items:center;padding:15px 0;color:#fff;text-decoration:none;font-size:13px;font-weight:750;white-space:nowrap;border:0;border-radius:0;background:transparent}
+.rb-hub-menu a.active,.rb-hub-menu a:hover{color:var(--gold);background:transparent;border-color:transparent}
+.rb-hub-menu-toggle{display:none;background:var(--gold);color:#172238;font-size:23px;padding:7px 13px;border-radius:7px}
+.rb-activity-area{display:none!important}
+.rb-activity-area.rb-view-open{display:block!important}
+.rb-activity-grid{display:block!important}
+.rb-activity-grid>.panel{display:none!important}
+.rb-activity-grid>.panel.rb-view-open{display:block!important}
+@media(max-width:650px){.rb-hub-nav-inner{display:block;padding:10px 0}.rb-hub-menu-toggle{display:block}.rb-hub-links{display:none;flex-direction:column;align-items:stretch;gap:0;padding-top:8px}.rb-hub-links.open{display:flex}.rb-hub-menu a{padding:12px 5px;border-top:1px solid rgba(255,255,255,.12)}}
+</style></head>
+<body>
+<header class="rb-hub-header"><div class="rb-hub-brand"><a class="brand" href="https://digdow125-ux.github.io/Rianderblog/"><div class="mark">R</div><div><strong>RIANDERBLOG</strong><small>Global marketplace · Promotion Hub</small></div></a></div><nav class="rb-hub-menu" aria-label="RIANDERBLOG navigation"><div class="rb-hub-nav-inner"><button class="rb-hub-menu-toggle" id="hubMenuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleHubMenu()">☰</button><div class="rb-hub-links" id="hubNavLinks"><a href="index.html">🏠 Main</a><a href="social-accounts.html">📱 Social accounts &amp; schedule</a><a href="tutorial-plan.html">🎬 Tutorial plan</a><a href="promotion-queue.html" class="active">📣 Promotion queue</a><a href="https://digdow125-ux.github.io/Rianderblog/">← Back to marketplace</a></div></div></nav></header>
+<main>
+<section class="hero"><div><h1>Promote your products automatically.</h1><p>One product catalogue. One promotion workspace. Prepare campaigns for your social channels and manage your daily publishing schedule.</p></div><div class="pill">CONNECTED TO YOUR MARKETPLACE</div></section>
+<section class="auth"><div><strong id="accountTitle">Checking your RIANDERBLOG account…</strong><p id="accountInfo">The Promotion Hub automatically uses the account already signed in to the RIANDERBLOG marketplace. No second sign-in is required.</p></div><button type="button" onclick="boot()">Retry account check</button></section>
+<div class="notice"><strong>Publishing status:</strong> The Hub can load your marketplace products and prepare a posting queue. Automatic publishing starts only after each social platform's official API connection is approved and securely connected. It will never pretend a draft has been published.</div>
+<div class="workspace rb-main-workspace">
+<section class="catalogue-panel" id="products"><h2>Next product to promote</h2><p class="sub">Only one product is shown at a time. The automatic schedule selects the next product in rotation.</p><div id="productList"><div class="empty">Loading marketplace products…</div></div><div class="statusline" id="productStatus"></div></section>
+<section class="panel tutorials" id="tutorial-maker"><h2>Make a customer tutorial video</h2><p class="sub">Create a short RIANDERBLOG-branded tutorial with animated scenes and captions. Works in a modern browser; keep this page open while it renders.</p>
+<div class="field"><label for="tutorialChoice">Choose a lesson</label><select id="tutorialChoice"><option value="account">1. Create an account and sign in</option><option value="search">2. Search and choose products</option><option value="cart">3. Use your cart and visit the supplier</option></select></div>\n<div class="field"><label for="tutorialVoice">Narrator voice</label><select id="tutorialVoice"><option value="auto">African female African-English voice (best available)</option></select><p class="sub">Prefers African English accents (Malawi, South Africa, Nigeria, Kenya, Ghana, Zimbabwe and Botswana) when your device provides them. Pitch is kept natural; pitch alone cannot create an African accent.</p></div>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><canvas id="tutorialCanvas" width="360" height="640" style="width:min(100%,220px);height:auto;background:#0d1b2e;border-radius:12px;border:1px solid #dce3ec"></canvas><div style="flex:1;min-width:190px"><div class="actions" style="margin-top:0"><button class="primary" id="makeTutorialBtn" onclick="makeTutorialVideo()">Create tutorial video</button><button class="secondary" id="narrateTutorialBtn" onclick="playTutorialNarration()">▶ Listen to narration</button><button class="secondary" id="stopNarrationBtn" onclick="stopTutorialNarration()">Stop narration</button><button class="secondary" id="downloadTutorialBtn" disabled onclick="downloadTutorialVideo()">Download video</button></div><div class="statusline" id="tutorialStatus">Choose a lesson, then create your video. Video is rendered on this device.</div><p class="sub">Professional anime-inspired host, branded layouts and captions. Narration preview uses your selected device voice. Note: browser speech cannot yet be embedded in the exported WebM, so the download is currently video-only.</p></div></div></section>
+</div>
+
+
+
+<section class="rb-activity-area" id="otherActivities"><div class="rb-activity-heading"><div><h2>Other promotion activities</h2><p class="sub">Open a section to manage schedules, tutorial plans and promotion history.</p></div></div><nav class="rb-activity-nav" aria-label="Promotion activity sections"><a href="social-accounts.html">Social accounts &amp; schedule</a><a href="tutorial-plan.html">Tutorial video plan</a><a href="promotion-queue.html">Promotion queue &amp; history</a></nav><div class="rb-activity-grid"><section class="panel settings" id="schedule" style="grid-column:1/-1"><h2>Daily promotion schedule</h2><p class="sub">One product is prepared at each scheduled time in Malawi time. Products rotate without repeating until the active catalogue has been used.</p>
+<div class="field"><label>Platforms for saved promotion drafts</label><table class="channels-table" id="channels"><thead><tr><th>Select</th><th>Social platform</th><th>Account status</th><th>Open</th></tr></thead><tbody>
+<tr><td><input type="checkbox" value="facebook" checked aria-label="Select Facebook"></td><td>Facebook Page</td><td><span class="channel-state" id="s-facebook">Not connected</span></td><td><a href="https://www.facebook.com/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="instagram" checked aria-label="Select Instagram"></td><td>Instagram</td><td><span class="channel-state" id="s-instagram">Not connected</span></td><td><a href="https://www.instagram.com/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="tiktok" checked aria-label="Select TikTok"></td><td>TikTok</td><td><span class="channel-state" id="s-tiktok">Not connected</span></td><td><a href="https://www.tiktok.com/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="youtube" checked aria-label="Select YouTube"></td><td>YouTube Shorts</td><td><span class="channel-state" id="s-youtube">Not connected</span></td><td><a href="https://studio.youtube.com/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="x" checked aria-label="Select X"></td><td>X</td><td><span class="channel-state" id="s-x">Not connected</span></td><td><a href="https://x.com/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="whatsapp_business" aria-label="Select WhatsApp Business"></td><td>WhatsApp Business</td><td><span class="channel-state" id="s-whatsapp_business">Not connected</span></td><td><a href="https://web.whatsapp.com/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="messenger" aria-label="Select Messenger"></td><td>Messenger</td><td><span class="channel-state" id="s-messenger">Not connected</span></td><td><a href="https://www.messenger.com/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="telegram" aria-label="Select Telegram"></td><td>Telegram</td><td><span class="channel-state" id="s-telegram">Not connected</span></td><td><a href="https://web.telegram.org/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="pinterest" aria-label="Select Pinterest"></td><td>Pinterest</td><td><span class="channel-state" id="s-pinterest">Not connected</span></td><td><a href="https://www.pinterest.com/" target="_blank" rel="noopener">Open</a></td></tr>
+<tr><td><input type="checkbox" value="linkedin" aria-label="Select LinkedIn"></td><td>LinkedIn</td><td><span class="channel-state" id="s-linkedin">Not connected</span></td><td><a href="https://www.linkedin.com/" target="_blank" rel="noopener">Open</a></td></tr>
+</tbody></table></div>
+<div class="field"><label for="postsPerDay">Products per day</label><select id="postsPerDay"><option value="4" selected>4 products daily</option></select><p class="sub">One product at 01:00, 13:00, 17:00 and 20:00; only one product per time slot.</p></div>
+<div class="field"><label>Daily product release times (Africa/Blantyre)</label><div class="times"><span>01:00 · Early morning</span><span>13:00 · Afternoon</span><span>17:00 · Evening</span><span>20:00 · Night</span></div><p class="sub">Only one new product campaign is generated at each time—not all four together.</p></div>
+<div class="field"><label for="automation">Automatic scheduled campaign creation</label><select id="automation"><option value="off">Paused</option><option value="on">On — create one campaign at each scheduled time</option></select><p class="sub">This automatically creates a ready-to-share draft. Direct publishing still requires approved social-platform API connections.</p></div>
+<div class="actions"><button class="primary" onclick="saveSettings()">Save schedule</button><button class="secondary" onclick="generateQueue()">Refresh scheduled campaigns</button></div><div class="statusline" id="settingsStatus"></div>
+</section>
+<section class="panel tutorials" id="tutorial-plan"><h2>Weekly customer tutorial videos</h2><p class="sub">Three short lessons each week to show customers how to use RIANDERBLOG.</p>
+<div class="times"><span>Monday · 20:00</span><span>Wednesday · 20:00</span><span>Friday · 20:00</span></div>
+<p class="sub" style="margin-top:12px">Planned lessons: create an account and sign in; search and choose products; add to cart and place an order; understand order updates and delivery. Videos should include narration, captions, and real screen demonstrations.</p>
+<div class="statusline">Tutorial schedule: Africa/Blantyre time. Video generation and automatic publishing will activate after the video workflow and social account integrations are connected.</div></section>
+<section class="panel queue" id="queue"><h2>Promotion checks &amp; queue</h2><p class="sub">Review drafts and scheduled items. Publishing results will appear here when integrations are active.</p><div id="queueList" class="queue-list"><div class="empty">Your promotion queue is empty.</div></div><div class="statusline" id="queueStatus"></div></section></div></section>
+</main>
+<footer>RIANDERBLOG Promotion Hub · Your products, promoted from one place.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script id="rb-hub-menu-controller">
+(function(){
+ function toggleHubMenu(){const links=document.getElementById('hubNavLinks');const button=document.getElementById('hubMenuToggle');if(!links||!button)return;const open=links.classList.toggle('open');button.setAttribute('aria-expanded',open?'true':'false');}
+ window.toggleHubMenu=toggleHubMenu;
+ function showHubView(view){
+  const main=document.querySelector('.rb-main-workspace');
+  const activities=document.getElementById('otherActivities');
+  const panels={schedule:document.getElementById('schedule'),'tutorial-plan':document.getElementById('tutorial-plan'),queue:document.getElementById('queue')};
+  if(!main||!activities)return;
+  const isMain=view==='main';
+  main.style.display=isMain?'grid':'none';
+  activities.classList.toggle('rb-view-open',!isMain);
+  Object.entries(panels).forEach(([key,node])=>{if(node)node.classList.toggle('rb-view-open',key===view);});
+  document.querySelectorAll('[data-hub-view]').forEach(a=>a.classList.toggle('active',a.getAttribute('data-hub-view')===view));
+  const links=document.getElementById('hubNavLinks');const toggle=document.getElementById('hubMenuToggle');if(links)links.classList.remove('open');if(toggle)toggle.setAttribute('aria-expanded','false');
+  if(!isMain)activities.scrollIntoView({behavior:'smooth',block:'start'});
+  else window.scrollTo({top:0,behavior:'smooth'});
+ }
+ document.addEventListener('DOMContentLoaded',function(){
+  
+  showHubView('queue');
+ });
+})();
+</script>
+<script>
+const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
+const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const SITE_URL="https://digdow125-ux.github.io/Rianderblog/";
+const ADMIN_USER_ID="a32248b7-5745-4dd4-8af0-bce4eb465f66";
+const HUB_URL=SITE_URL+"promotion-hub/";
+const PRODUCT_SHARE_URL=(id)=>SUPABASE_URL+"/functions/v1/product-share?id="+encodeURIComponent(String(id));
+const db=window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}}) : null;
+let currentUser=null, products=[], connections=[], queueItems=[], selectedProductIndex=-1;
+const platforms=["facebook","instagram","tiktok","youtube","x","whatsapp_business","messenger","telegram","pinterest","linkedin"];
+const platformNames={facebook:"Facebook Page",instagram:"Instagram",tiktok:"TikTok",youtube:"YouTube Shorts",x:"X",whatsapp_business:"WhatsApp Business",messenger:"Messenger",telegram:"Telegram",pinterest:"Pinterest",linkedin:"LinkedIn"};
+function msg(id,text){document.getElementById(id).textContent=text||""}
+function esc(v){return String(v??"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function signIn(){msg("settingsStatus","Sign in to RIANDERBLOG first, then reopen this private Promotion Hub.");}
+async function loadProducts(){
+ const {data,error}=await db.from("products").select("id,name,description,category,price,currency,stock_quantity,image_url,product_image_urls,affiliate_url,is_active,created_at").eq("is_active",true).order("created_at",{ascending:true}).limit(100);
+ if(error){msg("productStatus","Could not load products: "+error.message);return}
+ const activeProducts=data||[];
+ if(!activeProducts.length){products=[];renderProducts();return}
+ let nextProduct=activeProducts[0];
+ const {data:history,error:historyError}=await db.from("promotion_rotation_history").select("product_id,cycle_number,used_at").eq("user_id",currentUser.id).order("cycle_number",{ascending:false}).order("used_at",{ascending:true});
+ if(!historyError&&history&&history.length){
+  const currentCycle=Number(history[0].cycle_number);
+  const usedIds=new Set(history.filter(row=>Number(row.cycle_number)===currentCycle).map(row=>String(row.product_id)));
+  nextProduct=activeProducts.find(product=>!usedIds.has(String(product.id)))||activeProducts[0];
+ }
+ products=[nextProduct];selectedProductIndex=0;renderProducts();
+}
+function renderProducts(){
+ const root=document.getElementById('productList');
+ if(!root)return;
+ if(!products.length){root.innerHTML='<div class="empty">No active marketplace products found yet.</div>';msg('productStatus','Add an active product to start the rotation.');return}
+ const p=products[0];
+ const platforms=[['facebook','Facebook'],['whatsapp_business','WhatsApp'],['instagram','Instagram'],['tiktok','TikTok'],['messenger','Messenger'],['telegram','Telegram'],['pinterest','Pinterest'],['linkedin','LinkedIn'],['x','X'],['youtube','YouTube']];
+ const share=platforms.map(function(item){return '<div class="rb-share-option"><label><input type="checkbox" aria-label="Select '+item[1]+' for '+esc(p.name)+'" onchange="setSelectedProduct(0)"> <span>'+item[1]+'</span></label><button type="button" onclick="shareProductOn(0,&#39;'+item[0]+'&#39;)">Share</button></div>'}).join('');
+ const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||'';
+ root.innerHTML='<div class="rb-product-table-scroll"><table class="rb-product-table"><colgroup><col class="rb-col-category"><col class="rb-col-product"><col class="rb-col-description"><col class="rb-col-price"><col class="rb-col-stock"><col class="rb-col-share"></colgroup><thead><tr><th scope="col">Category</th><th scope="col">Product</th><th scope="col">Description</th><th scope="col">Price</th><th scope="col">Quantity Available</th><th scope="col">Share With</th></tr></thead><tbody><tr><td class="rb-category-cell"><span class="category-chip">'+esc(p.category||'Uncategorised')+'</span></td><td class="rb-product-cell"><div class="rb-product-identity">'+(image?'<img src="'+esc(image)+'" alt="'+esc(p.name)+'">':'<span class="rb-no-image">RB</span>')+'<span class="rb-product-name">'+esc(p.name)+'</span></div></td><td class="rb-description-cell"><div>'+esc(p.description||'No description provided.')+'</div></td><td class="rb-price-cell"><strong>'+esc(p.currency||'')+' '+esc(Number(p.price||0).toLocaleString('en-US'))+'</strong></td><td class="rb-stock-cell">'+(Number(p.stock_quantity||0)>0?'<span class="rb-in-stock">'+Number(p.stock_quantity).toLocaleString('en-US')+' in stock</span>':'<span class="rb-out-stock">Out of stock</span>')+'</td><td class="rb-share-cell"><div class="rb-share-grid">'+share+'</div></td></tr></tbody></table></div>';
+ selectedProductIndex=0;updateSelectedProduct();
+ msg('productStatus','Showing one product only — next in the automatic rotation. The scheduler selects another product at each time slot.');
+}
+function setSelectedProduct(index){if(!products[index])return;selectedProductIndex=index;updateSelectedProduct()}
+function selectProduct(index){setSelectedProduct(index);const el=document.getElementById("selectedProduct");if(el)el.scrollIntoView({behavior:"smooth",block:"center"})}
+function shareProductOn(index,platform){if(!products[index])return;selectedProductIndex=index;updateSelectedProduct();shareSelected(platform)}
+function updateSelectedProduct(){
+ const p=products[selectedProductIndex],el=document.getElementById("selectedProduct");if(!el)return;
+ if(!p){el.textContent="Select a product from the daily product list.";return}
+ const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";
+ el.innerHTML=(image?'<img src="'+esc(image)+'" alt="" style="width:100%;max-height:180px;object-fit:contain;border-radius:9px;margin-bottom:9px">':"")+'<strong>'+esc(p.name)+'</strong><p style="margin:7px 0">'+esc(p.description||"No description provided.")+'</p><b>Price: '+esc(p.currency||"")+' '+esc(p.price)+'</b>';
+}
+async function shareSelected(platform){
+ const p=products[selectedProductIndex];if(!p){msg("shareStatus","Select a product first.");return}
+ if(!currentUser||currentUser.id!==ADMIN_USER_ID){msg("shareStatus","Administrator verification is required to share products.");return}
+ const productPage=SITE_URL+"?product="+encodeURIComponent(String(p.id));
+ const link=PRODUCT_SHARE_URL(p.id);
+ const caption=makeCaption(p,selectedProductIndex).replace(SITE_URL,productPage);
+ const text=caption;
+ const urls={facebook:"https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link)+"&quote="+encodeURIComponent(text),instagram:"https://www.instagram.com/",tiktok:"https://www.tiktok.com/upload",youtube:"https://studio.youtube.com/",x:"https://twitter.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(link),whatsapp_business:"https://wa.me/?text="+encodeURIComponent(text+" "+link),messenger:"https://www.facebook.com/dialog/send?link="+encodeURIComponent(link),telegram:"https://t.me/share/url?url="+encodeURIComponent(link)+"&text="+encodeURIComponent(text),pinterest:"https://www.pinterest.com/pin/create/button/?url="+encodeURIComponent(link)+"&description="+encodeURIComponent(text),linkedin:"https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(link)};
+ try{await navigator.clipboard.writeText(text)}catch(e){}
+ if(["facebook","x","whatsapp_business","messenger","telegram","pinterest","linkedin"].includes(platform)){window.open(urls[platform],"_blank","noopener,noreferrer");msg("shareStatus","Caption copied where supported. "+platformNames[platform]+" opened; finish and publish your post there.");}
+ else{window.open(urls[platform],"_blank","noopener,noreferrer");msg("shareStatus","Caption copied where supported. "+platformNames[platform]+" opened. Add the product picture and paste your caption before publishing.");}
+}
+function makeCaption(p,index,language){const messages={
+ en:["Discover your next favourite find!","A great pick worth checking out.","Find it on RIANDERBLOG today!"],
+ ny:["Dziwani chinthu chatsopano chomwe mungakonde!","Ichi ndi chinthu choyenera kuchiyang'ana.","Chipezeni pa RIANDERBLOG lero!"],
+ pt:["Descubra o seu próximo produto favorito!","Uma ótima opção que vale a pena conhecer.","Encontre no RIANDERBLOG hoje!"],
+ sw:["Gundua bidhaa yako mpya unayoipenda!","Bidhaa nzuri inayofaa kuichunguza.","Ipate kwenye RIANDERBLOG leo!"],
+ fr:["Découvrez votre prochain article préféré !","Un excellent choix à découvrir.","Retrouvez-le sur RIANDERBLOG aujourd'hui !"]
+ };const endings={en:"Explore and shop",ny:"Onani zambiri pa",pt:"Explore e compre em",sw:"Chunguza na ununue",fr:"Découvrez et achetez sur"};const tags="#RIANDERBLOG #OnlineShopping";const desc=String(p.description||"").replace(/\\s+/g," ").slice(0,180);return p.name+" — "+(messages[language]||messages.en)[index%3]+" "+(desc?desc+" ":"")+"Price: "+(p.currency||"")+" "+p.price+". "+(endings[language]||endings.en)+" "+PRODUCT_SHARE_URL(p.id)+" "+tags}
+function shareProduct(index){const p=products[index];if(!p)return;let language="en";const overlay=document.createElement("div");overlay.id="captionComposer";overlay.style.cssText="position:static;display:block;background:transparent;padding:0;margin-top:16px";
+overlay.innerHTML='<section style="background:#10233b;color:#fff;border:1px solid #c8a34a;border-radius:16px;padding:18px;width:min(100%,520px);max-height:90vh;overflow:auto"><h2 style="margin:0 0 8px">Your ready-to-share caption</h2><p style="color:#cbd5e1;margin:0 0 12px">'+esc(p.name)+'</p><label for="captionLanguage">Caption language</label><select id="captionLanguage" style="display:block;width:100%;padding:12px;margin:6px 0 12px;border-radius:8px"><option value="en">English</option><option value="ny">Chichewa</option><option value="pt">Português</option><option value="sw">Kiswahili</option><option value="fr">Français</option></select><label for="captionText">Caption (you can edit it)</label><textarea id="captionText" rows="7" style="display:block;width:100%;box-sizing:border-box;padding:12px;margin:6px 0 14px;border-radius:8px"></textarea><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="captionShare" class="primary">More sharing apps</button><button id="captionCopy" class="secondary">Copy caption</button><button id="captionClose" class="secondary">Close</button></div><div style="margin-top:12px"><strong style="font-size:13px">Share directly to</strong><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px"><button type="button" class="secondary" id="shareInstagram">Instagram</button><button type="button" class="secondary" id="shareTikTok">TikTok</button><button type="button" class="secondary" id="shareYouTube">YouTube</button><button type="button" class="secondary" id="shareX">X</button></div></div><p id="captionStatus" class="statusline">Choose a platform. Your caption is prepared; some apps require you to finish the post inside the app.</p></section>';
+document.querySelector(".share-panel").appendChild(overlay);const select=overlay.querySelector("#captionLanguage"),area=overlay.querySelector("#captionText"),status=overlay.querySelector("#captionStatus");const build=()=>makeCaption(p,index,select.value);area.value=build();select.addEventListener("change",()=>{language=select.value;area.value=build()});overlay.querySelector("#captionClose").onclick=()=>overlay.remove();overlay.querySelector("#captionCopy").onclick=async()=>{try{await navigator.clipboard.writeText(area.value);status.textContent="Caption copied. You can paste it when sharing."}catch(e){status.textContent="Copy is unavailable on this browser. Select the caption and copy it."}};overlay.querySelector("#captionShare").onclick=async()=>{const text=area.value.trim();if(!text){status.textContent="Please enter a caption first.";return}try{if(navigator.share){await navigator.share({title:p.name,text:text,url:PRODUCT_SHARE_URL(p.id)});status.textContent="Share menu opened. Choose your social app to finish publishing."}else{await navigator.clipboard.writeText(text+" "+PRODUCT_SHARE_URL(p.id));status.textContent="Caption copied. Open your social app and paste it to publish."}}catch(e){if(e.name!=="AbortError")status.textContent="Sharing was unavailable. Use Copy caption."}};
+function copyThenOpen(url,label){const popup=window.open(url,"_blank","noopener,noreferrer");const text=area.value.trim()+" "+PRODUCT_SHARE_URL(p.id);try{navigator.clipboard.writeText(text).then(()=>{status.textContent="Caption copied. "+label+" opened; paste the caption and finish publishing there."}).catch(()=>{status.textContent=label+" opened. If needed, use Copy caption, then paste it in the app."})}catch(e){status.textContent=label+" opened. Use Copy caption, then paste it in the app."}if(!popup)status.textContent="Your browser blocked the new tab. Allow pop-ups, or use Copy caption and open "+label+" manually."}
+overlay.querySelector("#shareX").onclick=()=>{const text=area.value.trim();const url="https://twitter.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(PRODUCT_SHARE_URL(p.id));window.open(url,"_blank","noopener,noreferrer");status.textContent="X post composer opened with your caption and marketplace link. Review it and tap Post."};
+overlay.querySelector("#shareInstagram").onclick=()=>copyThenOpen("https://www.instagram.com/","Instagram");
+overlay.querySelector("#shareTikTok").onclick=()=>copyThenOpen("https://www.tiktok.com/upload","TikTok");
+overlay.querySelector("#shareYouTube").onclick=()=>copyThenOpen("https://studio.youtube.com/","YouTube Studio");}
+
+function shareProductFacebook(index){const p=products[index];if(!p)return;const shareUrl="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(PRODUCT_SHARE_URL(p.id));window.open(shareUrl,"_blank","noopener,noreferrer");msg("productStatus","Facebook share opened. Add this product to your post: "+p.name+" — "+(p.currency||"")+" "+p.price+".");}
+function makeCaption(p,index){const lines=["Discover your next favourite find!","A great pick worth checking out.","Find it on RIANDERBLOG today!"];const desc=String(p.description||"").replace(/\\s+/g," ").slice(0,180);return p.name+" — "+lines[index%lines.length]+" "+(desc?desc+" ":"")+"Price: "+(p.currency||"")+" "+p.price+". Explore and shop: "+PRODUCT_SHARE_URL(p.id)+" #RIANDERBLOG #OnlineShopping"}
+async function makeProductDraft(id){if(!currentUser){msg("productStatus","Please sign in first.");return}const p=products.find(function(x){return Number(x.id)===Number(id)});if(!p)return;const chosen=selectedPlatforms();if(!chosen.length){msg("productStatus","Select at least one social platform.");return}const rows=chosen.map(function(platform){return {user_id:currentUser.id,product_id:p.id,platform:platform,caption:makeCaption(p,0),media_url:(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||null,status:"draft"}});const {error}=await db.from("promotion_posts").insert(rows);if(error){msg("productStatus","Could not save drafts: "+error.message);return}msg("productStatus","Created "+rows.length+" draft(s) for "+p.name+".");loadQueue()}
+function selectedPlatforms(){return Array.from(document.querySelectorAll("#channels input:checked")).map(function(x){return x.value})}
+function blantyreDateTime(dateString,timeString){const [yy,mm,dd]=dateString.split("-").map(Number);const [hh,mi]=timeString.split(":").map(Number);const target=Date.UTC(yy,mm-1,dd,hh,mi);let guess=new Date(target);for(let i=0;i<3;i++){const parts=new Intl.DateTimeFormat("en-GB",{timeZone:"Africa/Blantyre",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(guess);const get=k=>Number(parts.find(x=>x.type===k)?.value||0);const represented=Date.UTC(get("year"),get("month")-1,get("day"),get("hour"),get("minute"));guess=new Date(guess.getTime()+(target-represented));}return guess.toISOString()}
+function dailySlot(index){const times=["01:00","13:00","17:00","20:00"];const now=new Date();const local=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Blantyre",year:"numeric",month:"2-digit",day:"2-digit"}).format(now);const [y,m,d]=local.split("-").map(Number);const today=new Date(Date.UTC(y,m-1,d));const nowLocal=new Intl.DateTimeFormat("en-GB",{timeZone:"Africa/Blantyre",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(now);const [nh,nm]=nowLocal.split(":").map(Number);const current=nh*60+nm;const future=times.filter(t=>Number(t.slice(0,2))*60+Number(t.slice(3))>current);let slot;if(future[index])slot=future[index];else{slot=times[Math.max(0,index-future.length)];today.setUTCDate(today.getUTCDate()+1);}return blantyreDateTime(today.toISOString().slice(0,10),slot)}
+async function generateQueue(){msg("settingsStatus","The scheduler creates one product campaign at each of the four daily times. It does not create all four at once.");await loadQueue()}
+async function saveSettings(){
+ if(!currentUser){msg("settingsStatus","Sign in before saving your schedule.");return}
+ const enabled=document.getElementById("automation").value==="on";
+ const chosen=selectedPlatforms();
+ if(!chosen.length){msg("settingsStatus","Select at least one platform in the platform list.");return}
+ const row={user_id:currentUser.id,automation_enabled:enabled,posts_per_day:4,posting_time:"01:00",posting_times:["01:00","13:00","17:00","20:00"],promotion_platforms:chosen,tutorial_days:["Monday","Wednesday","Friday"],tutorial_time:"20:00",timezone:"Africa/Blantyre",updated_at:new Date().toISOString()};
+ const {error}=await db.from("promotion_settings").upsert(row,{onConflict:"user_id"});
+ msg("settingsStatus",error?"Could not save settings: "+error.message:"Schedule saved. The server will create one product campaign at each scheduled time. Direct social publishing still requires approved platform connections.");
+}
+async function loadSettings(){const {data}=await db.from("promotion_settings").select("*").eq("user_id",currentUser.id).maybeSingle();if(data){document.getElementById("postsPerDay").value="4";document.getElementById("automation").value=data.automation_enabled?"on":"off";if(Array.isArray(data.promotion_platforms)){document.querySelectorAll("#channels input").forEach(function(el){el.checked=data.promotion_platforms.includes(el.value)})}}}
+async function loadConnections(){const {data,error}=await db.from("promotion_connections").select("platform,account_name,connection_status").eq("user_id",currentUser.id);if(error)return;connections=data||[];platforms.forEach(function(p){const c=connections.find(function(x){return x.platform===p&&x.connection_status==="connected"});document.getElementById("s-"+p).textContent=c?"Connected":"Not connected"})}
+async function loadQueue(){const {data,error}=await db.from("promotion_posts").select("id,product_id,platform,caption,status,scheduled_at,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);if(error){msg("queueStatus","Could not load queue: "+error.message);return}queueItems=data||[];const root=document.getElementById("queueList");if(!queueItems.length){root.innerHTML='<div class="empty">Your promotion queue is empty. Choose a product and prepare your first post.</div>';return}root.innerHTML=queueItems.map(function(x){const when=x.scheduled_at?"Planned: "+new Date(x.scheduled_at).toLocaleString():"Created: "+new Date(x.created_at).toLocaleString();return '<div class="queue-item"><div><strong>'+esc(platformNames[x.platform]||x.platform)+'</strong><small>'+esc(x.caption.slice(0,150))+'</small><small>'+esc(when)+'</small><button class="secondary" style="margin-top:7px;padding:6px 9px;border-radius:7px;border:0" onclick="copyQueueCaption(\''+esc(x.id)+'\')">Copy caption</button> <button class="secondary" style="margin-top:7px;padding:6px 9px;border-radius:7px;border:0" onclick="shareQueueCaption(\''+esc(x.id)+'\')">Share draft</button></div><span class="tag '+(x.status==="published"?"published":"draft")+'">'+esc(x.status)+'</span></div>'}).join("");msg("queueStatus","Showing latest "+queueItems.length+" item(s). Scheduled drafts still need you to publish them in each social app.")}
+async function copyQueueCaption(id){const item=queueItems.find(x=>String(x.id)===String(id));if(!item)return;const link=PRODUCT_SHARE_URL(item.product_id);const caption=String(item.caption||"").replace(SITE_URL,link);try{await navigator.clipboard.writeText(caption);msg("queueStatus","Caption and rich product-preview link copied. Paste them into your social post.");}catch(e){msg("queueStatus","Clipboard access was blocked. Open the draft and copy its caption manually.");}}
+async function shareQueueCaption(id){const item=queueItems.find(x=>String(x.id)===String(id));if(!item)return;const link=PRODUCT_SHARE_URL(item.product_id);const caption=String(item.caption||"").replace(SITE_URL,link);if(navigator.share){try{await navigator.share({title:"RIANDERBLOG promotion",text:caption,url:link});msg("queueStatus","Phone share menu opened with the rich product-preview link. Choose a social app to continue.");}catch(e){if(e.name!=="AbortError")msg("queueStatus","Sharing was not available. Use Copy caption instead.");}}else{copyQueueCaption(id);}}
+
+const tutorialLessons={
+ account:{title:"Create your RIANDERBLOG account",scenes:[
+  ["WELCOME TO RIANDERBLOG","Your gateway to global shopping."],
+  ["STEP 1 · OPEN THE WEBSITE","Visit rianderblog.github.io/Rianderblog"],
+  ["STEP 2 · OPEN ACCOUNT","Choose Account from the website menu."],
+  ["STEP 3 · SIGN IN OR REGISTER","Use the available sign-in or create-account option."],
+  ["STEP 4 · CHECK YOUR ACCOUNT","After signing in, return to the shop and explore."],
+  ["YOU'RE READY!","Discover products on RIANDERBLOG."]
+ ]},
+ search:{title:"Find products on RIANDERBLOG",scenes:[
+  ["FIND WHAT YOU NEED","Start from the RIANDERBLOG marketplace."],
+  ["STEP 1 · OPEN SHOP","Browse the available product listings."],
+  ["STEP 2 · SEARCH","Enter a product name in the search box."],
+  ["STEP 3 · FILTER","Use the category filter to narrow your choices."],
+  ["STEP 4 · CHECK DETAILS","Read the product description and price."],
+  ["CHOOSE WITH CARE","Check supplier details before buying."]
+ ]},
+ cart:{title:"Use your cart and visit the supplier",scenes:[
+  ["READY TO SHOP?","Your RIANDERBLOG cart helps collect product choices."],
+  ["STEP 1 · SELECT A PRODUCT","Open a product you are interested in."],
+  ["STEP 2 · ADD TO CART","Use Add to Cart to save it in your cart."],
+  ["STEP 3 · REVIEW YOUR CART","Check the products and quantities you selected."],
+  ["STEP 4 · VISIT SUPPLIER","Use Visit Supplier to continue on the supplier's website."],
+  ["PURCHASE SAFELY","Review the supplier's price, delivery and payment terms."]
+ ]}
+};
+let tutorialVideoUrl=null,tutorialVideoBlob=null,tutorialRecorder=null;
+function drawAnimeHost(ctx,phase){
+ // Original vector anime-style presenter, drawn directly into the video.
+ ctx.save();
+ ctx.translate(250,420+Math.sin(phase*.7)*3);
+ ctx.fillStyle="rgba(0,0,0,.22)";ctx.beginPath();ctx.ellipse(0,150,78,15,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#e7b85e";ctx.beginPath();ctx.moveTo(-58,128);ctx.quadraticCurveTo(-70,55,-42,28);ctx.lineTo(42,28);ctx.quadraticCurveTo(70,55,58,128);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#f3c6a6";ctx.beginPath();ctx.ellipse(0,-28,48,61,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#20243b";ctx.beginPath();ctx.moveTo(-49,-40);ctx.quadraticCurveTo(-65,-115,2,-112);ctx.quadraticCurveTo(65,-110,51,-34);ctx.lineTo(39,-2);ctx.quadraticCurveTo(30,-63,4,-65);ctx.quadraticCurveTo(-18,-30,-48,-12);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#20243b";ctx.beginPath();ctx.moveTo(-45,-58);ctx.quadraticCurveTo(-80,-120,-32,-118);ctx.quadraticCurveTo(-48,-83,-45,-58);ctx.fill();
+ ctx.fillStyle="#ffffff";ctx.beginPath();ctx.ellipse(-18,-28,11,15,0,0,Math.PI*2);ctx.ellipse(18,-28,11,15,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#5a3b31";ctx.beginPath();ctx.ellipse(-17,-26,4,8,0,0,Math.PI*2);ctx.ellipse(17,-26,4,8,0,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle="#9d5b59";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-5,9,.2,Math.PI-.2);ctx.stroke();
+ ctx.fillStyle="rgba(224,117,120,.45)";ctx.beginPath();ctx.ellipse(-32,-4,9,5,0,0,Math.PI*2);ctx.ellipse(32,-4,9,5,0,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+}
+function drawTutorialScene(ctx,scene,index,total){
+ const W=360,H=640;ctx.clearRect(0,0,W,H);
+ const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,"#081426");grad.addColorStop(.55,"#12365a");grad.addColorStop(1,"#07101e");ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle="rgba(217,180,91,.10)";ctx.beginPath();ctx.arc(325,110,110,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle="rgba(239,204,128,.25)";ctx.lineWidth=1;for(let r=42;r<150;r+=28){ctx.beginPath();ctx.arc(330,120,r,0,Math.PI*2);ctx.stroke()}
+ ctx.fillStyle="#d9b45b";ctx.fillRect(24,35,42,4);
+ ctx.fillStyle="#f7d990";ctx.font="bold 15px Arial";ctx.fillText("RIANDERBLOG",24,68);
+ ctx.fillStyle="#b8cbe0";ctx.font="11px Arial";ctx.fillText("GLOBAL SHOPPING • CUSTOMER ACADEMY",24,91);
+ ctx.fillStyle="rgba(255,255,255,.09)";ctx.beginPath();ctx.roundRect(22,120,316,185,18);ctx.fill();
+ ctx.fillStyle="#eac36f";ctx.font="bold 11px Arial";ctx.fillText("LESSON "+String(index+1).padStart(2,"0")+"  /  "+String(total).padStart(2,"0"),40,149);
+ ctx.fillStyle="#ffffff";ctx.font="bold 23px Arial";
+ const words=scene[0].split(" ");let lines=[],line="";
+ words.forEach(w=>{const test=line?line+" "+w:w;if(ctx.measureText(test).width>278){lines.push(line);line=w}else line=test});if(line)lines.push(line);
+ let y=190-(lines.length-1)*14;lines.forEach(t=>{ctx.fillText(t,40,y);y+=31});
+ ctx.fillStyle="#d6e2f0";ctx.font="15px Arial";const desc=scene[1].split(" ");let dlines=[],dline="";
+ desc.forEach(w=>{const test=dline?dline+" "+w:w;if(ctx.measureText(test).width>278){dlines.push(dline);dline=w}else dline=test});if(dline)dlines.push(dline);
+ y=267;dlines.slice(0,2).forEach(t=>{ctx.fillText(t,40,y);y+=21});
+ drawAnimeHost(ctx,index);
+ ctx.fillStyle="rgba(5,13,25,.72)";ctx.beginPath();ctx.roundRect(22,545,316,58,13);ctx.fill();
+ ctx.fillStyle="#eac36f";ctx.font="bold 10px Arial";ctx.fillText("YOUR GATEWAY TO GLOBAL SHOPPING",38,568);
+ ctx.fillStyle="#ffffff";ctx.font="12px Arial";ctx.fillText("Discover. Shop. Enjoy.",38,587);
+ ctx.fillStyle="rgba(255,255,255,.18)";ctx.fillRect(24,620,312,4);ctx.fillStyle="#eac36f";ctx.fillRect(24,620,312*(index+1)/total,4);
+}
+async function makeTutorialVideo(){
+ const choice=document.getElementById("tutorialChoice").value,lesson=tutorialLessons[choice],canvas=document.getElementById("tutorialCanvas"),ctx=canvas.getContext("2d"),status=document.getElementById("tutorialStatus"),btn=document.getElementById("makeTutorialBtn"),download=document.getElementById("downloadTutorialBtn");
+ if(!canvas.captureStream||!window.MediaRecorder){status.textContent="This browser cannot record canvas video. Please use an updated Chrome browser.";return}
+ if(tutorialVideoUrl){URL.revokeObjectURL(tutorialVideoUrl);tutorialVideoUrl=null}tutorialVideoBlob=null;download.disabled=true;btn.disabled=true;
+ const stream=canvas.captureStream(24),chunks=[];let mime="video/webm;codecs=vp8";if(!MediaRecorder.isTypeSupported(mime))mime="video/webm";
+ try{tutorialRecorder=new MediaRecorder(stream,{mimeType:mime});tutorialRecorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};tutorialRecorder.onstop=()=>{tutorialVideoBlob=new Blob(chunks,{type:"video/webm"});tutorialVideoUrl=URL.createObjectURL(tutorialVideoBlob);download.disabled=false;btn.disabled=false;status.textContent="Video ready: "+lesson.title+". Tap Download video to save it on your device.";stream.getTracks().forEach(t=>t.stop())};
+ tutorialRecorder.start();const duration=3500;for(let i=0;i<lesson.scenes.length;i++){drawTutorialScene(ctx,lesson.scenes[i],i,lesson.scenes.length);status.textContent="Creating scene "+(i+1)+" of "+lesson.scenes.length+"…";await new Promise(r=>setTimeout(r,duration))}tutorialRecorder.stop();
+ }catch(e){btn.disabled=false;status.textContent="Could not create video: "+(e.message||"Recording failed");stream.getTracks().forEach(t=>t.stop())}
+}
+let narrationRun=0;
+let tutorialVoices=[];
+function refreshTutorialVoices(){
+ if(!("speechSynthesis" in window))return;
+ tutorialVoices=window.speechSynthesis.getVoices()||[];
+ const select=document.getElementById("tutorialVoice");if(!select)return;
+ const previous=select.value;select.innerHTML='<option value="auto">African female English voice (best available)</option>';
+ const female=/female|woman|zira|samantha|victoria|karen|moira|tessa|serena|ava|aria|jenny|susan|linda|google uk english female/i;
+ const african=/en[-_](ZA|NG|KE|GH|ZW|BW|MW)/i;
+ const sorted=[...tutorialVoices].sort((a,b)=>{
+  const score=v=>(african.test(v.lang)?120:0)+(female.test(v.name)?35:0)+(/^en/i.test(v.lang)?10:0);
+  return score(b)-score(a);
+ });
+ sorted.forEach(v=>{const o=document.createElement("option");o.value=v.name;o.textContent=v.name+" — "+v.lang;select.appendChild(o)});
+ if([...select.options].some(o=>o.value===previous))select.value=previous;
+}
+function selectedTutorialVoice(){
+ const wanted=document.getElementById("tutorialVoice")?.value;
+ if(wanted&&wanted!=="auto")return tutorialVoices.find(v=>v.name===wanted)||null;
+ const female=/female|woman|zira|samantha|victoria|karen|moira|tessa|serena|ava|aria|jenny|susan|linda|google uk english female/i;
+ const african=/en[-_](ZA|NG|KE|GH|ZW|BW|MW)/i;
+ return [...tutorialVoices].sort((a,b)=>{
+  const score=v=>(african.test(v.lang)?120:0)+(female.test(v.name)?35:0)+(/^en/i.test(v.lang)?10:0);
+  return score(b)-score(a);
+ })[0]||null;
+}
+function playTutorialNarration(){
+ if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window)){msg("tutorialStatus","Voice narration is not supported by this browser.");return}
+ stopTutorialNarration();
+ const run=++narrationRun,lesson=tutorialLessons[document.getElementById("tutorialChoice").value],voice=selectedTutorialVoice();
+ let i=0;
+ function next(){
+  if(run!==narrationRun||i>=lesson.scenes.length){if(run===narrationRun)msg("tutorialStatus","Narration finished. This preview uses the selected device voice; video export is still silent.");return}
+  const scene=lesson.scenes[i++],utterance=new SpeechSynthesisUtterance(scene[0]+". "+scene[1]);
+  if(voice){utterance.voice=voice;utterance.lang=voice.lang}
+  utterance.rate=.90;utterance.pitch=1.0;utterance.volume=1;utterance.onend=next;utterance.onerror=()=>{if(run===narrationRun)msg("tutorialStatus","Narration stopped by the browser.")};
+  msg("tutorialStatus","Speaking scene "+i+" of "+lesson.scenes.length+(voice?" with "+voice.name:" with the default available voice")+"…");
+  window.speechSynthesis.speak(utterance);
+ }
+ next();
+}
+function stopTutorialNarration(){narrationRun++;if("speechSynthesis" in window)window.speechSynthesis.cancel();msg("tutorialStatus","Narration stopped.");}
+if("speechSynthesis" in window){refreshTutorialVoices();window.speechSynthesis.onvoiceschanged=refreshTutorialVoices;}
+
+function downloadTutorialVideo(){if(!tutorialVideoBlob||!tutorialVideoUrl)return;const a=document.createElement("a");a.href=tutorialVideoUrl;a.download="RIANDERBLOG-tutorial-"+document.getElementById("tutorialChoice").value+".webm";document.body.appendChild(a);a.click();a.remove()}
+drawTutorialScene(document.getElementById("tutorialCanvas").getContext("2d"),tutorialLessons.account.scenes[0],0,6);
+
+let bootRunning=false;
+async function boot(){
+ if(bootRunning)return;
+ bootRunning=true;
+ try{
+  if(!db){
+   document.getElementById("accountTitle").textContent="Sign-in service unavailable";
+   document.getElementById("accountInfo").textContent="The Supabase library did not load. Check your internet connection and retry.";
+   msg("settingsStatus","The Supabase sign-in library did not load.");
+   return;
+  }
+  let result=await db.auth.getSession();
+  if(result?.error)throw result.error;
+  let session=result?.data?.session||null;
+  // Recheck once while the browser restores the shared marketplace session.
+  if(!session?.user?.id){
+   await new Promise(resolve=>setTimeout(resolve,1200));
+   result=await db.auth.getSession();
+   if(result?.error)throw result.error;
+   session=result?.data?.session||null;
+  }
+  currentUser=session?.user?.id?session.user:null;
+  if(!currentUser?.id){
+   document.body.classList.remove("hub-admin-ready","hub-staff-ready");
+   document.getElementById("accountTitle").textContent="RIANDERBLOG login not detected";
+   document.getElementById("accountInfo").textContent="No active marketplace account was found in this browser tab. Sign in to RIANDERBLOG first, then reopen this Hub.";
+   msg("productStatus","Products are protected until your account is verified.");
+   msg("settingsStatus","No second sign-in is needed. The Hub will use the marketplace session.");
+   return;
+  }
+  let staffMember=null;
+  const isOwner=!!currentUser&&currentUser.id===ADMIN_USER_ID;
+  if(currentUser&&!isOwner){
+   const staffResult=await db.from("staff_members").select("id,email,status,permissions").eq("user_id",currentUser.id).maybeSingle();
+    if(!staffResult.error&&staffResult.data?.status==="active"&&staffResult.data?.permissions?.staff_type!=="delivery_assembly")staffMember=staffResult.data;
+  }
+  if(!isOwner&&!staffMember){
+   document.body.classList.remove("hub-admin-ready","hub-staff-ready");
+   document.getElementById("accountTitle").textContent=currentUser?"No Promotion Hub permission":"RIANDERBLOG login not detected";
+   document.getElementById("accountInfo").textContent=currentUser
+    ?"This account is not a General staff member with Promotion Hub access. Delivery & assembly accounts cannot open the Promotion Hub."
+    :"Your marketplace login has not appeared in this tab yet. Return to RIANDERBLOG and sign in, then reopen this Hub.";
+   msg("productStatus","Products are protected until your account is verified.");
+   msg("settingsStatus","The Hub uses your existing marketplace login. No second sign-in is needed.");
+   return;
+  }
+  document.body.classList.toggle("hub-admin-ready",isOwner);
+  document.body.classList.toggle("hub-staff-ready",!isOwner&&!!staffMember);
+  document.getElementById("accountTitle").textContent=isOwner?"Administrator verified":"Staff access verified";
+  document.getElementById("accountInfo").textContent=isOwner
+   ?"Signed in as "+(currentUser.email||"RIANDERBLOG administrator")+". This private workspace uses your existing marketplace login."
+   :"Signed in as "+(currentUser.email||"RIANDERBLOG staff")+". Promotion Hub access is included with your General staff invitation.";
+  await Promise.all([loadProducts(),loadSettings(),loadConnections(),loadQueue()]);
+ }catch(error){
+  document.getElementById("accountTitle").textContent="Could not load your RIANDERBLOG account";
+  document.getElementById("accountInfo").textContent="The shared login check failed. Tap Retry account check. Details: "+(error?.message||String(error));
+  msg("settingsStatus","Account check failed: "+(error?.message||String(error)));
+ }finally{bootRunning=false;}
+}
+if(db?.auth?.onAuthStateChange){db.auth.onAuthStateChange(function(){setTimeout(boot,500)});}
+boot();
+</script>
+</body>
+</html>
