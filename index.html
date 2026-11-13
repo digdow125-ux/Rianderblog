@@ -1409,6 +1409,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <section class="admin-tools"><h3>Product approvals</h3><div id="staffProductTasks"></div></section>
 <section class="admin-tools"><h3>Order approvals</h3><div id="staffOrderTasks"></div></section>
 <section class="admin-tools"><h3>Shipping and delivery</h3><div id="staffDeliveryTasks"></div></section>
+<section class="admin-tools"><h3>Shipment and delivery proof approvals</h3><div id="staffFulfilmentTasks"></div></section>
 </div>
 <section class="admin-tools" style="margin-top:16px"><h3>Social-media promotions</h3><p id="staffSocialNote" class="small-note"></p><a id="staffPromotionLink" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/" class="primary" style="display:none;padding:10px 14px;border-radius:8px;text-decoration:none">Open Promotion Hub</a></section>
 </div></section>
@@ -4696,6 +4697,7 @@ async function loadStaffPanel(){
  if(owner)await loadStaffMembers();
  const p=owner?{supplier_approvals:true,product_approvals:true,order_approvals:true,delivery_updates:true,social_media:true}:member.permissions||{};
  await loadStaffTasks(p);
+ if(p.delivery_updates)await loadStaffFulfilmentTasks();
  const social=owner||!!p.social_media;document.getElementById('staffPromotionLink').style.display=social?'inline-block':'none';document.getElementById('staffSocialNote').textContent=social?'You can prepare and share promotions. Automatic posting still requires approved platform connections.':'Social-media permission has not been assigned.';
 }
 async function inviteStaffMember(){
@@ -4722,6 +4724,29 @@ async function staffReviewSupplier(id,status){const r=await db.rpc('admin_review
 async function staffReviewProduct(id,status){if(!confirm('Confirm '+status+'?'))return;const r=await db.rpc('staff_review_product',{p_product_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
 async function staffReviewOrder(id,status){if(!confirm('Confirm '+status+' for this order?'))return;const r=await db.rpc('staff_review_order',{p_order_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
 async function staffUpdateDelivery(id,status){const carrier=prompt('Courier / delivery company (optional):')||'',tracking=prompt('Tracking number (optional):')||'',note=prompt('Delivery note (optional):')||'';const r=await db.rpc('staff_add_order_tracking_update',{p_order_id:id,p_status:status,p_note:note,p_carrier:carrier,p_tracking_number:tracking});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
+
+</script>
+<script>
+
+async function loadStaffFulfilmentTasks(){
+ const box=document.getElementById('staffFulfilmentTasks');if(!box)return;box.textContent='Loading shipment and delivery submissions…';
+ const r=await db.from('supplier_item_fulfilments').select('id,order_id,order_item_id,status,carrier,tracking_number,delivery_evidence_url,supplier_note').in('status',['shipped_submitted','delivered_submitted']).order('updated_at',{ascending:false}).limit(40);
+ if(r.error){box.textContent='Could not load fulfilment submissions: '+r.error.message;return;}
+ if(!r.data?.length){box.textContent='No shipment or delivery proof is waiting for review.';return;}
+ const orderIds=[...new Set(r.data.map(x=>x.order_id))],itemIds=[...new Set(r.data.map(x=>x.order_item_id))];
+ const [orders,items]=await Promise.all([db.from('orders').select('id,order_number,customer_name').in('id',orderIds),db.from('order_items').select('id,product_name,quantity').in('id',itemIds)]);
+ if(orders.error||items.error){box.textContent='Could not load order details: '+(orders.error||items.error).message;return;}
+ const om=new Map((orders.data||[]).map(x=>[x.id,x])),im=new Map((items.data||[]).map(x=>[x.id,x]));
+ box.innerHTML=r.data.map(x=>{const o=om.get(x.order_id)||{},i=im.get(x.order_item_id)||{},ship=x.status==='shipped_submitted',proof=safeUrl(x.delivery_evidence_url||'');return '<div class="staff-task-row"><strong>'+escapeHTML(o.order_number||x.order_id)+' · '+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</strong><small>'+(ship?'Shipment submitted':'Delivery proof submitted')+' · '+escapeHTML(x.supplier_note||'')+'</small><small>'+escapeHTML(x.carrier||'')+' '+escapeHTML(x.tracking_number||'')+(proof?' · <a href="'+escapeHTML(proof)+'" target="_blank" rel="noopener">View proof</a>':'')+'</small><button class="primary" onclick="staffReviewFulfilment(\\''+x.id+'\\',\\''+(ship?'approve_shipment':'approve_delivery')+'\\')">Approve</button><button class="secondary" onclick="staffReviewFulfilment(\\''+x.id+'\\',\\'reject\\')">Reject</button></div>';}).join('');
+}
+async function staffReviewFulfilment(id,action){
+ const note=action==='reject'?(prompt('Reason for rejection (supplier will see this):')||''):'';
+ if(action==='reject'&&!note.trim())return;
+ const r=await db.rpc('admin_review_item_fulfilment',{p_fulfilment_id:id,p_action:action,p_admin_note:note});
+ if(r.error){alert('Could not review fulfilment: '+r.error.message);return;}
+ alert(action==='reject'?'Submission rejected.':'Submission approved.');
+ await loadStaffPanel();
+}
 
 </script>
 </body>
