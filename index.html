@@ -1015,7 +1015,10 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 .detail-backdrop{position:static!important;inset:auto!important;background:transparent!important;z-index:auto!important;padding:0!important;display:none!important}
 .detail-backdrop.open{display:block!important}
 .detail-box{position:static!important;max-width:none!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;margin:14px 0}
-.detail-close{position:static!important;float:right}
+.detail-close{position:static!important;float:none!important;display:inline-block!important}
+.notification-count{position:static!important;display:inline-flex;align-items:center;justify-content:center;margin-left:5px;min-width:19px}
+#adminPanel .admin-heading:after{position:static!important;display:none!important}
+#adminPanel .admin-stat-grid .market-card:before{position:static!important;display:none!important}
 .support-launcher{position:static!important;display:inline-block!important;margin:14px 0;box-shadow:none!important}
 .support-window{position:static!important;inset:auto!important;width:100%!important;height:auto!important;max-height:none!important;box-shadow:none!important;margin:12px 0}
 .support-window.open{display:flex!important}
@@ -4809,7 +4812,7 @@ async function assignStaffTask(){
   const dueRaw=document.getElementById('staffTaskDue').value;
   const staff=await db.from('staff_members').select('user_id,status').eq('user_id',staff_user_id).maybeSingle();
   if(staff.error||!staff.data||staff.data.status!=='active')throw new Error('Choose an active staff member.');
-  const payload={staff_user_id,assigned_by:currentAdminUser.id,task_type,title,instructions,related_record_id:rawId||null,due_at:dueRaw?new Date(dueRaw).toISOString():null};
+  const payload={staff_user_id,assigned_by:window.currentAdminUser.id,task_type,title,instructions,related_record_id:rawId||null,due_at:dueRaw?new Date(dueRaw).toISOString():null};
   const r=await db.from('staff_tasks').insert(payload);if(r.error)throw r.error;
   document.getElementById('staffTaskTitle').value='';document.getElementById('staffTaskInstructions').value='';document.getElementById('staffTaskRecordId').value='';document.getElementById('staffTaskDue').value='';
   status.textContent='Task assigned. It is now visible in that staff member’s workspace.';
