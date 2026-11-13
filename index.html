@@ -1441,13 +1441,15 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 </div>
 <div id="staffInviteForm" class="admin-workspace-panel" style="display:none">
 <h3>Invite staff</h3><p class="small-note">Invite by email. Staff use their own account and never receive owner access. These category settings do not assign work; every job must be assigned separately below.</p>
+<label style="display:block;max-width:420px;font-weight:700">Staff type
+<select id="staffInviteType" onchange="updateStaffInviteRoleUI()" style="display:block;width:100%;padding:12px;margin:7px 0;border:1px solid #dce3ec;border-radius:9px">
+<option value="general">General staff — Promotion Hub included</option><option value="delivery_assembly">Delivery &amp; assembly staff — delivery tasks only</option></select></label>
 <input id="staffInviteEmail" type="email" placeholder="Staff email address" style="width:100%;max-width:420px;padding:12px;border:1px solid #dce3ec;border-radius:9px">
-<div class="staff-permission-grid">
+<div id="staffGeneralPermissions" class="staff-permission-grid">
 <label><input type="checkbox" id="staffPermSupplier"> Supplier approvals</label>
 <label><input type="checkbox" id="staffPermProducts"> Product approvals</label>
 <label for="staffPermAddProducts" style="display:flex;align-items:center;gap:12px;padding:14px 16px;margin:8px 0;background:#fff8e8;border:2px solid #c99a32;border-radius:12px;font-weight:800;color:#14233f;cursor:pointer"><input type="checkbox" id="staffPermAddProducts" name="staffPermAddProducts" style="width:22px;height:22px;min-width:22px;accent-color:#c99a32"> <span>ALLOW THIS STAFF MEMBER TO ADD MARKETPLACE PRODUCTS</span></label>
 <label><input type="checkbox" id="staffPermOrders"> Order approvals</label>
-<label for="staffPermDelivery" style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #c99a32;border-radius:10px;background:#fff8e8"><input type="checkbox" id="staffPermDelivery" style="width:20px;height:20px"> Delivery / assembly staff (show assigned customer orders)</label>
 <label><input type="checkbox" id="staffPermSocial"> Social-media promotions</label>
 </div>
 <button class="primary" onclick="inviteStaffMember()">Send invitation</button><p id="staffInviteStatus" class="small-note"></p>
@@ -1840,9 +1842,9 @@ async function updateAdminVisibility(user) {
  const owner=!!user&&user.id===ADMIN_USER_ID;
  let staff=null,hasHubTask=false;
  if(user&&!owner){
-  const r=await db.from('staff_members').select('id,email,status').eq('user_id',user.id).maybeSingle();
+  const r=await db.from('staff_members').select('id,email,status,permissions').eq('user_id',user.id).maybeSingle();
   if(!r.error&&r.data?.status==='active')staff=r.data;
-  if(staff){const task=await db.from('staff_tasks').select('id').eq('staff_user_id',user.id).eq('task_type','promotion_hub').in('status',['pending','in_progress']).limit(1);hasHubTask=!task.error&&!!task.data?.length;}
+  hasHubTask=!!staff&&staff.permissions?.staff_type!=='delivery_assembly';
  }
  window.rianderStaffMembership=staff;
  document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=owner&&(el.id==='adminNavLink'||el.id==='navPromotionHub')?'block':'none';});
@@ -4849,7 +4851,8 @@ async function installRianderblogApp(){
 
 <script>
 
-const STAFF_LABELS={supplier_approvals:'Supplier applications',product_approvals:'Product approvals',add_products:'Add marketplace products',order_approvals:'Order approvals',delivery_updates:'Shipping and delivery',social_media:'Social-media promotions'};
+c
+function updateStaffInviteRoleUI(){const g=document.getElementById('staffGeneralPermissions');if(g)g.style.display=document.getElementById('staffInviteType')?.value==='delivery_assembly'?'none':'grid';}
 function staffOwner(){return !!window.currentAdminUser&&window.currentAdminUser.id===ADMIN_USER_ID;}
 async function loadStaffPanel(){
  const box=document.getElementById('staffPanelStatus');
@@ -4894,9 +4897,11 @@ window.loadStaffPanel = loadStaffPanel;
 
 async function inviteStaffMember(){
  const email=document.getElementById('staffInviteEmail').value.trim(),status=document.getElementById('staffInviteStatus');
- const permissions={supplier_approvals:document.getElementById('staffPermSupplier').checked,product_approvals:document.getElementById('staffPermProducts').checked,add_products:document.getElementById('staffPermAddProducts').checked,order_approvals:document.getElementById('staffPermOrders').checked,delivery_updates:document.getElementById('staffPermDelivery').checked,social_media:document.getElementById('staffPermSocial').checked};
+ const staff_type=document.getElementById('staffInviteType')?.value||'general';
+ const permissions={supplier_approvals:document.getElementById('staffPermSupplier').checked,product_approvals:document.getElementById('staffPermProducts').checked,add_products:document.getElementById('staffPermAddProducts').checked,order_approvals:document.getElementById('staffPermOrders').checked,delivery_updates:false,social_media:document.getElementById('staffPermSocial').checked};
+ if(staff_type==='delivery_assembly'){Object.keys(permissions).forEach(k=>permissions[k]=false);permissions.delivery_updates=true;}
  status.textContent='Sending invitation…';
- try{if(!staffOwner())throw new Error('Only the owner can invite staff.');const r=await db.functions.invoke('staff-invite',{body:{email,permissions}});if(r.error)throw r.error;if(r.data?.error)throw new Error(r.data.error);status.textContent=r.data.invitation_sent?'Invitation email sent. Ask the staff member to accept it.':'Existing account added to staff.';document.getElementById('staffInviteEmail').value='';await loadStaffMembers();}
+ try{if(!staffOwner())throw new Error('Only the owner can invite staff.');const r=await db.functions.invoke('staff-invite',{body:{email,staff_type,permissions}});if(r.error)throw r.error;if(r.data?.error)throw new Error(r.data.error);status.textContent=r.data.invitation_sent?'Invitation email sent. Ask the staff member to accept it.':'Existing account added to staff.';document.getElementById('staffInviteEmail').value='';await loadStaffMembers();}
  catch(e){status.textContent='Invitation failed: '+e.message;}
 }
 async function loadStaffMembers(){
@@ -4906,7 +4911,7 @@ async function loadStaffMembers(){
  const active=(r.data||[]).filter(x=>x.status==='active'&&x.user_id);
  if(select)select.innerHTML='<option value="">Choose staff member</option>'+active.map(x=>'<option value="'+escapeHTML(x.user_id)+'">'+escapeHTML(x.email)+'</option>').join('');
  if(!r.data?.length){box.textContent='No staff invited yet.';return;}
- box.innerHTML=r.data.map(x=>{const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'Task-based access only';const next=x.status==='active'?'suspended':'active';return '<div class="staff-member" style="display:block;margin:10px 0;padding:14px;border:1px solid #e3e8ef;border-radius:12px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><strong>'+escapeHTML(x.email)+'</strong><small style="display:block">'+escapeHTML(x.status)+' · '+escapeHTML(labels)+'</small></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\''+x.id+'\')">Edit what they can do</button><button class="secondary" type="button" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div></div><div id="staffPermissionEditor-'+x.id+'" style="display:none;margin-top:12px;padding:12px;background:#f7f9fc;border-radius:10px"><strong>Staff permissions</strong><div class="staff-permission-grid">'+Object.entries(STAFF_LABELS).map(([k,label])=>'<label><input type="checkbox" data-staff-permission="'+k+'" '+(x.permissions?.[k]?'checked':'')+'> '+escapeHTML(label)+'</label>').join('')+'</div><button class="primary" type="button" onclick="saveStaffPermissions(\''+x.id+'\')">Save changes</button><span id="staffPermissionStatus-'+x.id+'" class="small-note"></span></div></div>';}).join('');
+ box.innerHTML=r.data.map(x=>{const role=x.permissions?.staff_type==='delivery_assembly'?'Delivery & assembly staff':'General staff';const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'No automatic marketplace duties';const next=x.status==='active'?'suspended':'active';return '<div class="staff-member" style="display:block;margin:10px 0;padding:14px;border:1px solid #e3e8ef;border-radius:12px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><strong>'+escapeHTML(x.email)+'</strong><small style="display:block">'+escapeHTML(x.status)+' · '+escapeHTML(role)+' · '+escapeHTML(labels)+'</small></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\''+x.id+'\')">Edit what they can do</button><button class="secondary" type="button" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div></div><div id="staffPermissionEditor-'+x.id+'" data-staff-type="'+(x.permissions?.staff_type||'general')+'" style="display:none;margin-top:12px;padding:12px;background:#f7f9fc;border-radius:10px"><strong>Staff permissions</strong><div class="staff-permission-grid">'+Object.entries(STAFF_LABELS).map(([k,label])=>'<label><input type="checkbox" data-staff-permission="'+k+'" '+(x.permissions?.[k]?'checked':'')+'> '+escapeHTML(label)+'</label>').join('')+'</div><button class="primary" type="button" onclick="saveStaffPermissions(\''+x.id+'\')">Save changes</button><span id="staffPermissionStatus-'+x.id+'" class="small-note"></span></div></div>';}).join('');
 }
 async function loadTaskRecordOptions(){
  const type=document.getElementById('staffTaskType')?.value,select=document.getElementById('staffTaskRecordSelect'),idInput=document.getElementById('staffTaskRecordId');
@@ -4966,7 +4971,7 @@ function staffTogglePermissionEditor(id){if(!staffOwner())return;const panel=doc
 async function saveStaffPermissions(id){
  if(!staffOwner())return;
  const panel=document.getElementById('staffPermissionEditor-'+id),status=document.getElementById('staffPermissionStatus-'+id);if(!panel||!status)return;
- const permissions={};panel.querySelectorAll('[data-staff-permission]').forEach(input=>{permissions[input.dataset.staffPermission]=input.checked;});
+ const permissions={staff_type:panel.dataset.staffType||'general'};panel.querySelectorAll('[data-staff-permission]').forEach(input=>{permissions[input.dataset.staffPermission]=input.checked;});
  status.textContent='Saving…';
  const r=await db.from('staff_members').update({permissions,updated_at:new Date().toISOString()}).eq('id',id);
  if(r.error){status.textContent='Could not save: '+r.error.message;return;}
@@ -5000,12 +5005,17 @@ async function loadStaffTasks(p){
  if(!user){document.getElementById('staffPanelStatus').textContent='Sign in to view assigned work.';return;}
  const result=await db.from('staff_tasks').select('*').eq('staff_user_id',user.id).in('status',['pending','in_progress']).order('created_at',{ascending:false});
  if(result.error){document.getElementById('staffPanelStatus').textContent='Could not load assigned tasks: '+result.error.message;return;}
- const tasks=result.data||[];
+ let tasks=result.data||[];
+ const deliveryOnly=p?.staff_type==='delivery_assembly';
+ tasks=tasks.filter(t=>deliveryOnly?t.task_type==='delivery_assembly':t.task_type!=='delivery_assembly');
  const addTask=tasks.some(t=>t.task_type==='add_product');
- const promoTask=tasks.some(t=>t.task_type==='promotion_hub');
+ const generalAccess=!deliveryOnly;
  document.getElementById('staffProductCreatePanel').style.display=addTask?'block':'none';
- document.getElementById('staffPromotionLink').style.display=promoTask?'inline-block':'none';
- document.getElementById('staffSocialNote').textContent=promoTask?'Promotion Hub access has been assigned to you by the owner.':'Promotion Hub work has not been assigned.';
+ document.getElementById('staffPromotionLink').style.display=generalAccess?'inline-block':'none';
+ document.getElementById('staffSocialNote').textContent=generalAccess?'Promotion Hub access is included with your General staff invitation.':'This account is assigned to delivery and assembly only.';
+ const panels={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks',other:'staffOtherTasks'};
+ for(const [key,id] of Object.entries(panels)){const el=document.getElementById(id)?.closest('section');if(el)el.style.display=deliveryOnly?(key==='delivery'?'block':'none'):(key==='delivery'?'none':'block');}
+ const socialPanel=document.getElementById('staffSocialNote')?.closest('section');if(socialPanel)socialPanel.style.display=generalAccess?'block':'none';
  const sections={supplier:[],product:[],order:[],delivery:[],fulfilment:[],other:[]};
  for(const t of tasks){
   let html='<div class="staff-task-row"><strong>'+escapeHTML(t.title)+'</strong><small>'+escapeHTML(t.instructions||'No extra instructions')+'</small><small><b>Status:</b> '+escapeHTML(t.status)+' · <b>Due:</b> '+escapeHTML(t.due_at?new Date(t.due_at).toLocaleString():'Not set')+'</small>';
