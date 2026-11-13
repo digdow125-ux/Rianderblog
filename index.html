@@ -2167,7 +2167,7 @@ async function saveAdminProduct(){
       category:document.getElementById('adminProductCategory').value.trim()||'Other',
       image_url:image,
       product_image_urls:images,
-      affiliate_url:link || oldProduct?.affiliate_url || null,
+      affiliate_url:link || oldProduct?.affiliate_url || '',
       description:document.getElementById('adminProductDescription').value.trim(),
       is_active:document.getElementById('adminProductActive').checked
     };
