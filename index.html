@@ -23,6 +23,18 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RIANDERBLOG | Shop Products in Malawi">
 <meta name="twitter:description" content="Discover everyday products on RIANDERBLOG, a Malawi-focused online marketplace. Browse products and shop conveniently online.">
+<!-- Define staff labels before any authentication callbacks can load the Staff Panel. -->
+<script>
+window.STAFF_LABELS = Object.freeze({
+ supplier_approvals: 'Supplier approvals',
+ product_approvals: 'Product approvals',
+ add_products: 'Add products',
+ order_approvals: 'Order approvals',
+ delivery_updates: 'Delivery updates',
+ social_media: 'Social media promotions'
+});
+var STAFF_LABELS = window.STAFF_LABELS;
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
 :root{
@@ -4915,15 +4927,6 @@ async function inviteStaffMember(){
  status.textContent='Invitation failed: '+message;
 }
 }
-// Shared labels used by the My Staff table and permission editor.
-const STAFF_LABELS = {
- supplier_approvals: 'Supplier approvals',
- product_approvals: 'Product approvals',
- add_products: 'Add products',
- order_approvals: 'Order approvals',
- delivery_updates: 'Delivery updates',
- social_media: 'Social media promotions'
-};
 async function loadStaffMembers(){
  const box=document.getElementById('staffMembersList'),select=document.getElementById('staffTaskAssignee');
  if(!box)return;
