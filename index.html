@@ -981,6 +981,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 @media(max-width:650px){.nav-links{left:18px;min-width:min(310px,calc(100vw - 36px));padding:9px}.nav-links a{padding:13px}.nav-links .nav-invite-link{margin:7px 0}}
 
 </style>
+<style>.staff-permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin:14px 0}.staff-permission-grid label{padding:10px;border:1px solid #e5e8ee;border-radius:9px;font-size:13px}.staff-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:18px}.staff-task-grid .admin-tools{padding:15px;border:1px solid #e5e8ee;border-radius:12px;background:#fff}.staff-task-row{padding:11px 0;border-bottom:1px solid #edf0f4;font-size:13px}.staff-task-row small{display:block;color:#748397;margin:4px 0 8px}.staff-task-row button,.staff-member button{padding:7px 10px;border:0;border-radius:7px;font-weight:700;margin-right:5px}.staff-member{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f4;flex-wrap:wrap}.staff-member small{display:block;color:#748397}</style>
 </head>
 <body>
 <div class="topbar">A WORLD OF DISCOVERY • SHOP PRODUCTS FROM INTERNATIONAL SELLERS</div>
@@ -1017,6 +1018,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment help</a>
     <a href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/index.html" id="navPromotionHub" class="admin-only" title="Open Promotion Hub">📣 Promotion Hub</a>
     <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin panel</a>
+    <a href="#staffPanel" id="navStaffPanel" style="display:none" onclick="showSection('staffPanel');closeMenu();return false">👥 Staff panel</a>
   </div>
 </nav>
 <main>
@@ -1386,6 +1388,30 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   </section>
 
 
+<section id="staffPanel" class="panel secondary-page" style="display:none">
+<div class="admin-heading"><div><span class="admin-kicker">RIANDERBLOG TEAM WORKSPACE</span><h2>Staff Panel</h2><p id="staffPanelStatus">Checking staff access…</p></div><button class="secondary" onclick="loadStaffPanel()">Refresh</button></div>
+<div id="staffOwnerTools" style="display:none;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
+<h3>Invite staff</h3><p class="small-note">Invite by email. Staff use their own account and never receive owner access.</p>
+<input id="staffInviteEmail" type="email" placeholder="Staff email address" style="width:100%;max-width:420px;padding:12px;border:1px solid #dce3ec;border-radius:9px">
+<div class="staff-permission-grid">
+<label><input type="checkbox" id="staffPermSupplier"> Supplier approvals</label>
+<label><input type="checkbox" id="staffPermProducts"> Product approvals</label>
+<label><input type="checkbox" id="staffPermOrders"> Order approvals</label>
+<label><input type="checkbox" id="staffPermDelivery"> Shipping and delivery</label>
+<label><input type="checkbox" id="staffPermSocial"> Social-media promotions</label>
+</div>
+<button class="primary" onclick="inviteStaffMember()">Send invitation</button><p id="staffInviteStatus" class="small-note"></p>
+<h3>Your staff</h3><div id="staffMembersList">Loading…</div>
+</div>
+<div id="staffTaskWorkspace" style="display:none">
+<div class="staff-task-grid">
+<section class="admin-tools"><h3>Supplier applications</h3><div id="staffSupplierTasks"></div></section>
+<section class="admin-tools"><h3>Product approvals</h3><div id="staffProductTasks"></div></section>
+<section class="admin-tools"><h3>Order approvals</h3><div id="staffOrderTasks"></div></section>
+<section class="admin-tools"><h3>Shipping and delivery</h3><div id="staffDeliveryTasks"></div></section>
+</div>
+<section class="admin-tools" style="margin-top:16px"><h3>Social-media promotions</h3><p id="staffSocialNote" class="small-note"></p><a id="staffPromotionLink" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/" class="primary" style="display:none;padding:10px 14px;border-radius:8px;text-decoration:none">Open Promotion Hub</a></section>
+</div></section>
 <section id="adminPanel" class="panel secondary-page admin-box admin-only">
   <div class="admin-heading">
     <div>
@@ -1690,6 +1716,7 @@ if(id==="suppliers"&&typeof loadSupplierWorkspace==="function")loadSupplierWorks
   if(id==="messages"&&typeof loadMarketplaceConversations==="function")loadMarketplaceConversations();
   if(id==="affiliates"&&typeof loadProgrammes==="function")loadProgrammes();
   if(id==="adminPanel"&&typeof loadAdminDashboard==="function")loadAdminDashboard();
+  if(id==="staffPanel"&&typeof loadStaffPanel==="function")loadStaffPanel();
 }catch(err){
   console.error("RIANDERBLOG section error:",err);
 }
@@ -1697,28 +1724,16 @@ if(id==="suppliers"&&typeof loadSupplierWorkspace==="function")loadSupplierWorks
 }
 // Make navigation work even if an inline menu link is changed later.
 document.addEventListener("DOMContentLoaded",()=>{const nav=document.getElementById("navLinks");if(nav){nav.querySelectorAll("a[onclick]").forEach(a=>{a.addEventListener("click",e=>{e.preventDefault();});});}});
-function updateAdminVisibility(user) {
-  const allowed = !!user && user.id === ADMIN_USER_ID;
-
-  document.querySelectorAll(".admin-only").forEach(el => {
-    // Only the verified administrator sees the Promotion Hub and Admin Panel menu links.
-    // The dashboard panel itself stays hidden until selected.
-    el.style.display = allowed && (el.id === "adminNavLink" || el.id === "navPromotionHub") ? "block" : "none";
-  });
-
-  const status = document.getElementById("adminStatus");
-
-  if (status) {
-    status.textContent = allowed
-      ? "Administrator verified. Open Admin Panel from the navigation to manage your marketplace."
-      : "Administrator access is restricted.";
-  }
-
-  if (allowed) {
-    loadAdminDashboard();
-    loadAdminSupportInbox();
-    loadAdminOrdersTable();
-  }
+async function updateAdminVisibility(user) {
+ const owner=!!user&&user.id===ADMIN_USER_ID;
+ let staff=null;
+ if(user&&!owner){const r=await db.from('staff_members').select('id,email,permissions,status').eq('user_id',user.id).maybeSingle();if(!r.error&&r.data?.status==='active')staff=r.data;}
+ window.rianderStaffMembership=staff;
+ document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=owner&&(el.id==='adminNavLink'||el.id==='navPromotionHub')?'block':'none';});
+ const hub=document.getElementById('navPromotionHub');if(hub)hub.style.display=owner||!!staff?.permissions?.social_media?'block':'none';
+ const link=document.getElementById('navStaffPanel');if(link)link.style.display=owner||!!staff?'block':'none';
+ const status=document.getElementById('adminStatus');if(status)status.textContent=owner?'Administrator verified. Open Admin Panel from the navigation to manage your marketplace.':'Administrator access is restricted.';
+ if(owner){loadAdminDashboard();loadAdminSupportInbox();loadAdminOrdersTable();}
 }
 async function loadAdminSupplierLedger(){
  const box=document.getElementById('adminSupplierLedger');if(!box)return;box.textContent='Loading supplier wallet ledger...';
@@ -4667,5 +4682,46 @@ async function installRianderblogApp(){
 })();
 </script>
 
+<script>
+
+const STAFF_LABELS={supplier_approvals:'Supplier applications',product_approvals:'Product approvals',order_approvals:'Order approvals',delivery_updates:'Shipping and delivery',social_media:'Social-media promotions'};
+function staffOwner(){return !!window.currentAdminUser&&window.currentAdminUser.id===ADMIN_USER_ID;}
+async function loadStaffPanel(){
+ const box=document.getElementById('staffPanelStatus'),owner=staffOwner();
+ let member=window.rianderStaffMembership;
+ if(!owner){const u=await db.auth.getUser();if(!u.data.user){box.textContent='Sign in to RIANDERBLOG first.';return;}const r=await db.from('staff_members').select('id,email,permissions,status').eq('user_id',u.data.user.id).maybeSingle();if(r.error||!r.data||r.data.status!=='active'){box.textContent='Staff access is not active. Contact the owner.';return;}member=r.data;}
+ box.textContent=owner?'Owner verified. You control staff invitations and permissions.':'Staff account verified. Only assigned tasks are available.';
+ document.getElementById('staffOwnerTools').style.display=owner?'block':'none';document.getElementById('staffTaskWorkspace').style.display='block';
+ if(owner)await loadStaffMembers();
+ const p=owner?{supplier_approvals:true,product_approvals:true,order_approvals:true,delivery_updates:true,social_media:true}:member.permissions||{};
+ await loadStaffTasks(p);
+ const social=owner||!!p.social_media;document.getElementById('staffPromotionLink').style.display=social?'inline-block':'none';document.getElementById('staffSocialNote').textContent=social?'You can prepare and share promotions. Automatic posting still requires approved platform connections.':'Social-media permission has not been assigned.';
+}
+async function inviteStaffMember(){
+ const email=document.getElementById('staffInviteEmail').value.trim(),status=document.getElementById('staffInviteStatus');
+ const permissions={supplier_approvals:document.getElementById('staffPermSupplier').checked,product_approvals:document.getElementById('staffPermProducts').checked,order_approvals:document.getElementById('staffPermOrders').checked,delivery_updates:document.getElementById('staffPermDelivery').checked,social_media:document.getElementById('staffPermSocial').checked};
+ status.textContent='Sending invitation…';
+ try{if(!staffOwner())throw new Error('Only the owner can invite staff.');const r=await db.functions.invoke('staff-invite',{body:{email,permissions}});if(r.error)throw r.error;if(r.data?.error)throw new Error(r.data.error);status.textContent=r.data.invitation_sent?'Invitation email sent. Ask the staff member to accept it.':'Existing account added to staff.';document.getElementById('staffInviteEmail').value='';await loadStaffMembers();}
+ catch(e){status.textContent='Invitation failed: '+e.message;}
+}
+async function loadStaffMembers(){
+ const box=document.getElementById('staffMembersList');const r=await db.from('staff_members').select('id,email,status,permissions').order('created_at',{ascending:false});
+ if(r.error){box.textContent='Could not load staff: '+r.error.message;return;}if(!r.data?.length){box.textContent='No staff invited yet.';return;}
+ box.innerHTML=r.data.map(s=>{const labels=Object.keys(STAFF_LABELS).filter(k=>s.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'No permissions';const next=s.status==='suspended'?'active':'suspended';return '<div class="staff-member"><div><strong>'+escapeHTML(s.email)+'</strong><small>'+escapeHTML(s.status)+' · '+escapeHTML(labels)+'</small></div><button class="secondary" onclick="setStaffStatus(\''+s.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div>';}).join('');
+}
+async function setStaffStatus(id,status){if(!staffOwner())return;const r=await db.from('staff_members').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return;}await loadStaffMembers();}
+async function loadStaffTasks(p){
+ const boxes={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks'};Object.values(boxes).forEach(id=>document.getElementById(id).innerHTML='<p class="small-note">Not assigned.</p>');
+ if(p.supplier_approvals){const r=await db.from('supplier_applications').select('id,business_name,contact_name,country,email').eq('status','pending').limit(40);const b=document.getElementById(boxes.supplier);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No applications waiting.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.business_name)+'</strong><small>'+escapeHTML(x.contact_name)+' · '+escapeHTML(x.country)+' · '+escapeHTML(x.email)+'</small><button class="primary" onclick="staffReviewSupplier(\''+x.id+'\',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewSupplier(\''+x.id+'\',\'rejected\')">Reject</button></div>').join(''));}
+ if(p.product_approvals){const r=await db.from('products').select('id,name,category,price,currency').not('supplier_id','is',null).eq('review_status','pending').limit(40);const b=document.getElementById(boxes.product);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No products waiting.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.name)+'</strong><small>'+escapeHTML(x.category)+' · '+escapeHTML(x.currency)+' '+Number(x.price||0).toFixed(2)+'</small><button class="primary" onclick="staffReviewProduct('+Number(x.id)+',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewProduct('+Number(x.id)+',\'rejected\')">Reject</button></div>').join(''));}
+ if(p.order_approvals){const r=await db.from('orders').select('id,order_number,customer_name,total_amount,currency,payment_status').eq('order_status','awaiting_admin_approval').limit(40);const b=document.getElementById(boxes.order);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No orders awaiting approval.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.order_number||x.id)+'</strong><small>'+escapeHTML(x.customer_name||'Customer')+' · '+escapeHTML(x.currency)+' '+Number(x.total_amount||0).toFixed(2)+' · '+escapeHTML(x.payment_status)+'</small><button class="primary" onclick="staffReviewOrder(\''+x.id+'\',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewOrder(\''+x.id+'\',\'rejected\')">Reject</button></div>').join(''));}
+ if(p.delivery_updates){const r=await db.from('orders').select('id,order_number,customer_name,order_status').in('order_status',['approved','processing','shipped']).limit(40);const b=document.getElementById(boxes.delivery);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No delivery updates needed.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.order_number||x.id)+'</strong><small>'+escapeHTML(x.customer_name||'Customer')+' · '+escapeHTML(x.order_status)+'</small>'+(x.order_status!=='shipped'?'<button class="primary" onclick="staffUpdateDelivery(\''+x.id+'\',\'shipped\')">Mark shipped</button>':'')+'<button class="secondary" onclick="staffUpdateDelivery(\''+x.id+'\',\'completed\')">Mark delivered</button></div>').join(''));}
+}
+async function staffReviewSupplier(id,status){const r=await db.rpc('admin_review_supplier_application',{p_application_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
+async function staffReviewProduct(id,status){if(!confirm('Confirm '+status+'?'))return;const r=await db.rpc('staff_review_product',{p_product_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
+async function staffReviewOrder(id,status){if(!confirm('Confirm '+status+' for this order?'))return;const r=await db.rpc('staff_review_order',{p_order_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
+async function staffUpdateDelivery(id,status){const carrier=prompt('Courier / delivery company (optional):')||'',tracking=prompt('Tracking number (optional):')||'',note=prompt('Delivery note (optional):')||'';const r=await db.rpc('staff_add_order_tracking_update',{p_order_id:id,p_status:status,p_note:note,p_carrier:carrier,p_tracking_number:tracking});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
+
+</script>
 </body>
 </html>
