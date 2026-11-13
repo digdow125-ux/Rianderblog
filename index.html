@@ -27,10 +27,12 @@
 <script>
 window.STAFF_LABELS = Object.freeze({
  supplier_approvals: 'Supplier approvals',
+ affiliate_approvals: 'Affiliate approvals',
  product_approvals: 'Product approvals',
  add_products: 'Add products',
  order_approvals: 'Order approvals',
  delivery_updates: 'Delivery updates',
+ fulfilment_approvals: 'Shipping and delivery proof approvals',
  social_media: 'Social media promotions'
 });
 var STAFF_LABELS = window.STAFF_LABELS;
@@ -5146,7 +5148,7 @@ async function loadStaffTasks(p){
    }
   }
   html+='</div>';
-  const bucket=t.task_type==='supplier_application'?'supplier':t.task_type==='product_approval'?'product':t.task_type==='order_approval'?'order':t.task_type==='delivery_assembly'?'delivery':t.task_type==='fulfilment_approval'?'fulfilment':null;
+  const bucket=t.task_type==='supplier_application'||t.task_type==='affiliate_application'?'supplier':t.task_type==='product_approval'?'product':t.task_type==='order_approval'?'order':t.task_type==='delivery_assembly'?'delivery':t.task_type==='fulfilment_approval'?'fulfilment':t.task_type==='custom'||t.task_type==='promotion_hub'||t.task_type==='add_product'?'other':null;
   if(bucket)sections[bucket].push(html);
   else sections.supplier.push(html);
   if(t.status==='pending'&&!t.isAuto)await db.from('staff_tasks').update({status:'in_progress',seen_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',t.id);
