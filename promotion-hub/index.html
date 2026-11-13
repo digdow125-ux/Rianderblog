@@ -169,6 +169,26 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 }
 </style>
 
+
+<style id="table-column-alignment-fix">
+/* Lock each heading and its matching data cell to the same real table column. */
+.table-scroll{display:block!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;direction:ltr!important}
+.catalogue-table{display:table!important;width:1400px!important;min-width:1400px!important;max-width:none!important;table-layout:fixed!important;border-collapse:collapse!important}
+.catalogue-table col:nth-child(1){width:140px!important}.catalogue-table col:nth-child(2){width:220px!important}.catalogue-table col:nth-child(3){width:320px!important}.catalogue-table col:nth-child(4){width:140px!important}.catalogue-table col:nth-child(5){width:160px!important}.catalogue-table col:nth-child(6){width:420px!important}
+.catalogue-table thead{display:table-header-group!important}.catalogue-table tbody{display:table-row-group!important}.catalogue-table tr{display:table-row!important}
+.catalogue-table th,.catalogue-table td{display:table-cell!important;box-sizing:border-box!important;float:none!important;position:static;vertical-align:top!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere!important}
+.catalogue-table th{position:sticky!important;top:0!important;z-index:3!important;background:#f2f5f9!important}
+.catalogue-table td:nth-child(1),.catalogue-table th:nth-child(1){width:140px!important}
+.catalogue-table td:nth-child(2),.catalogue-table th:nth-child(2){width:220px!important}
+.catalogue-table td:nth-child(3),.catalogue-table th:nth-child(3){width:320px!important}
+.catalogue-table td:nth-child(4),.catalogue-table th:nth-child(4){width:140px!important}
+.catalogue-table td:nth-child(5),.catalogue-table th:nth-child(5){width:160px!important}
+.catalogue-table td:nth-child(6),.catalogue-table th:nth-child(6){width:420px!important}
+.catalogue-table td:nth-child(3){display:table-cell!important;max-height:none!important;overflow:visible!important}
+.catalogue-table .description-text{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:4!important;overflow:hidden!important;max-height:6em!important}
+.catalogue-table .product-cell{display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important}
+.catalogue-table .product-cell strong{display:block!important;min-width:0!important}
+</style>
 </head>
 <body>
 <header><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></header>
@@ -242,7 +262,7 @@ function renderProducts(){
  const p=products[0];
  const platforms=[["facebook","Facebook"],["whatsapp_business","WhatsApp"],["instagram","Instagram"],["tiktok","TikTok"],["messenger","Messenger"],["telegram","Telegram"],["pinterest","Pinterest"],["linkedin","LinkedIn"],["x","X"],["youtube","YouTube"]];
  const share=platforms.map(function(item){return '<div class="product-share-option"><label><input type="checkbox" aria-label="Select '+item[1]+' for '+esc(p.name)+'" onchange="setSelectedProduct(0)"> '+item[1]+'</label><button type="button" onclick="shareProductOn(0,\''+item[0]+'\')">Share</button></div>'}).join("");
- root.innerHTML='<div class="table-scroll"><table class="catalogue-table"><thead><tr><th>Category</th><th>Product</th><th>Description</th><th>Price</th><th>Quantity available</th><th>Share with</th></tr></thead><tbody><tr class="selected"><td data-label="Category"><span class="category-chip">'+esc(p.category||"Uncategorised")+'</span></td><td data-label="Product"><div class="product-cell">'+(((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)?'<img class="catalogue-thumb" src="'+esc((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)+'" alt="">':'<span class="catalogue-thumb placeholder-thumb">RB</span>')+'<strong>'+esc(p.name)+'</strong></div></td><td data-label="Description"><div class="description-text">'+esc(p.description||"No description provided.")+'</div></td><td data-label="Price"><strong class="price-value">'+esc(p.currency||"")+' '+esc(Number(p.price||0).toLocaleString("en-US"))+'</strong></td><td data-label="Quantity available"><span class="stock-value">'+(Number(p.stock_quantity||0)>0?Number(p.stock_quantity).toLocaleString("en-US")+' in stock':'Out of stock')+'</span></td><td data-label="Share with"><div class="product-share-list">'+share+'</div></td></tr></tbody></table></div>';
+ root.innerHTML='<div class="table-scroll"><table class="catalogue-table"><colgroup><col style="width:140px"><col style="width:220px"><col style="width:320px"><col style="width:140px"><col style="width:160px"><col style="width:420px"></colgroup><thead><tr><th scope="col">Category</th><th scope="col">Product</th><th scope="col">Description</th><th scope="col">Price</th><th scope="col">Quantity Available</th><th scope="col">Share With</th></tr></thead><tbody><tr class="selected"><td data-label="Category"><span class="category-chip">'+esc(p.category||"Uncategorised")+'</span></td><td data-label="Product"><div class="product-cell">'+(((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)?'<img class="catalogue-thumb" src="'+esc((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)+'" alt="">':'<span class="catalogue-thumb placeholder-thumb">RB</span>')+'<strong>'+esc(p.name)+'</strong></div></td><td data-label="Description"><div class="description-text">'+esc(p.description||"No description provided.")+'</div></td><td data-label="Price"><strong class="price-value">'+esc(p.currency||"")+' '+esc(Number(p.price||0).toLocaleString("en-US"))+'</strong></td><td data-label="Quantity available"><span class="stock-value">'+(Number(p.stock_quantity||0)>0?Number(p.stock_quantity).toLocaleString("en-US")+' in stock':'Out of stock')+'</span></td><td data-label="Share with"><div class="product-share-list">'+share+'</div></td></tr></tbody></table></div>';
  selectedProductIndex=0;updateSelectedProduct();
  msg("productStatus","Showing one product only — next in the automatic rotation. The scheduler selects another product at each time slot.");
 }
