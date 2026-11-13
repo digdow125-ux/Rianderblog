@@ -370,11 +370,30 @@ async function loadProducts(){
  const activeProducts=data||[];
  if(!activeProducts.length){products=[];renderProducts();return}
  let nextProduct=activeProducts[0];
- const {data:history,error:historyError}=await db.from("promotion_rotation_history").select("product_id,cycle_number,used_at").eq("user_id",currentUser.id).order("cycle_number",{ascending:false}).order("used_at",{ascending:true});
- if(!historyError&&history&&history.length){
-  const currentCycle=Number(history[0].cycle_number);
-  const usedIds=new Set(history.filter(row=>Number(row.cycle_number)===currentCycle).map(row=>String(row.product_id)));
-  nextProduct=activeProducts.find(product=>!usedIds.has(String(product.id)))||activeProducts[0];
+ // Show the product assigned to the most recent scheduled slot that has already passed.
+ // This keeps the Hub display in sync with the database scheduler, rather than showing
+ // the next unused product while the scheduled campaign has already changed.
+ const {data:latestSlotPosts,error:slotPostsError}=await db.from("promotion_posts")
+  .select("product_id,scheduled_at,created_at")
+  .eq("user_id",currentUser.id)
+  .lte("scheduled_at",new Date().toISOString())
+  .not("scheduled_at","is",null)
+  .order("scheduled_at",{ascending:false})
+  .limit(1);
+ if(!slotPostsError&&latestSlotPosts?.length){
+  const scheduledProduct=activeProducts.find(product=>String(product.id)===String(latestSlotPosts[0].product_id));
+  if(scheduledProduct)nextProduct=scheduledProduct;
+  else{
+   const {data:scheduledProductData}=await db.from("products").select("id,name,description,category,price,currency,stock_quantity,image_url,product_image_urls,affiliate_url,is_active,created_at").eq("id",latestSlotPosts[0].product_id).eq("is_active",true).maybeSingle();
+   if(scheduledProductData)nextProduct=scheduledProductData;
+  }
+ }else{
+  const {data:history,error:historyError}=await db.from("promotion_rotation_history").select("product_id,cycle_number,used_at").eq("user_id",currentUser.id).order("cycle_number",{ascending:false}).order("used_at",{ascending:true});
+  if(!historyError&&history&&history.length){
+   const currentCycle=Number(history[0].cycle_number);
+   const usedIds=new Set(history.filter(row=>Number(row.cycle_number)===currentCycle).map(row=>String(row.product_id)));
+   nextProduct=activeProducts.find(product=>!usedIds.has(String(product.id)))||activeProducts[0];
+  }
  }
  products=[nextProduct];selectedProductIndex=0;renderProducts();
 }
@@ -681,6 +700,19 @@ async function boot(){
   msg("settingsStatus","Account check failed: "+(error?.message||String(error)));
  }finally{bootRunning=false;}
 }
+// Keep the featured promotion product synchronized with the latest completed
+// Africa/Blantyre slot while the Hub remains open. Also refresh immediately on return.
+let promotionAutoRefreshBusy=false;
+async function refreshScheduledPromotion(){
+ if(promotionAutoRefreshBusy||!currentUser?.id||document.visibilityState!=="visible")return;
+ promotionAutoRefreshBusy=true;
+ try{await loadProducts();await loadQueue();}
+ finally{promotionAutoRefreshBusy=false;}
+}
+setInterval(refreshScheduledPromotion,30000);
+document.addEventListener("visibilitychange",function(){
+ if(document.visibilityState==="visible")refreshScheduledPromotion();
+});
 if(db?.auth?.onAuthStateChange){db.auth.onAuthStateChange(function(){setTimeout(boot,500)});}
 boot();
 </script>
