@@ -306,15 +306,14 @@ async function boot(){
   let staffMember=null;
   const isOwner=!!currentUser&&currentUser.id===ADMIN_USER_ID;
   if(currentUser&&!isOwner){
-   const staffResult=await db.from("staff_members").select("id,email,status").eq("user_id",currentUser.id).maybeSingle();
-   const taskResult=await db.from("staff_tasks").select("id").eq("staff_user_id",currentUser.id).eq("task_type","promotion_hub").in("status",["pending","in_progress"]).limit(1);
-   if(!staffResult.error&&staffResult.data?.status==="active"&&!taskResult.error&&taskResult.data?.length)staffMember=staffResult.data;
+   const staffResult=await db.from("staff_members").select("id,email,status,permissions").eq("user_id",currentUser.id).maybeSingle();
+    if(!staffResult.error&&staffResult.data?.status==="active"&&staffResult.data?.permissions?.staff_type!=="delivery_assembly")staffMember=staffResult.data;
   }
   if(!isOwner&&!staffMember){
    document.body.classList.remove("hub-admin-ready","hub-staff-ready");
    document.getElementById("accountTitle").textContent=currentUser?"No Promotion Hub permission":"RIANDERBLOG login not detected";
    document.getElementById("accountInfo").textContent=currentUser
-    ?"This account has no active Promotion Hub task. Ask the RIANDERBLOG owner to assign one in the Staff Panel."
+    ?"This account is not a General staff member with Promotion Hub access. Delivery & assembly accounts cannot open the Promotion Hub."
     :"Your marketplace login has not appeared in this tab yet. Return to RIANDERBLOG and sign in, then reopen this Hub.";
    msg("productStatus","Products are protected until your account is verified.");
    msg("settingsStatus","The Hub uses your existing marketplace login. No second sign-in is needed.");
@@ -325,7 +324,7 @@ async function boot(){
   document.getElementById("accountTitle").textContent=isOwner?"Administrator verified":"Staff access verified";
   document.getElementById("accountInfo").textContent=isOwner
    ?"Signed in as "+(currentUser.email||"RIANDERBLOG administrator")+". This private workspace uses your existing marketplace login."
-   :"Signed in as "+(currentUser.email||"RIANDERBLOG staff")+". Social-media access is enabled by the marketplace owner.";
+   :"Signed in as "+(currentUser.email||"RIANDERBLOG staff")+". Promotion Hub access is included with your General staff invitation.";
   await Promise.all([loadProducts(),loadSettings(),loadConnections(),loadQueue()]);
  }catch(error){
   document.getElementById("accountTitle").textContent="Could not load your RIANDERBLOG account";
