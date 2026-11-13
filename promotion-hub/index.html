@@ -125,7 +125,7 @@ function renderProducts(){
  root.innerHTML='<table class="catalogue-table"><thead><tr><th>Image</th><th>Product and description</th><th>Price</th><th>Daily slot</th></tr></thead><tbody>'+products.map(function(p,index){
   const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";
   const slot=slotByIndex.get(index)||"Not scheduled today";
-  return '<tr class="'+(selectedProductIndex===index?'selected':'')+'" onclick="selectProduct('+index+')" style="cursor:pointer"><td><img src="'+esc(image)+'" alt="" onerror="this.style.visibility=\\'hidden\\'"></td><td><strong>'+esc(p.name)+'</strong><br><small>'+esc(p.description||p.category||"Marketplace product")+'</small></td><td>'+esc(p.currency||"")+' '+esc(p.price)+'</td><td><button type="button" onclick="event.stopPropagation();selectProduct('+index+')">'+(selectedProductIndex===index?'Selected':slot)+'</button></td></tr>';
+  return '<tr class="'+(selectedProductIndex===index?'selected':'')+'" onclick="selectProduct('+index+')" style="cursor:pointer"><td><img src="'+esc(image)+'" alt="" onerror="this.style.visibility=\'hidden\'"></td><td><strong>'+esc(p.name)+'</strong><br><small>'+esc(p.description||p.category||"Marketplace product")+'</small></td><td>'+esc(p.currency||"")+' '+esc(p.price)+'</td><td><button type="button" onclick="event.stopPropagation();selectProduct('+index+')">'+(selectedProductIndex===index?'Selected':slot)+'</button></td></tr>';
  }).join("")+'</tbody></table>';
  if(selectedProductIndex<0||!products[selectedProductIndex])selectedProductIndex=daily[0]??0;
  updateSelectedProduct();
