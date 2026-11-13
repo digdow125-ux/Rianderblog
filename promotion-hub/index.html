@@ -174,7 +174,7 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 <section class="auth"><div><strong id="accountTitle">Checking your RIANDERBLOG account…</strong><p id="accountInfo">The Promotion Hub automatically uses the account already signed in to the RIANDERBLOG marketplace. No second sign-in is required.</p></div><button type="button" onclick="boot()">Retry account check</button></section>
 <div class="notice"><strong>Publishing status:</strong> The Hub can load your marketplace products and prepare a posting queue. Automatic publishing starts only after each social platform's official API connection is approved and securely connected. It will never pretend a draft has been published.</div>
 <div class="workspace">
-<section class="catalogue-panel" id="products"><h2>Product catalogue</h2><p class="sub">Choose a product from your RIANDERBLOG marketplace to share.</p><div id="productList"><div class="empty">Loading marketplace products…</div></div><div class="statusline" id="productStatus"></div></section>
+<section class="catalogue-panel" id="products"><h2>Next product to promote</h2><p class="sub">Only one product is shown at a time. The automatic schedule selects the next product in rotation.</p><div id="productList"><div class="empty">Loading marketplace products…</div></div><div class="statusline" id="productStatus"></div></section>
 
 </div><section class="panel settings" id="schedule" style="grid-column:1/-1"><h2>Daily promotion schedule</h2><p class="sub">One product is prepared at each scheduled time in Malawi time. Products rotate without repeating until the active catalogue has been used.</p>
 <div class="field"><label>Platforms for saved promotion drafts</label><table class="channels-table" id="channels"><thead><tr><th>Select</th><th>Social platform</th><th>Account status</th><th>Open</th></tr></thead><tbody>
@@ -219,18 +219,29 @@ const platformNames={facebook:"Facebook Page",instagram:"Instagram",tiktok:"TikT
 function msg(id,text){document.getElementById(id).textContent=text||""}
 function esc(v){return String(v??"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function signIn(){msg("settingsStatus","Sign in to RIANDERBLOG first, then reopen this private Promotion Hub.");}
-async function loadProducts(){const {data,error}=await db.from("products").select("id,name,description,category,price,currency,stock_quantity,image_url,product_image_urls,affiliate_url,is_active").eq("is_active",true).order("created_at",{ascending:false}).limit(100);if(error){msg("productStatus","Could not load products: "+error.message);return}products=data||[];renderProducts()}
+async function loadProducts(){
+ const {data,error}=await db.from("products").select("id,name,description,category,price,currency,stock_quantity,image_url,product_image_urls,affiliate_url,is_active,created_at").eq("is_active",true).order("created_at",{ascending:true}).limit(100);
+ if(error){msg("productStatus","Could not load products: "+error.message);return}
+ const activeProducts=data||[];
+ if(!activeProducts.length){products=[];renderProducts();return}
+ let nextProduct=activeProducts[0];
+ const {data:history,error:historyError}=await db.from("promotion_rotation_history").select("product_id,cycle_number,used_at").eq("user_id",currentUser.id).order("cycle_number",{ascending:false}).order("used_at",{ascending:true});
+ if(!historyError&&history&&history.length){
+  const currentCycle=Number(history[0].cycle_number);
+  const usedIds=new Set(history.filter(row=>Number(row.cycle_number)===currentCycle).map(row=>String(row.product_id)));
+  nextProduct=activeProducts.find(product=>!usedIds.has(String(product.id)))||activeProducts[0];
+ }
+ products=[nextProduct];selectedProductIndex=0;renderProducts();
+}
 function renderProducts(){
  const root=document.getElementById("productList");
- if(!products.length){root.innerHTML='<div class="empty">No active marketplace products found yet.</div>';return}
+ if(!products.length){root.innerHTML='<div class="empty">No active marketplace products found yet.</div>';msg("productStatus","Add an active product to start the rotation.");return}
+ const p=products[0];
  const platforms=[["facebook","Facebook"],["whatsapp_business","WhatsApp"],["instagram","Instagram"],["tiktok","TikTok"],["messenger","Messenger"],["telegram","Telegram"],["pinterest","Pinterest"],["linkedin","LinkedIn"],["x","X"],["youtube","YouTube"]];
- root.innerHTML='<div class="table-scroll"><table class="catalogue-table"><thead><tr><th>Category</th><th>Product</th><th>Description</th><th>Price</th><th>Quantity available</th><th>Share with</th></tr></thead><tbody>'+products.map(function(p,index){
-  const share=platforms.map(function(item){return '<div class="product-share-option"><label><input type="checkbox" aria-label="Select '+item[1]+' for '+esc(p.name)+'" onchange="setSelectedProduct('+index+')"> '+item[1]+'</label><button type="button" onclick="shareProductOn('+index+',\''+item[0]+'\')">Share</button></div>'}).join("");
-  return '<tr class="'+(selectedProductIndex===index?'selected':'')+'"><td data-label="Category"><span class="category-chip">'+esc(p.category||"Uncategorised")+'</span></td><td data-label="Product"><div class="product-cell">'+(((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)?'<img class="catalogue-thumb" src="'+esc((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)+'" alt="">':'<span class="catalogue-thumb placeholder-thumb">RB</span>')+'<strong>'+esc(p.name)+'</strong></div></td><td data-label="Description">'+esc(p.description||"No description provided.")+'</td><td data-label="Price"><strong class="price-value">'+esc(p.currency||"") +' '+esc(p.price)+'</strong></td><td data-label="Quantity available"><span class="stock-value">'+Number(p.stock_quantity||0)+'</span></td><td data-label="Share with"><div class="product-share-list">'+share+'</div></td></tr>';
- }).join("")+'</tbody></table></div>';
- if(selectedProductIndex<0||!products[selectedProductIndex])selectedProductIndex=0;
- updateSelectedProduct();
- msg("productStatus","Showing "+products.length+" active products. Choose a social platform in the Share With column and tap Share.");
+ const share=platforms.map(function(item){return '<div class="product-share-option"><label><input type="checkbox" aria-label="Select '+item[1]+' for '+esc(p.name)+'" onchange="setSelectedProduct(0)"> '+item[1]+'</label><button type="button" onclick="shareProductOn(0,\\''+item[0]+'\\')">Share</button></div>'}).join("");
+ root.innerHTML='<div class="table-scroll"><table class="catalogue-table"><thead><tr><th>Category</th><th>Next product</th><th>Description</th><th>Price</th><th>Quantity available</th><th>Share with</th></tr></thead><tbody><tr class="selected"><td data-label="Category"><span class="category-chip">'+esc(p.category||"Uncategorised")+'</span></td><td data-label="Next product"><div class="product-cell">'+(((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)?'<img class="catalogue-thumb" src="'+esc((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)+'" alt="">':'<span class="catalogue-thumb placeholder-thumb">RB</span>')+'<strong>'+esc(p.name)+'</strong></div></td><td data-label="Description">'+esc(p.description||"No description provided.")+'</td><td data-label="Price"><strong class="price-value">'+esc(p.currency||"")+' '+esc(p.price)+'</strong></td><td data-label="Quantity available"><span class="stock-value">'+Number(p.stock_quantity||0)+'</span></td><td data-label="Share with"><div class="product-share-list">'+share+'</div></td></tr></tbody></table></div>';
+ selectedProductIndex=0;updateSelectedProduct();
+ msg("productStatus","Showing one product only — next in the automatic rotation. The scheduler selects another product at each time slot.");
 }
 function setSelectedProduct(index){if(!products[index])return;selectedProductIndex=index;updateSelectedProduct()}
 function selectProduct(index){setSelectedProduct(index);const el=document.getElementById("selectedProduct");if(el)el.scrollIntoView({behavior:"smooth",block:"center"})}
