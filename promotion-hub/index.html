@@ -49,6 +49,9 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 <div class="field"><label for="automation">Automation</label><select id="automation"><option value="off">Paused — prepare drafts only</option><option value="on">Enable automatic daily publishing</option></select></div>
 <div class="actions"><button class="primary" onclick="saveSettings()">Save schedule</button><button class="secondary" onclick="generateQueue()">Prepare today's posts</button></div><div class="statusline" id="settingsStatus"></div>
 </section>
+<section class="panel tutorials"><h2>Make a customer tutorial video</h2><p class="sub">Create a short RIANDERBLOG-branded tutorial with animated scenes and captions. Works in a modern browser; keep this page open while it renders.</p>
+<div class="field"><label for="tutorialChoice">Choose a lesson</label><select id="tutorialChoice"><option value="account">1. Create an account and sign in</option><option value="search">2. Search and choose products</option><option value="cart">3. Use your cart and visit the supplier</option></select></div>
+<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><canvas id="tutorialCanvas" width="360" height="640" style="width:min(100%,220px);height:auto;background:#0d1b2e;border-radius:12px;border:1px solid #dce3ec"></canvas><div style="flex:1;min-width:190px"><div class="actions" style="margin-top:0"><button class="primary" id="makeTutorialBtn" onclick="makeTutorialVideo()">Create tutorial video</button><button class="secondary" id="downloadTutorialBtn" disabled onclick="downloadTutorialVideo()">Download video</button></div><div class="statusline" id="tutorialStatus">Choose a lesson, then create your video. Video is rendered on this device.</div><p class="sub">First version: animated branded scenes and on-screen captions, without AI voice narration. Export format: WebM.</p></div></div></section>
 <section class="panel tutorials"><h2>Weekly customer tutorial videos</h2><p class="sub">Three short lessons each week to show customers how to use RIANDERBLOG.</p>
 <div class="times"><span>Monday · 20:00</span><span>Wednesday · 20:00</span><span>Friday · 20:00</span></div>
 <p class="sub" style="margin-top:12px">Planned lessons: create an account and sign in; search and choose products; add to cart and place an order; understand order updates and delivery. Videos should include narration, captions, and real screen demonstrations.</p>
@@ -80,6 +83,61 @@ async function saveSettings(){if(!currentUser){msg("settingsStatus","Sign in bef
 async function loadSettings(){const {data}=await db.from("promotion_settings").select("*").eq("user_id",currentUser.id).maybeSingle();if(data){document.getElementById("postsPerDay").value=String(data.posts_per_day||4);document.getElementById("automation").value=data.automation_enabled?"on":"off"}}
 async function loadConnections(){const {data,error}=await db.from("promotion_connections").select("platform,account_name,connection_status").eq("user_id",currentUser.id);if(error)return;connections=data||[];platforms.forEach(function(p){const c=connections.find(function(x){return x.platform===p&&x.connection_status==="connected"});document.getElementById("s-"+p).textContent=c?"Connected":"Not connected"})}
 async function loadQueue(){const {data,error}=await db.from("promotion_posts").select("id,platform,caption,status,scheduled_at,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);if(error){msg("queueStatus","Could not load queue: "+error.message);return}const root=document.getElementById("queueList");if(!data||!data.length){root.innerHTML='<div class="empty">Your promotion queue is empty. Choose a product and prepare your first post.</div>';return}root.innerHTML=data.map(function(x){return '<div class="queue-item"><div><strong>'+esc(platformNames[x.platform]||x.platform)+'</strong><small>'+esc(x.caption.slice(0,150))+'</small><small>'+new Date(x.created_at).toLocaleString()+'</small></div><span class="tag '+(x.status==="published"?"published":"draft")+'">'+esc(x.status)+'</span></div>'}).join("");msg("queueStatus","Showing latest "+data.length+" item(s).")}
+
+const tutorialLessons={
+ account:{title:"Create your RIANDERBLOG account",scenes:[
+  ["WELCOME TO RIANDERBLOG","Your gateway to global shopping."],
+  ["STEP 1 · OPEN THE WEBSITE","Visit rianderblog.github.io/Rianderblog"],
+  ["STEP 2 · OPEN ACCOUNT","Choose Account from the website menu."],
+  ["STEP 3 · SIGN IN OR REGISTER","Use the available sign-in or create-account option."],
+  ["STEP 4 · CHECK YOUR ACCOUNT","After signing in, return to the shop and explore."],
+  ["YOU'RE READY!","Discover products on RIANDERBLOG."]
+ ]},
+ search:{title:"Find products on RIANDERBLOG",scenes:[
+  ["FIND WHAT YOU NEED","Start from the RIANDERBLOG marketplace."],
+  ["STEP 1 · OPEN SHOP","Browse the available product listings."],
+  ["STEP 2 · SEARCH","Enter a product name in the search box."],
+  ["STEP 3 · FILTER","Use the category filter to narrow your choices."],
+  ["STEP 4 · CHECK DETAILS","Read the product description and price."],
+  ["CHOOSE WITH CARE","Check supplier details before buying."]
+ ]},
+ cart:{title:"Use your cart and visit the supplier",scenes:[
+  ["READY TO SHOP?","Your RIANDERBLOG cart helps collect product choices."],
+  ["STEP 1 · SELECT A PRODUCT","Open a product you are interested in."],
+  ["STEP 2 · ADD TO CART","Use Add to Cart to save it in your cart."],
+  ["STEP 3 · REVIEW YOUR CART","Check the products and quantities you selected."],
+  ["STEP 4 · VISIT SUPPLIER","Use Visit Supplier to continue on the supplier's website."],
+  ["PURCHASE SAFELY","Review the supplier's price, delivery and payment terms."]
+ ]}
+};
+let tutorialVideoUrl=null,tutorialVideoBlob=null,tutorialRecorder=null;
+function drawTutorialScene(ctx,scene,index,total){
+ const W=360,H=640;ctx.fillStyle="#0d1b2e";ctx.fillRect(0,0,W,H);
+ const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,"#142b49");grad.addColorStop(1,"#1c4c71");ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle="#d9b45b";ctx.fillRect(28,46,52,5);
+ ctx.fillStyle="#f5d98e";ctx.font="bold 17px Arial";ctx.fillText("RIANDERBLOG",28,88);
+ ctx.fillStyle="#ffffff";ctx.font="bold 26px Arial";
+ const words=scene[0].split(" ");let lines=[],line="";
+ words.forEach(w=>{const test=line?line+" "+w:w;if(ctx.measureText(test).width>300){lines.push(line);line=w}else line=test});if(line)lines.push(line);
+ let y=230-(lines.length-1)*18;lines.forEach(t=>{ctx.fillText(t,28,y);y+=38});
+ ctx.fillStyle="#dce7f3";ctx.font="18px Arial";const desc=scene[1].split(" ");let dlines=[],dline="";
+ desc.forEach(w=>{const test=dline?dline+" "+w:w;if(ctx.measureText(test).width>300){dlines.push(dline);dline=w}else dline=test});if(dline)dlines.push(dline);
+ y+=30;dlines.forEach(t=>{ctx.fillText(t,28,y);y+=29});
+ ctx.fillStyle="#d9b45b";ctx.fillRect(28,548,304,5);ctx.fillStyle="#ffffff";ctx.fillRect(28,548,304*(index+1)/total,5);
+ ctx.fillStyle="#c7d3e1";ctx.font="13px Arial";ctx.fillText("RIANDERBLOG · CUSTOMER GUIDE",28,588);ctx.fillText((index+1)+" / "+total,292,618);
+}
+async function makeTutorialVideo(){
+ const choice=document.getElementById("tutorialChoice").value,lesson=tutorialLessons[choice],canvas=document.getElementById("tutorialCanvas"),ctx=canvas.getContext("2d"),status=document.getElementById("tutorialStatus"),btn=document.getElementById("makeTutorialBtn"),download=document.getElementById("downloadTutorialBtn");
+ if(!canvas.captureStream||!window.MediaRecorder){status.textContent="This browser cannot record canvas video. Please use an updated Chrome browser.";return}
+ if(tutorialVideoUrl){URL.revokeObjectURL(tutorialVideoUrl);tutorialVideoUrl=null}tutorialVideoBlob=null;download.disabled=true;btn.disabled=true;
+ const stream=canvas.captureStream(24),chunks=[];let mime="video/webm;codecs=vp8";if(!MediaRecorder.isTypeSupported(mime))mime="video/webm";
+ try{tutorialRecorder=new MediaRecorder(stream,{mimeType:mime});tutorialRecorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};tutorialRecorder.onstop=()=>{tutorialVideoBlob=new Blob(chunks,{type:"video/webm"});tutorialVideoUrl=URL.createObjectURL(tutorialVideoBlob);download.disabled=false;btn.disabled=false;status.textContent="Video ready: "+lesson.title+". Tap Download video to save it on your device.";stream.getTracks().forEach(t=>t.stop())};
+ tutorialRecorder.start();const duration=3500;for(let i=0;i<lesson.scenes.length;i++){drawTutorialScene(ctx,lesson.scenes[i],i,lesson.scenes.length);status.textContent="Creating scene "+(i+1)+" of "+lesson.scenes.length+"…";await new Promise(r=>setTimeout(r,duration))}tutorialRecorder.stop();
+ }catch(e){btn.disabled=false;status.textContent="Could not create video: "+(e.message||"Recording failed");stream.getTracks().forEach(t=>t.stop())}
+}
+function downloadTutorialVideo(){if(!tutorialVideoBlob||!tutorialVideoUrl)return;const a=document.createElement("a");a.href=tutorialVideoUrl;a.download="RIANDERBLOG-tutorial-"+document.getElementById("tutorialChoice").value+".webm";document.body.appendChild(a);a.click();a.remove()}
+drawTutorialScene(document.getElementById("tutorialCanvas").getContext("2d"),tutorialLessons.account.scenes[0],0,6);
+
 async function boot(){const {data}=await db.auth.getSession();currentUser=data.session?.user||null;if(!currentUser){document.getElementById("accountTitle").textContent="Sign in to your RIANDERBLOG account";return}document.getElementById("accountTitle").textContent="Signed in: "+(currentUser.email||"RIANDERBLOG account");document.getElementById("accountInfo").textContent="Your existing marketplace login is active. Products and promotion drafts are linked to this account.";document.getElementById("signInButton").textContent="Signed in";document.getElementById("signInButton").disabled=true;document.getElementById("signInTop").textContent="Account connected";document.getElementById("signInTop").disabled=true;await Promise.all([loadProducts(),loadSettings(),loadConnections(),loadQueue()])}
 db.auth.onAuthStateChange(function(){setTimeout(boot,0)});
 boot();
