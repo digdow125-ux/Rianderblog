@@ -1971,8 +1971,14 @@ async function adminAssignOrderDeliverer(orderId,userId){
   const {error}=await db.from("orders").update(payload).eq("id",orderId);if(error)throw error;
   if(userId){
    const {data:order}=await db.from('orders').select('order_number,customer_name').eq('id',orderId).maybeSingle();
-   const {error:taskError}=await db.from('staff_tasks').insert({staff_user_id:userId,assigned_by:user.id,task_type:'delivery_assembly',title:'Delivery / assembly for '+(order?.order_number||'customer order'),instructions:'Customer: '+(order?.customer_name||'Customer')+'. Complete the assigned delivery / assembly and update the order tracking.',related_record_id:orderId});
-   if(taskError)throw taskError;
+   const {error:cancelOtherError}=await db.from('staff_tasks').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('task_type','delivery_assembly').eq('related_record_id',orderId).neq('staff_user_id',userId).in('status',['pending','in_progress']);
+   if(cancelOtherError)throw cancelOtherError;
+   const {data:existingTask,error:existingError}=await db.from('staff_tasks').select('id').eq('staff_user_id',userId).eq('task_type','delivery_assembly').eq('related_record_id',orderId).in('status',['pending','in_progress']).limit(1).maybeSingle();
+   if(existingError)throw existingError;
+   if(!existingTask){
+    const {error:taskError}=await db.from('staff_tasks').insert({staff_user_id:userId,assigned_by:user.id,task_type:'delivery_assembly',title:'Delivery / assembly for '+(order?.order_number||'customer order'),instructions:'Customer: '+(order?.customer_name||'Customer')+'. Complete the assigned delivery / assembly and update the order tracking.',related_record_id:orderId});
+    if(taskError)throw taskError;
+   }
   }else{
    const {error:cancelError}=await db.from('staff_tasks').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('task_type','delivery_assembly').eq('related_record_id',orderId).in('status',['pending','in_progress']);
    if(cancelError)throw cancelError;
