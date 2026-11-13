@@ -2151,12 +2151,14 @@ async function saveAdminProduct(){
       ? allProducts.find(x=>String(x.id)===String(id))
       : null;
 
-    const image=await resolveProductImage(
+    const images=await resolveProductImages(
       'adminProductImage',
       'adminProductImageUrl',
+      oldProduct?.product_image_urls,
       oldProduct?.image_url,
       user
     );
+    const image=images[0];
 
     const row={
       name:name,
