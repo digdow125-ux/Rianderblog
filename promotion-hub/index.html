@@ -81,7 +81,19 @@ function safeImageUrl(value){try{const u=new URL(String(value||""));return u.pro
 async function refreshSession(){const {data}=await sb.auth.getSession(); setUser(data.session?.user||null);}
 function setUser(user){currentUser=user;$("authPanel").classList.toggle("hidden",!!user);$("appPanel").classList.toggle("hidden",!user);$("signOut").classList.toggle("hidden",!user);$("userLabel").textContent=user?.email||"";if(user){loadProducts();loadPosts();loadAutomationSettings();loadMetaConnection();}}
 sb.auth.onAuthStateChange((_event,session)=>setUser(session?.user||null));
-$("googleLogin").onclick=async()=>{clearMessage("authMessage");const {error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:SHOP_URL}});if(error)message("authMessage","Google sign-in failed: "+error.message,"error");};
+$("googleLogin").onclick=async()=>{
+ clearMessage("authMessage");
+ const b=$("googleLogin"); b.disabled=true; b.textContent="Opening Google sign-in…";
+ try{
+  const {data,error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:SHOP_URL,skipBrowserRedirect:true}});
+  if(error)throw error;
+  if(!data?.url)throw new Error("Supabase did not return the Google sign-in URL. Check that Google is enabled in Supabase Authentication providers.");
+  window.location.assign(data.url);
+ }catch(e){
+  message("authMessage","Google sign-in error: "+(e.message||"Please try again."),"error");
+  b.disabled=false; b.textContent="🌐 Continue with Google";
+ }
+};
 $("login").onclick=async()=>{clearMessage("authMessage");const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)message("authMessage",error.message,"error");};
 $("signup").onclick=async()=>{clearMessage("authMessage");const {error}=await sb.auth.signUp({email:$("email").value.trim(),password:$("password").value,options:{emailRedirectTo:location.href}});if(error)message("authMessage",error.message,"error");else message("authMessage","Account created. Check your email if confirmation is required, then sign in.","success");};
 $("signOut").onclick=async()=>{await sb.auth.signOut();};
