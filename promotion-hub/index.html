@@ -128,6 +128,44 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 @media(max-width:700px){main{padding:0 13px 48px;margin:18px auto}.hero{padding:25px 22px;min-height:0}.hero .pill{font-size:9px}.auth{padding:14px}.catalogue-panel,.panel{padding:15px}.catalogue-table{min-width:980px!important}.catalogue-table th,.catalogue-table td{padding:10px 8px!important}.product-share-option label{font-size:9px!important}.product-share-option button{font-size:9px!important}.channels-table td{padding:8px 6px;font-size:11px}}
 </style>
 
+
+<style id="simple-readable-product-table">
+/* A calmer, tighter catalogue: readable text without an oversized table. */
+.catalogue-panel{padding:17px!important}
+.catalogue-panel .sub{margin-bottom:12px!important}
+.table-scroll{border:1px solid #e6ebf1;border-radius:9px;max-height:72vh}
+.catalogue-table{min-width:900px!important;table-layout:fixed!important}
+.catalogue-table th{padding:11px 9px!important;font-size:10px!important;letter-spacing:.045em!important}
+.catalogue-table td{padding:10px 9px!important;font-size:12px!important;line-height:1.45!important;color:#46566b}
+.catalogue-table th:nth-child(1){width:11%}
+.catalogue-table th:nth-child(2){width:19%}
+.catalogue-table th:nth-child(3){width:20%}
+.catalogue-table th:nth-child(4){width:10%}
+.catalogue-table th:nth-child(5){width:10%}
+.catalogue-table th:nth-child(6){width:30%}
+.catalogue-table td:nth-child(3){display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:3!important;overflow:hidden!important;max-height:5.2em}
+.product-cell{gap:8px!important;align-items:center!important}
+.catalogue-thumb{width:38px!important;height:38px!important;flex-basis:38px!important;border-radius:6px!important}
+.product-cell strong{font-size:11px!important;line-height:1.35!important;font-weight:700!important}
+.category-chip{font-size:9px!important;padding:4px 6px!important}
+.price-value{font-size:11px!important}
+.stock-value{font-size:10px!important;min-width:24px!important;padding:3px 6px!important}
+.product-share-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important}
+.product-share-option{min-height:26px!important;padding:3px 5px!important;border-radius:6px!important;gap:4px!important}
+.product-share-option label{font-size:9px!important;line-height:1.2!important;white-space:nowrap!important;gap:4px!important}
+.product-share-option input{width:12px!important;height:12px!important}
+.product-share-option button{font-size:9px!important;padding:4px 6px!important;line-height:1.1!important;border-radius:5px!important}
+.catalogue-table tbody tr:hover{background:#fafbfd!important}
+.catalogue-table tr.selected{background:#fffaf0!important}
+@media(max-width:700px){
+ .catalogue-panel{padding:12px!important}
+ .catalogue-table{min-width:880px!important}
+ .catalogue-table th,.catalogue-table td{padding:8px 7px!important}
+ .catalogue-table td{font-size:11px!important}
+ .product-share-option label,.product-share-option button{font-size:9px!important}
+}
+</style>
+
 </head>
 <body>
 <header><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></header>
