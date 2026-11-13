@@ -1451,11 +1451,12 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <p class="small-note">Only you assign work. For review and delivery tasks, enter the exact record ID. Staff cannot browse unassigned work.</p>
 <div class="form-grid">
 <label>Staff member<select id="staffTaskAssignee"><option value="">Choose staff member</option></select></label>
-<label>Task type<select id="staffTaskType">
+<label>Task type<select id="staffTaskType" onchange="loadTaskRecordOptions()">
 <option value="custom">General / custom task</option><option value="add_product">Add marketplace product</option><option value="supplier_application">Review supplier application</option><option value="product_approval">Review supplier product</option><option value="order_approval">Approve customer order</option><option value="delivery_assembly">Delivery / assembly</option><option value="fulfilment_approval">Review shipment / delivery proof</option><option value="promotion_hub">Promotion Hub work</option>
 </select></label>
 <label>Task title<input id="staffTaskTitle" type="text" placeholder="What should the staff member do?"></label>
-<label>Record ID (only for a specific existing record)<input id="staffTaskRecordId" type="text" placeholder="Paste the application, product, order or fulfilment ID"></label>
+<label>Choose a record (for review / delivery tasks)<select id="staffTaskRecordSelect" onchange="document.getElementById('staffTaskRecordId').value=this.value"><option value="">Load records by task type</option></select></label>
+<label>Record ID<input id="staffTaskRecordId" type="text" placeholder="Selected record ID appears here; you can paste one manually"></label>
 <label>Due date (optional)<input id="staffTaskDue" type="datetime-local"></label>
 <label style="grid-column:1/-1">Instructions<textarea id="staffTaskInstructions" rows="3" placeholder="Describe the work and any requirements"></textarea></label>
 </div>
@@ -4798,6 +4799,27 @@ async function loadStaffMembers(){
  if(select)select.innerHTML='<option value="">Choose staff member</option>'+active.map(x=>'<option value="'+escapeHTML(x.user_id)+'">'+escapeHTML(x.email)+'</option>').join('');
  if(!r.data?.length){box.textContent='No staff invited yet.';return;}
  box.innerHTML=r.data.map(x=>{const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'Task-based access only';const next=x.status==='active'?'suspended':'active';return '<div class="staff-member"><div><strong>'+escapeHTML(x.email)+'</strong><small>'+escapeHTML(x.status)+' · '+escapeHTML(labels)+'</small></div><button class="secondary" onclick="setStaffStatus(\\''+x.id+'\\',\\''+next+'\\')">'+(next==='active'?'Activate':'Suspend')+'</button></div>';}).join('');
+}
+async function loadTaskRecordOptions(){
+ const type=document.getElementById('staffTaskType')?.value,select=document.getElementById('staffTaskRecordSelect'),idInput=document.getElementById('staffTaskRecordId');
+ if(!select)return;
+ select.innerHTML='<option value="">Loading records…</option>';if(idInput)idInput.value='';
+ let rows=[],label=x=>x.id;
+ try{
+  if(type==='supplier_application'){
+   const r=await db.from('supplier_applications').select('id,business_name,email').eq('status','pending').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;rows=r.data||[];label=x=>(x.business_name||'Supplier')+' · '+(x.email||'');
+  }else if(type==='product_approval'){
+   const r=await db.from('products').select('id,name,category').not('supplier_id','is',null).eq('review_status','pending').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;rows=r.data||[];label=x=>(x.name||'Product')+' · '+(x.category||'');
+  }else if(type==='order_approval'){
+   const r=await db.from('orders').select('id,order_number,customer_name').eq('order_status','awaiting_admin_approval').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;rows=r.data||[];label=x=>(x.order_number||x.id)+' · '+(x.customer_name||'Customer');
+  }else if(type==='delivery_assembly'){
+   const r=await db.from('orders').select('id,order_number,customer_name,order_status').in('order_status',['approved','processing','shipped']).order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;rows=r.data||[];label=x=>(x.order_number||x.id)+' · '+(x.customer_name||'Customer')+' · '+x.order_status;
+  }else if(type==='fulfilment_approval'){
+   const r=await db.from('supplier_item_fulfilments').select('id,status,carrier,tracking_number').in('status',['shipped_submitted','delivered_submitted']).order('updated_at',{ascending:false}).limit(100);if(r.error)throw r.error;rows=r.data||[];label=x=>x.status+' · '+(x.carrier||'')+' '+(x.tracking_number||'');
+  }
+  select.innerHTML='<option value="">Choose a record</option>'+rows.map(x=>'<option value="'+escapeHTML(x.id)+'">'+escapeHTML(label(x))+'</option>').join('');
+  if(!rows.length)select.innerHTML='<option value="">No records currently waiting</option>';
+ }catch(e){select.innerHTML='<option value="">Could not load: '+escapeHTML(e.message||String(e))+'</option>';}
 }
 async function assignStaffTask(){
  const status=document.getElementById('staffTaskAssignStatus');status.textContent='Assigning…';
