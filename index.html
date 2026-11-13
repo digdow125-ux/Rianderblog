@@ -5082,5 +5082,34 @@ async function staffReviewFulfilment(id,action){
 }
 
 </script>
+
+<script>
+/* Staff Panel opening failsafe: give immediate feedback and surface connection errors. */
+(function(){
+  const originalStaffLoader = window.loadStaffPanel;
+  window.loadStaffPanel = async function(){
+    const status = document.getElementById('staffPanelStatus');
+    if(status) status.textContent = 'Connecting to your RIANDERBLOG account…';
+    try{
+      if(typeof originalStaffLoader !== 'function') throw new Error('Staff Panel loader did not initialise. Refresh the marketplace page.');
+      await originalStaffLoader();
+      if(status && status.textContent === 'Connecting to your RIANDERBLOG account…'){
+        status.textContent = 'Still connecting. Check your internet connection, then tap Refresh.';
+      }
+    }catch(error){
+      console.error('Staff Panel opening error:', error);
+      if(status) status.textContent = 'Staff Panel error: ' + (error && error.message ? error.message : String(error));
+    }
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    const link=document.getElementById('navStaffPanel');
+    if(link) link.addEventListener('click', function(){
+      const panel=document.getElementById('staffPanel');
+      if(panel) panel.style.display='block';
+      window.setTimeout(function(){ window.loadStaffPanel(); }, 0);
+    });
+  });
+})();
+</script>
 </body>
 </html>
