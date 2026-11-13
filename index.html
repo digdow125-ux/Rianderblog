@@ -1470,7 +1470,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 </div>
 <div id="staffAssignForm" class="admin-workspace-panel" style="display:none">
 <h3>Assign a task</h3>
-<p class="small-note">Only you assign work. For review and delivery tasks, enter the exact record ID. Staff cannot browse unassigned work.</p>
+<p class="small-note">Core work appears automatically according to each staff member’s category. Use this form only for extra or special tasks.</p>
 <div class="form-grid">
 <label>Staff member<select id="staffTaskAssignee"><option value="">Choose staff member</option></select></label>
 <label>Task type<select id="staffTaskType" onchange="loadTaskRecordOptions()">
@@ -4899,7 +4899,7 @@ async function loadStaffPanel(){
   }
   const permissions=owner?{}:(member?.permissions||{});
   await withTimeout(loadStaffTasks(permissions),'Staff workspace loading');
-  box.textContent=owner?'Owner verified. You decide what work is assigned and when.':'Staff account verified. Only work personally assigned to your account is shown.';
+  box.textContent=owner?'Owner verified. You decide what work is assigned and when.':'Staff account verified. Your category work appears automatically; extra tasks appear when the owner assigns them.';
  }catch(error){
   console.error('RIANDERBLOG Staff Panel:',error);
   box.textContent='Staff Panel could not finish loading: '+(error?.message||'Unknown error')+'. Tap Refresh to try again.';
