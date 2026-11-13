@@ -1655,7 +1655,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <script>
 const SUPABASE_URL = "https://yymdyxlbdgbrgrykdspx.supabase.co";
 const SUPABASE_KEY = "sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
-const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
 const ADMIN_USER_ID = "a32248b7-5745-4dd4-8af0-bce4eb465f66";
 let activeSupportConversation=null;
 function toggleSupport(force){const w=document.getElementById('supportWindow');const open=typeof force==='boolean'?force:!w.classList.contains('open');w.classList.toggle('open',open);if(open)loadCustomerSupportChat();}
