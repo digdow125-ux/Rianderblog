@@ -1507,7 +1507,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <section class="admin-tools"><h3>Supplier &amp; affiliate applications</h3><div id="staffSupplierTasks"></div></section>
 <section class="admin-tools"><h3>Product approvals</h3><div id="staffProductTasks"></div></section>
 <section class="admin-tools"><h3>Order approvals</h3><div id="staffOrderTasks"></div></section>
-<section class="admin-tools"><h3>Shipping and delivery</h3><div id="staffDeliveryTasks"></div></section>
+<section class="admin-tools"><h3>My assigned team orders — delivery, placement &amp; assembly</h3><p class="small-note">Only RIANDERBLOG team-owned products assigned to you are shown here. Supplier-direct items are excluded.</p><div id="staffTeamOrderTable"></div><div id="staffDeliveryTasks"></div></section>
 <section class="admin-tools"><h3>Shipment and delivery proof approvals</h3><div id="staffFulfilmentTasks"></div></section>
 <section class="admin-tools"><h3>Other assigned tasks</h3><div id="staffOtherTasks"></div></section>
 </div>
@@ -5110,6 +5110,28 @@ async function staffAddMarketplaceProduct(){
   await loadStaffPanel();
  }catch(e){status.textContent='Could not add product: '+e.message;}
 }
+async function loadStaffTeamOrders(userId){
+ const box=document.getElementById('staffTeamOrderTable');if(!box)return;
+ box.textContent='Loading your assigned customer orders…';
+ const r=await db.from('orders').select('id,order_number,customer_name,customer_phone,customer_email,shipping_address,currency,total_amount,order_status,created_at').eq('delivery_assigned_to',userId).in('order_status',['approved','processing','shipped']).order('created_at',{ascending:false}).limit(100);
+ if(r.error){box.textContent='Could not load assigned orders: '+r.error.message;return;}
+ if(!r.data?.length){box.innerHTML='<p class="small-note">No active customer orders have been assigned to you yet.</p>';return;}
+ const ids=r.data.map(o=>o.id);
+ const ir=await db.from('order_items').select('id,order_id,product_name,quantity,unit_price,selected_colour').in('order_id',ids).is('supplier_id',null).order('id',{ascending:true});
+ if(ir.error){box.textContent='Could not load team product details: '+ir.error.message;return;}
+ const teamItems=ir.data||[];
+ const rows=[];
+ for(const o of r.data){
+  const items=teamItems.filter(i=>i.order_id===o.id);
+  if(!items.length)continue;
+  for(const item of items){
+   const qty=Number(item.quantity||1),unit=Number(item.unit_price||0),line=qty*unit;
+   rows.push('<tr><td><strong>'+escapeHTML(o.order_number||o.id)+'</strong><small>'+escapeHTML(o.order_status||'')+'</small></td><td>'+escapeHTML(o.customer_name||'Customer')+'<small>'+escapeHTML(o.customer_email||'')+'</small></td><td>'+escapeHTML(o.customer_phone||'Not provided')+'</td><td>'+escapeHTML(item.product_name||'Product')+(item.selected_colour?'<small>Colour: '+escapeHTML(item.selected_colour)+'</small>':'')+'</td><td>'+qty+'</td><td>'+escapeHTML(o.currency||'')+' '+line.toFixed(2)+'<small>Unit: '+unit.toFixed(2)+'</small></td><td>'+escapeHTML(o.currency||'')+' '+Number(o.total_amount||0).toFixed(2)+'</td><td>'+escapeHTML(o.shipping_address||'Address not provided')+'</td><td><input id="deliveryCarrier-'+o.id+'" placeholder="Courier / carrier"><input id="deliveryTracking-'+o.id+'" placeholder="Tracking / delivery reference"><input id="deliveryNote-'+o.id+'" placeholder="Placement / assembly note"><button class="secondary" type="button" onclick="staffUpdateDelivery(\''+o.id+'\',\'shipped\')">Mark dispatched</button><button class="primary" type="button" onclick="staffUpdateDelivery(\''+o.id+'\',\'completed\')">Mark delivered / assembled</button></td></tr>');
+  }
+ }
+ if(!rows.length){box.innerHTML='<p class="small-note">No RIANDERBLOG team-owned products are in your assigned orders. Supplier-direct products are intentionally hidden.</p>';return;}
+ box.innerHTML='<div style="overflow-x:auto"><table class="admin-orders-table" style="min-width:1250px"><thead><tr><th>Order</th><th>Customer name</th><th>Phone</th><th>Team product</th><th>Quantity</th><th>Item amount</th><th>Order total</th><th>Delivery destination</th><th>Delivery / placement / assembly update</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
+}
 async function loadStaffTasks(p){
  const boxes={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks'};
  Object.values(boxes).forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
@@ -5119,7 +5141,7 @@ async function loadStaffTasks(p){
  if(result.error){document.getElementById('staffPanelStatus').textContent='Could not load assigned tasks: '+result.error.message;return;}
  let tasks=result.data||[];
  const deliveryOnly=p?.staff_type==='delivery_assembly';
- tasks=tasks.filter(t=>deliveryOnly?t.task_type==='delivery_assembly'||t.task_type==='fulfilment_approval':t.task_type!=='delivery_assembly'&&t.task_type!=='fulfilment_approval');
+ tasks=tasks.filter(t=>deliveryOnly?t.task_type==='delivery_assembly':t.task_type!=='delivery_assembly'&&t.task_type!=='fulfilment_approval');
  // Core category queues are automatic. Only custom/extra work remains manually assigned.
  if(!deliveryOnly){
   const [sup,pro,ord,aff]=await Promise.all([
@@ -5133,17 +5155,14 @@ async function loadStaffTasks(p){
    for(const row of (res.data||[]))if(!tasks.some(t=>t.task_type===type&&t.related_record_id===String(row.id)))tasks.push({id:'auto-'+type+'-'+row.id,task_type:type,title,related_record_id:String(row.id),instructions:'Automatically available to General staff',status:'pending',isAuto:true});
   }
  }else{
-  const [ord,ful]=await Promise.all([
-   db.from('orders').select('id').in('order_status',['approved','processing','shipped']).order('created_at',{ascending:false}).limit(100),
-   db.from('supplier_item_fulfilments').select('id').in('status',['shipped_submitted','delivered_submitted']).order('updated_at',{ascending:false}).limit(100)
-  ]);
-  if(ord.error)throw ord.error;if(ful.error)throw ful.error;
-  for(const row of ord.data||[])if(!tasks.some(t=>t.task_type==='delivery_assembly'&&t.related_record_id===String(row.id)))tasks.push({id:'auto-delivery-'+row.id,task_type:'delivery_assembly',title:'Track order delivery / assembly',related_record_id:String(row.id),instructions:'Automatically available to Delivery & Assembly staff',status:'pending',isAuto:true});
-  for(const row of ful.data||[])if(!tasks.some(t=>t.task_type==='fulfilment_approval'&&t.related_record_id===String(row.id)))tasks.push({id:'auto-fulfilment-'+row.id,task_type:'fulfilment_approval',title:'Review shipping / delivery proof',related_record_id:String(row.id),instructions:'Automatically available to Delivery & Assembly staff',status:'pending',isAuto:true});
+  // Delivery staff see only orders assigned to their own account.
+  const ord=await db.from('orders').select('id').eq('delivery_assigned_to',user.id).in('order_status',['approved','processing','shipped']).order('created_at',{ascending:false}).limit(100);
+  if(ord.error)throw ord.error;
+  for(const row of ord.data||[])if(!tasks.some(t=>t.task_type==='delivery_assembly'&&t.related_record_id===String(row.id)))tasks.push({id:'auto-delivery-'+row.id,task_type:'delivery_assembly',title:'Collect / place / assemble customer order',related_record_id:String(row.id),instructions:'This order was assigned to you by the administrator.',status:'pending',isAuto:true});
  }
  const addTask=tasks.some(t=>t.task_type==='add_product');
  const canAddProducts=!deliveryOnly;
- const generalAccess=!deliveryOnly;
+ if(deliveryOnly)await loadStaffTeamOrders(user.id);\n const generalAccess=!deliveryOnly;
  document.getElementById('staffProductAction').style.display=canAddProducts?'block':'none';
  document.getElementById('staffProductCreatePanel').style.display='none';
  document.getElementById('staffPromotionLink').style.display=generalAccess?'inline-block':'none';
