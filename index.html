@@ -4863,22 +4863,26 @@ function staffOwner(){return !!window.currentAdminUser&&window.currentAdminUser.
 async function loadStaffPanel(){
  const box=document.getElementById('staffPanelStatus');
  if(!box)return;
- const owner=staffOwner();
- box.textContent='Checking your RIANDERBLOG sign-in…';
- const withTimeout=(promise,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' timed out. Check your internet connection, then tap Refresh.')),12000))]);
+ box.textContent='Connecting to your RIANDERBLOG account…';
+ const withTimeout=(promise,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' timed out. Please check your connection and tap Refresh.')),15000))]);
  try{
-  let member=window.rianderStaffMembership;
+  // Read the authenticated session directly. Do not depend on the delayed auth-state callback.
+  const sessionResult=await withTimeout(db.auth.getSession(),'Account connection');
+  if(sessionResult.error)throw sessionResult.error;
+  const user=sessionResult.data?.session?.user;
+  if(!user){box.textContent='You are not signed in. Sign in to RIANDERBLOG, then reopen Staff Panel.';return;}
+  window.currentAdminUser=user;
+  const owner=user.id===ADMIN_USER_ID;
+  let member=null;
   if(!owner){
-   const auth=await withTimeout(db.auth.getUser(),'Sign-in check');
-   const user=auth?.data?.user;
-   if(!user){box.textContent='Please sign in to RIANDERBLOG first, then reopen Staff Panel.';return;}
    box.textContent='Checking staff membership…';
-   const r=await withTimeout(db.from('staff_members').select('id,email,permissions,status').eq('user_id',user.id).maybeSingle(),'Staff access check');
+   const r=await withTimeout(db.from('staff_members').select('id,email,permissions,status').eq('user_id',user.id).maybeSingle(),'Staff membership check');
    if(r.error)throw r.error;
-   if(!r.data||r.data.status!=='active'){box.textContent='This account is not an active staff member. Sign in with the staff account or contact the owner.';return;}
+   if(!r.data||r.data.status!=='active'){box.textContent='This signed-in account is not an active staff member. Ask the RIANDERBLOG owner to activate it.';return;}
    member=r.data;
   }
-  box.textContent=owner?'Owner verified. Loading staff management…':'Staff account verified. Loading your assigned work…';
+  window.rianderStaffMembership=member;
+  box.textContent=owner?'Owner verified. Loading staff management…':'Staff account verified. Loading assigned work…';
   const ownerTools=document.getElementById('staffOwnerTools'),workspace=document.getElementById('staffTaskWorkspace');
   if(ownerTools)ownerTools.style.display=owner?'block':'none';
   if(workspace)workspace.style.display='block';
