@@ -105,8 +105,9 @@ function updateSelectedProduct(){const p=products[selectedProductIndex];const el
 async function shareSelected(platform){
  const p=products[selectedProductIndex];if(!p){msg("shareStatus","Select a product first.");return}
  if(!currentUser||currentUser.id!==ADMIN_USER_ID){msg("shareStatus","Administrator verification is required to share products.");return}
- const caption=makeCaption(p,selectedProductIndex);
- const link=String(p.affiliate_url||SITE_URL);
+ const productPage=SITE_URL+"?product="+encodeURIComponent(String(p.id));
+ const link="https://yymdyxlbdgbrgrykdspx.supabase.co/functions/v1/product-share?id="+encodeURIComponent(String(p.id));
+ const caption=makeCaption(p,selectedProductIndex).replace(SITE_URL,productPage);
  const text=caption;
  const urls={facebook:"https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link)+"&quote="+encodeURIComponent(text),instagram:"https://www.instagram.com/",tiktok:"https://www.tiktok.com/upload",youtube:"https://studio.youtube.com/",x:"https://twitter.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(link),whatsapp_business:"https://wa.me/?text="+encodeURIComponent(text+" "+link)};
  try{await navigator.clipboard.writeText(text)}catch(e){}
