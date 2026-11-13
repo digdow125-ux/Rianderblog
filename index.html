@@ -1725,6 +1725,7 @@ if(id==="suppliers"&&typeof loadSupplierWorkspace==="function")loadSupplierWorks
 // Make navigation work even if an inline menu link is changed later.
 document.addEventListener("DOMContentLoaded",()=>{const nav=document.getElementById("navLinks");if(nav){nav.querySelectorAll("a[onclick]").forEach(a=>{a.addEventListener("click",e=>{e.preventDefault();});});}});
 async function updateAdminVisibility(user) {
+ window.currentAdminUser=user||null;
  const owner=!!user&&user.id===ADMIN_USER_ID;
  let staff=null;
  if(user&&!owner){const r=await db.from('staff_members').select('id,email,permissions,status').eq('user_id',user.id).maybeSingle();if(!r.error&&r.data?.status==='active')staff=r.data;}
@@ -4707,7 +4708,7 @@ async function inviteStaffMember(){
 async function loadStaffMembers(){
  const box=document.getElementById('staffMembersList');const r=await db.from('staff_members').select('id,email,status,permissions').order('created_at',{ascending:false});
  if(r.error){box.textContent='Could not load staff: '+r.error.message;return;}if(!r.data?.length){box.textContent='No staff invited yet.';return;}
- box.innerHTML=r.data.map(s=>{const labels=Object.keys(STAFF_LABELS).filter(k=>s.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'No permissions';const next=s.status==='suspended'?'active':'suspended';return '<div class="staff-member"><div><strong>'+escapeHTML(s.email)+'</strong><small>'+escapeHTML(s.status)+' · '+escapeHTML(labels)+'</small></div><button class="secondary" onclick="setStaffStatus(\''+s.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div>';}).join('');
+ box.innerHTML=r.data.map(s=>{const labels=Object.keys(STAFF_LABELS).filter(k=>s.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'No permissions';const next=s.status==='active'?'suspended':'active';return '<div class="staff-member"><div><strong>'+escapeHTML(s.email)+'</strong><small>'+escapeHTML(s.status)+' · '+escapeHTML(labels)+'</small></div><button class="secondary" onclick="setStaffStatus(\''+s.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div>';}).join('');
 }
 async function setStaffStatus(id,status){if(!staffOwner())return;const r=await db.from('staff_members').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return;}await loadStaffMembers();}
 async function loadStaffTasks(p){
