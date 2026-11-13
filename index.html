@@ -4825,7 +4825,7 @@ async function loadStaffMembers(){
  const active=(r.data||[]).filter(x=>x.status==='active'&&x.user_id);
  if(select)select.innerHTML='<option value="">Choose staff member</option>'+active.map(x=>'<option value="'+escapeHTML(x.user_id)+'">'+escapeHTML(x.email)+'</option>').join('');
  if(!r.data?.length){box.textContent='No staff invited yet.';return;}
- box.innerHTML=r.data.map(x=>{const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'Task-based access only';const next=x.status==='active'?'suspended':'active';return '<div class="staff-member"><div><strong>'+escapeHTML(x.email)+'</strong><small>'+escapeHTML(x.status)+' · '+escapeHTML(labels)+'</small></div><button class="secondary" onclick="setStaffStatus(\\''+x.id+'\\',\\''+next+'\\')">'+(next==='active'?'Activate':'Suspend')+'</button></div>';}).join('');
+ box.innerHTML=r.data.map(x=>{const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'Task-based access only';const next=x.status==='active'?'suspended':'active';return '<div class="staff-member"><div><strong>'+escapeHTML(x.email)+'</strong><small>'+escapeHTML(x.status)+' · '+escapeHTML(labels)+'</small></div><button class="secondary" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div>';}).join('');
 }
 async function loadTaskRecordOptions(){
  const type=document.getElementById('staffTaskType')?.value,select=document.getElementById('staffTaskRecordSelect'),idInput=document.getElementById('staffTaskRecordId');
@@ -4874,7 +4874,7 @@ async function loadOwnerStaffTasks(){
  if(tasks.error){box.textContent='Could not load assigned tasks: '+tasks.error.message;return;}
  const names=new Map((staff.data||[]).map(x=>[x.user_id,x.email]));
  if(!tasks.data?.length){box.textContent='No tasks have been assigned yet.';return;}
- box.innerHTML='<div class="admin-tools"><table class="catalogue-table"><thead><tr><th>Staff member</th><th>Task</th><th>Type / record</th><th>Status</th><th>Due</th><th>Action</th></tr></thead><tbody>'+tasks.data.map(t=>'<tr><td>'+escapeHTML(names.get(t.staff_user_id)||'Staff')+'</td><td><strong>'+escapeHTML(t.title)+'</strong><small>'+escapeHTML(t.instructions||'')+'</small></td><td>'+escapeHTML(t.task_type)+'<small>'+escapeHTML(t.related_record_id||'—')+'</small></td><td>'+escapeHTML(t.status)+'</td><td>'+escapeHTML(t.due_at?new Date(t.due_at).toLocaleString():'—')+'</td><td>'+(t.status==='pending'||t.status==='in_progress'?'<button class="secondary" onclick="cancelStaffTask(\\''+t.id+'\\')">Cancel</button>':'—')+'</td></tr>').join('')+'</tbody></table></div>';
+ box.innerHTML='<div class="admin-tools"><table class="catalogue-table"><thead><tr><th>Staff member</th><th>Task</th><th>Type / record</th><th>Status</th><th>Due</th><th>Action</th></tr></thead><tbody>'+tasks.data.map(t=>'<tr><td>'+escapeHTML(names.get(t.staff_user_id)||'Staff')+'</td><td><strong>'+escapeHTML(t.title)+'</strong><small>'+escapeHTML(t.instructions||'')+'</small></td><td>'+escapeHTML(t.task_type)+'<small>'+escapeHTML(t.related_record_id||'—')+'</small></td><td>'+escapeHTML(t.status)+'</td><td>'+escapeHTML(t.due_at?new Date(t.due_at).toLocaleString():'—')+'</td><td>'+(t.status==='pending'||t.status==='in_progress'?'<button class="secondary" onclick="cancelStaffTask(\''+t.id+'\')">Cancel</button>':'—')+'</td></tr>').join('')+'</tbody></table></div>';
 }
 async function cancelStaffTask(id){
  if(!staffOwner())return;
@@ -4922,27 +4922,27 @@ async function loadStaffTasks(p){
   if(t.task_type==='custom'||t.task_type==='promotion_hub'||t.task_type==='add_product'){
    if(t.task_type==='promotion_hub')html+='<a class="primary" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/" style="display:inline-block;padding:9px 12px;text-decoration:none">Open Promotion Hub</a>';
    if(t.task_type==='add_product')html+='<small>Use the product form below. The task is completed after a product is successfully added.</small>';
-   if(t.task_type==='custom')html+='<button class="secondary" onclick="completeStaffTask(\\''+t.id+'\\')">Mark task complete</button>';
+   if(t.task_type==='custom')html+='<button class="secondary" onclick="completeStaffTask(\''+t.id+'\')">Mark task complete</button>';
   }else{
    html+='<small>Assigned record: '+escapeHTML(t.related_record_id||'—')+'</small>';
    if(t.task_type==='supplier_application'){
     const r=await db.from('supplier_applications').select('id,business_name,contact_name,country,email,status').eq('id',t.related_record_id).maybeSingle();
-    if(r.data)html+='<small>'+escapeHTML(r.data.business_name)+' · '+escapeHTML(r.data.contact_name||'')+' · '+escapeHTML(r.data.country||'')+' · '+escapeHTML(r.data.email||'')+'</small><button class="primary" onclick="staffReviewSupplier(\\''+r.data.id+'\\',\\'approved\\')">Approve</button><button class="secondary" onclick="staffReviewSupplier(\\''+r.data.id+'\\',\\'rejected\\')">Reject</button>';
+    if(r.data)html+='<small>'+escapeHTML(r.data.business_name)+' · '+escapeHTML(r.data.contact_name||'')+' · '+escapeHTML(r.data.country||'')+' · '+escapeHTML(r.data.email||'')+'</small><button class="primary" onclick="staffReviewSupplier(\''+r.data.id+'\',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewSupplier(\''+r.data.id+'\',\'rejected\')">Reject</button>';
     else html+='<small>Assigned application is unavailable or already handled.</small>';
    }else if(t.task_type==='product_approval'){
     const r=await db.from('products').select('id,name,category,price,currency').eq('id',t.related_record_id).maybeSingle();
-    if(r.data)html+='<small>'+escapeHTML(r.data.name)+' · '+escapeHTML(r.data.category||'')+' · '+escapeHTML(r.data.currency||'')+' '+Number(r.data.price||0).toFixed(2)+'</small><button class="primary" onclick="staffReviewProduct('+Number(r.data.id)+',\\'approved\\')">Approve</button><button class="secondary" onclick="staffReviewProduct('+Number(r.data.id)+',\\'rejected\\')">Reject</button>';
+    if(r.data)html+='<small>'+escapeHTML(r.data.name)+' · '+escapeHTML(r.data.category||'')+' · '+escapeHTML(r.data.currency||'')+' '+Number(r.data.price||0).toFixed(2)+'</small><button class="primary" onclick="staffReviewProduct('+Number(r.data.id)+',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewProduct('+Number(r.data.id)+',\'rejected\')">Reject</button>';
     else html+='<small>Assigned product is unavailable or already handled.</small>';
    }else if(t.task_type==='order_approval'||t.task_type==='delivery_assembly'){
     const r=await db.from('orders').select('id,order_number,customer_name,customer_email,customer_phone,shipping_address,total_amount,currency,order_status,created_at').eq('id',t.related_record_id).maybeSingle();
     if(r.data){
      const o=r.data;html+='<small><b>Order:</b> '+escapeHTML(o.order_number||o.id)+' · <b>Customer:</b> '+escapeHTML(o.customer_name||'Customer')+' · <b>Total:</b> '+escapeHTML(o.currency||'')+' '+Number(o.total_amount||0).toFixed(2)+' · <b>Status:</b> '+escapeHTML(o.order_status)+'</small>';
-     if(t.task_type==='order_approval')html+='<button class="primary" onclick="staffReviewOrder(\\''+o.id+'\\',\\'approved\\')">Approve order</button><button class="secondary" onclick="staffReviewOrder(\\''+o.id+'\\',\\'rejected\\')">Reject order</button>';
-     else html+='<small><b>Phone:</b> '+escapeHTML(o.customer_phone||'Not provided')+' · <b>Address:</b> '+escapeHTML(o.shipping_address||'Not provided')+'</small><button class="primary" onclick="staffUpdateDelivery(\\''+o.id+'\\',\\'shipped\\')">Mark collected / shipped</button><button class="secondary" onclick="staffUpdateDelivery(\\''+o.id+'\\',\\'completed\\')">Mark delivered / assembled</button>';
+     if(t.task_type==='order_approval')html+='<button class="primary" onclick="staffReviewOrder(\''+o.id+'\',\'approved\')">Approve order</button><button class="secondary" onclick="staffReviewOrder(\''+o.id+'\',\'rejected\')">Reject order</button>';
+     else html+='<small><b>Phone:</b> '+escapeHTML(o.customer_phone||'Not provided')+' · <b>Address:</b> '+escapeHTML(o.shipping_address||'Not provided')+'</small><button class="primary" onclick="staffUpdateDelivery(\''+o.id+'\',\'shipped\')">Mark collected / shipped</button><button class="secondary" onclick="staffUpdateDelivery(\''+o.id+'\',\'completed\')">Mark delivered / assembled</button>';
     }else html+='<small>Assigned order is unavailable or already handled.</small>';
    }else if(t.task_type==='fulfilment_approval'){
     const r=await db.from('supplier_item_fulfilments').select('id,order_id,status,carrier,tracking_number,supplier_note,delivery_evidence_url').eq('id',t.related_record_id).maybeSingle();
-    if(r.data){const x=r.data;html+='<small>'+escapeHTML(x.status)+' · '+escapeHTML(x.carrier||'')+' '+escapeHTML(x.tracking_number||'')+' · '+escapeHTML(x.supplier_note||'')+'</small>'+(safeUrl(x.delivery_evidence_url||'')?'<a href="'+escapeHTML(safeUrl(x.delivery_evidence_url))+'" target="_blank" rel="noopener">View proof</a>':'')+'<button class="primary" onclick="staffReviewFulfilment(\\''+x.id+'\\',\\''+(x.status==='shipped_submitted'?'approve_shipment':'approve_delivery')+'\\')">Approve</button><button class="secondary" onclick="staffReviewFulfilment(\\''+x.id+'\\',\\'reject\\')">Reject</button>';}
+    if(r.data){const x=r.data;html+='<small>'+escapeHTML(x.status)+' · '+escapeHTML(x.carrier||'')+' '+escapeHTML(x.tracking_number||'')+' · '+escapeHTML(x.supplier_note||'')+'</small>'+(safeUrl(x.delivery_evidence_url||'')?'<a href="'+escapeHTML(safeUrl(x.delivery_evidence_url))+'" target="_blank" rel="noopener">View proof</a>':'')+'<button class="primary" onclick="staffReviewFulfilment(\''+x.id+'\',\''+(x.status==='shipped_submitted'?'approve_shipment':'approve_delivery')+'\')">Approve</button><button class="secondary" onclick="staffReviewFulfilment(\''+x.id+'\',\'reject\')">Reject</button>';}
     else html+='<small>Assigned fulfilment is unavailable or already handled.</small>';
    }
   }
