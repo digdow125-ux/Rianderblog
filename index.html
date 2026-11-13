@@ -1101,7 +1101,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <span id="currencyStatus" class="small-note">Detecting country and currency…</span>
     <label for="currencySelect" class="small-note">Change currency:</label>
     <select id="currencySelect" onchange="setCurrency(this.value)">
-      <option value="MWK">MWK – Malawi Kwacha</option><option value="USD">USD – US Dollar</option><option value="GBP">GBP – British Pound</option><option value="EUR">EUR – Euro</option><option value="ZAR">ZAR – South African Rand</option><option value="KES">KES – Kenyan Shilling</option><option value="NGN">NGN – Nigerian Naira</option><option value="GHS">GHS – Ghanaian Cedi</option><option value="INR">INR – Indian Rupee</option><option value="CAD">CAD – Canadian Dollar</option><option value="AUD">AUD – Australian Dollar</option><option value="JPY">JPY – Japanese Yen</option>
+      <option value="MWK">MWK – Malawi Kwacha</option><option value="USD">USD – US Dollar</option><option value="GBP">GBP – British Pound</option><option value="EUR">EUR – Euro</option><option value="ZAR">ZAR – South African Rand</option><option value="MZN">MZN – Mozambican Metical</option><option value="TZS">TZS – Tanzanian Shilling</option><option value="UGX">UGX – Ugandan Shilling</option><option value="KES">KES – Kenyan Shilling</option><option value="NGN">NGN – Nigerian Naira</option><option value="GHS">GHS – Ghanaian Cedi</option><option value="INR">INR – Indian Rupee</option><option value="CAD">CAD – Canadian Dollar</option><option value="AUD">AUD – Australian Dollar</option><option value="JPY">JPY – Japanese Yen</option>
     </select>
   </section>
 
@@ -1188,7 +1188,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
       <option value="MWK">MWK</option>
       <option value="GBP">GBP</option>
       <option value="EUR">EUR</option>
-      <option value="ZAR">ZAR</option>
+      <option value="ZAR">ZAR</option><option value="MZN">MZN</option><option value="TZS">TZS</option><option value="UGX">UGX</option>
     </select>
 
     <input id="supplierProductCategory" placeholder="Product category">
@@ -1508,7 +1508,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
             <option value="MWK">MWK — Malawi Kwacha</option>
             <option value="GBP">GBP — Pound Sterling</option>
             <option value="EUR">EUR — Euro</option>
-            <option value="ZAR">ZAR — South African Rand</option>
+            <option value="ZAR">ZAR — South African Rand</option><option value="MZN">MZN — Mozambican Metical</option><option value="TZS">TZS — Tanzanian Shilling</option><option value="UGX">UGX — Ugandan Shilling</option>
           </select>
         </div>
         <div class="admin-products-field admin-products-field-wide">
@@ -4218,7 +4218,7 @@ async function loadSupplierWallet(userId){
       balances=result.data||[];
     }
     if(!balances.length){
-      balancesBox.innerHTML='<div class="listing">No supplier earnings are available yet. Your 92% share will appear after an order is paid and approved by RIANDERBLOG.</div>';
+      balancesBox.innerHTML='<div class="listing">No supplier earnings are available yet. Your 95% share will appear after an order is paid and approved by RIANDERBLOG.</div>';
     }else{
       balancesBox.innerHTML=balances.map(w=>{
         const currency=escapeHTML(w.currency);
