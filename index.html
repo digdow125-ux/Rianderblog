@@ -1010,7 +1010,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 /* Workspace layout rule: panels remain in normal document flow. */
 .nav-links{position:static!important;left:auto!important;top:auto!important;z-index:auto!important;max-width:none!important;min-width:0!important;box-shadow:none!important;flex-direction:row!important;flex-wrap:wrap!important}
 .nav-links.open{display:flex!important}
-.notification-panel{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;max-height:none!important;box-shadow:none!important;margin:12px 0;display:block!important}
+.notification-panel{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;max-height:none!important;box-shadow:none!important;margin:12px 0}
 .header-actions{position:static!important;flex-wrap:wrap}
 .detail-backdrop{position:static!important;inset:auto!important;background:transparent!important;z-index:auto!important;padding:0!important;display:none!important}
 .detail-backdrop.open{display:block!important}
@@ -4845,6 +4845,10 @@ async function staffAddMarketplaceProduct(){
   document.getElementById('staffNewProductImages').value='';
   status.textContent='Product added successfully and is now listed on RIANDERBLOG.';
   if(typeof loadProducts==='function')await loadProducts();
+  const assigned=await db.from('staff_tasks').select('id').eq('staff_user_id',user.id).eq('task_type','add_product').in('status',['pending','in_progress']).order('created_at',{ascending:true}).limit(1).maybeSingle();
+  if(assigned.data?.id)await db.from('staff_tasks').update({status:'completed',completed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',assigned.data.id);
+  status.textContent='Product added successfully. Your assigned add-product task is complete.';
+  await loadStaffPanel();
  }catch(e){status.textContent='Could not add product: '+e.message;}
 }
 async function loadStaffTasks(p){
