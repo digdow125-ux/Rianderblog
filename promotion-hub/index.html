@@ -72,6 +72,62 @@ body.hub-staff-ready #schedule,body.hub-staff-ready #tutorial-plan{display:none!
 .modal,.overlay,.drawer,.popup,.dropdown-menu{position:static!important;inset:auto!important;transform:none!important;max-width:100%!important;width:100%!important;max-height:none!important;box-shadow:none!important}
 #captionComposer{position:static!important;inset:auto!important;z-index:auto!important;display:block!important}
 </style>
+
+<style id="premium-hub-redesign">
+:root{--navy:#101f35;--navy2:#172d49;--gold:#c9a34e;--ink:#17263b;--muted:#718096;--line:#e4e9f0;--bg:#f2f5f9;--white:#fff}
+html{scroll-behavior:smooth}body{background:#f2f5f9;color:#17263b;font-family:Inter,"Segoe UI",Arial,sans-serif;letter-spacing:.005em}
+header{position:relative;padding:18px max(24px,calc((100% - 1380px)/2));min-height:78px;background:#101f35;border-bottom:1px solid #293c55;box-shadow:0 8px 24px #0b172722}
+.brand{gap:13px}.mark{width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,#d8bd78,#b88b35);color:#14243a;border:0;box-shadow:0 5px 14px #0002}.brand strong{font-size:15px;letter-spacing:.14em}.brand small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#b9c5d4;margin-top:2px}
+header a.button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #52647a;border-radius:9px;padding:10px 15px;color:#eaf0f7;font-size:12px;font-weight:700;background:#ffffff0b}
+main{max-width:1380px;margin:30px auto;padding:0 24px 72px}
+.hero{position:relative;overflow:hidden;min-height:190px;padding:34px 38px;border:1px solid #294461;border-radius:18px;background:linear-gradient(112deg,#11243d 0%,#1b3b5c 60%,#244d70 100%);box-shadow:0 14px 35px #132a451c}
+.hero:after{content:"";position:absolute;width:310px;height:310px;border:1px solid #d5b66b33;border-radius:50%;right:-78px;top:-125px;box-shadow:0 0 0 35px #d5b66b0b,0 0 0 70px #d5b66b08}
+.hero h1{font-size:clamp(26px,3.2vw,38px);font-weight:750;letter-spacing:-.035em;line-height:1.15;margin-bottom:11px}.hero p{font-size:14px;line-height:1.7;max-width:680px;color:#d4deea}
+.hero .pill{position:relative;z-index:1;background:#ffffff0b;border:1px solid #d9bc775c;padding:10px 14px;color:#f0d99f;font-size:10px;letter-spacing:.11em}
+.auth{background:#fff;border:1px solid #e2e8f0;border-left:4px solid #c9a34e;border-radius:12px;padding:17px 20px;margin:18px 0 20px;box-shadow:0 5px 18px #132a4508}
+.auth strong{font-size:14px}.auth p{font-size:12px;line-height:1.6}.auth button{border-radius:8px;background:#172d49;padding:10px 14px;font-size:12px}
+.notice{background:#fffaf0;border:1px solid #ead9b3;border-left:4px solid #c9a34e;color:#65542f;border-radius:10px;padding:13px 16px;font-size:12px;line-height:1.6}
+.workspace{margin:20px 0 24px!important}
+.catalogue-panel,.share-panel,.panel{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;box-shadow:0 7px 22px #172d4909}
+.catalogue-panel h2,.panel h2{font-size:17px;letter-spacing:-.015em;font-weight:750;color:#172a43;margin:0 0 5px}
+.sub{font-size:12px;line-height:1.6;color:#77869a;margin-bottom:17px}
+.table-scroll{border:1px solid #e5eaf1;border-radius:11px;overflow:auto;background:#fff}
+.catalogue-table{min-width:1040px!important;border-collapse:separate!important;border-spacing:0!important;table-layout:fixed}
+.catalogue-table th{position:sticky;top:0;background:#f5f7fa;color:#637187;font-size:10px!important;font-weight:800;letter-spacing:.075em;text-transform:uppercase;padding:14px 12px!important;border-bottom:1px solid #e1e7ef!important;white-space:normal}
+.catalogue-table th:nth-child(1){width:11%}.catalogue-table th:nth-child(2){width:18%}.catalogue-table th:nth-child(3){width:19%}.catalogue-table th:nth-child(4){width:10%}.catalogue-table th:nth-child(5){width:10%}.catalogue-table th:nth-child(6){width:32%}
+.catalogue-table td{padding:13px 12px!important;font-size:12px!important;line-height:1.55;vertical-align:middle!important;border-bottom:1px solid #edf0f4!important;color:#40516a}
+.catalogue-table tbody tr:last-child td{border-bottom:0!important}.catalogue-table tbody tr:hover{background:#fbfcfe}.catalogue-table tr.selected{background:#fffaf0!important}
+.category-chip{display:inline-flex;padding:5px 8px;border-radius:6px;background:#f0f3f7;color:#52637a;font-size:10px;font-weight:700}
+.product-cell{display:flex;align-items:center;gap:10px;min-width:0}.product-cell strong{font-size:12px;color:#1b2d45;line-height:1.4}
+.catalogue-thumb{width:48px;height:48px;flex:0 0 48px;object-fit:cover;border-radius:8px;border:1px solid #e6ebf1;background:#f4f6f8}
+.placeholder-thumb{display:grid;place-items:center;color:#b18b40;font-weight:900;font-size:12px;background:#f7f2e6}
+.price-value{white-space:nowrap;color:#1a304b;font-size:12px}.stock-value{display:inline-flex;min-width:28px;justify-content:center;padding:4px 7px;border-radius:6px;background:#edf6f1;color:#26704e;font-weight:750}
+.product-share-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
+.product-share-option{border:1px solid #e6eaf0!important;border-radius:7px!important;background:#fff!important;padding:5px 6px!important;gap:5px!important}
+.product-share-option label{font-size:10px!important;font-weight:650;color:#45566d;gap:5px!important}
+.product-share-option input{accent-color:#b58d3d!important;width:13px!important;height:13px!important}
+.product-share-option button{border-radius:5px!important;background:#edf2f7!important;color:#253b56!important;padding:5px 7px!important;font-size:9px!important;font-weight:750}
+.product-share-option button:hover{background:#172d49!important;color:white!important}
+.settings{margin-top:22px}.settings .field{padding:15px 0;margin:0;border-bottom:1px solid #edf0f4}.settings .field:last-of-type{border:0}
+.settings .field label{font-size:12px;color:#2b3e57;font-weight:750}.settings .sub{margin:6px 0 0}
+.times span{background:#f4f6f9;border:1px solid #e3e8ef;color:#314660;padding:8px 12px;border-radius:7px;font-size:11px}
+.channels-table{width:100%;border-collapse:collapse;border:1px solid #e5eaf1;border-radius:9px;overflow:hidden}
+.channels-table th{background:#f5f7fa;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:11px;border-bottom:1px solid #e5eaf1}
+.channels-table td{font-size:12px;padding:10px 11px;border-bottom:1px solid #edf0f4;color:#344760}
+.channels-table tr:last-child td{border-bottom:0}.channels-table input{accent-color:#b68d3d;width:15px;height:15px}
+.channels-table a{color:#8b6b2b;font-weight:750;text-decoration:none}.channel-state{font-size:11px;color:#8a6c32;background:#faf5e9;border-radius:5px;padding:4px 7px}
+.field input,.field select,.field textarea{border:1px solid #dce3ec;border-radius:8px;padding:11px 12px;font:inherit;font-size:12px}.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid #d9c18b55;border-color:#c9a34e}
+.actions{gap:8px}.actions button,.btn{border-radius:8px!important;padding:10px 15px!important;font-size:12px!important;font-weight:750!important}
+.primary{background:#172d49!important;color:#fff!important}.primary:hover{background:#244666!important}.secondary{background:#f0f3f7!important;color:#334962!important;border:1px solid #e2e7ee!important}
+.queue-list{gap:8px}.queue-item{border:1px solid #e5eaf1;border-radius:9px;padding:13px;background:#fff}.queue-item strong{color:#263b55}.tag{border-radius:6px}
+.empty{border:1px dashed #d6dee8;border-radius:10px;background:#fafbfd;padding:25px 16px;color:#8491a3}
+.statusline{font-size:11px;color:#748399;line-height:1.6}
+footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spacing:.04em}
+#tutorial-maker,#tutorial-plan,#queue{margin-top:20px}
+#tutorialCanvas{border-radius:12px!important;box-shadow:0 7px 20px #12233a20}
+@media(max-width:700px){main{padding:0 13px 48px;margin:18px auto}.hero{padding:25px 22px;min-height:0}.hero .pill{font-size:9px}.auth{padding:14px}.catalogue-panel,.panel{padding:15px}.catalogue-table{min-width:980px!important}.catalogue-table th,.catalogue-table td{padding:10px 8px!important}.product-share-option label{font-size:9px!important}.product-share-option button{font-size:9px!important}.channels-table td{padding:8px 6px;font-size:11px}}
+</style>
+
 </head>
 <body>
 <header><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></header>
@@ -132,7 +188,7 @@ function renderProducts(){
  const platforms=[["facebook","Facebook"],["whatsapp_business","WhatsApp"],["instagram","Instagram"],["tiktok","TikTok"],["messenger","Messenger"],["telegram","Telegram"],["pinterest","Pinterest"],["linkedin","LinkedIn"],["x","X"],["youtube","YouTube"]];
  root.innerHTML='<div class="table-scroll"><table class="catalogue-table"><thead><tr><th>Category</th><th>Product</th><th>Description</th><th>Price</th><th>Quantity available</th><th>Share with</th></tr></thead><tbody>'+products.map(function(p,index){
   const share=platforms.map(function(item){return '<div class="product-share-option"><label><input type="checkbox" aria-label="Select '+item[1]+' for '+esc(p.name)+'" onchange="setSelectedProduct('+index+')"> '+item[1]+'</label><button type="button" onclick="shareProductOn('+index+',\''+item[0]+'\')">Share</button></div>'}).join("");
-  return '<tr class="'+(selectedProductIndex===index?'selected':'')+'"><td data-label="Category">'+esc(p.category||"Uncategorised")+'</td><td data-label="Product"><strong>'+esc(p.name)+'</strong></td><td data-label="Description">'+esc(p.description||"No description provided.")+'</td><td data-label="Price">'+esc(p.currency||"") +' '+esc(p.price)+'</td><td data-label="Quantity available">'+Number(p.stock_quantity||0)+'</td><td data-label="Share with"><div class="product-share-list">'+share+'</div></td></tr>';
+  return '<tr class="'+(selectedProductIndex===index?'selected':'')+'"><td data-label="Category"><span class="category-chip">'+esc(p.category||"Uncategorised")+'</span></td><td data-label="Product"><div class="product-cell">'+(((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)?'<img class="catalogue-thumb" src="'+esc((Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url)+'" alt="">':'<span class="catalogue-thumb placeholder-thumb">RB</span>')+'<strong>'+esc(p.name)+'</strong></div></td><td data-label="Description">'+esc(p.description||"No description provided.")+'</td><td data-label="Price"><strong class="price-value">'+esc(p.currency||"") +' '+esc(p.price)+'</strong></td><td data-label="Quantity available"><span class="stock-value">'+Number(p.stock_quantity||0)+'</span></td><td data-label="Share with"><div class="product-share-list">'+share+'</div></td></tr>';
  }).join("")+'</tbody></table></div>';
  if(selectedProductIndex<0||!products[selectedProductIndex])selectedProductIndex=0;
  updateSelectedProduct();
