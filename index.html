@@ -5067,7 +5067,7 @@ async function staffAddMarketplaceProduct(){
   if(typeof loadProducts==='function')await loadProducts();
   const assigned=await db.from('staff_tasks').select('id').eq('staff_user_id',user.id).eq('task_type','add_product').in('status',['pending','in_progress']).order('created_at',{ascending:true}).limit(1).maybeSingle();
   if(assigned.data?.id)await db.from('staff_tasks').update({status:'completed',completed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',assigned.data.id);
-  status.textContent='Product added successfully. Your assigned add-product task is complete.';
+  status.textContent='Product added successfully to the RIANDERBLOG marketplace.';
   await loadStaffPanel();
  }catch(e){status.textContent='Could not add product: '+e.message;}
 }
@@ -5082,8 +5082,9 @@ async function loadStaffTasks(p){
  const deliveryOnly=p?.staff_type==='delivery_assembly';
  tasks=tasks.filter(t=>deliveryOnly?t.task_type==='delivery_assembly':t.task_type!=='delivery_assembly');
  const addTask=tasks.some(t=>t.task_type==='add_product');
+ const canAddProducts=!deliveryOnly&&p?.add_products===true;
  const generalAccess=!deliveryOnly;
- document.getElementById('staffProductCreatePanel').style.display=addTask?'block':'none';
+ document.getElementById('staffProductCreatePanel').style.display=canAddProducts?'block':'none';
  document.getElementById('staffPromotionLink').style.display=generalAccess?'inline-block':'none';
  document.getElementById('staffSocialNote').textContent=generalAccess?'Promotion Hub access is included with your General staff invitation.':'This account is assigned to delivery and assembly only.';
  const panels={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks',other:'staffOtherTasks'};
