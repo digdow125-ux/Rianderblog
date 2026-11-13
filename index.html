@@ -1483,6 +1483,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <section class="admin-tools"><h3>Order approvals</h3><div id="staffOrderTasks"></div></section>
 <section class="admin-tools"><h3>Shipping and delivery</h3><div id="staffDeliveryTasks"></div></section>
 <section class="admin-tools"><h3>Shipment and delivery proof approvals</h3><div id="staffFulfilmentTasks"></div></section>
+<section class="admin-tools"><h3>Other assigned tasks</h3><div id="staffOtherTasks"></div></section>
 </div>
 <section class="admin-tools" style="margin-top:16px"><h3>Social-media promotions</h3><p id="staffSocialNote" class="small-note"></p><a id="staffPromotionLink" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/" class="primary" style="display:none;padding:10px 14px;border-radius:8px;text-decoration:none">Open Promotion Hub</a></section>
 </div></section>
@@ -4915,7 +4916,7 @@ async function loadStaffTasks(p){
  document.getElementById('staffProductCreatePanel').style.display=addTask?'block':'none';
  document.getElementById('staffPromotionLink').style.display=promoTask?'inline-block':'none';
  document.getElementById('staffSocialNote').textContent=promoTask?'Promotion Hub access has been assigned to you by the owner.':'Promotion Hub work has not been assigned.';
- const sections={supplier:[],product:[],order:[],delivery:[],fulfilment:[]};
+ const sections={supplier:[],product:[],order:[],delivery:[],fulfilment:[],other:[]};
  for(const t of tasks){
   let html='<div class="staff-task-row"><strong>'+escapeHTML(t.title)+'</strong><small>'+escapeHTML(t.instructions||'No extra instructions')+'</small><small><b>Status:</b> '+escapeHTML(t.status)+' · <b>Due:</b> '+escapeHTML(t.due_at?new Date(t.due_at).toLocaleString():'Not set')+'</small>';
   if(t.task_type==='custom'||t.task_type==='promotion_hub'||t.task_type==='add_product'){
@@ -4951,7 +4952,7 @@ async function loadStaffTasks(p){
   else sections.supplier.push(html);
   if(t.status==='pending')await db.from('staff_tasks').update({status:'in_progress',seen_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',t.id);
  }
- const ids={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks'};
+ const ids={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks',other:'staffOtherTasks'};
  for(const [key,id] of Object.entries(ids)){const el=document.getElementById(id);if(el)el.innerHTML=sections[key].join('')||'<p class="small-note">No assigned tasks in this category.</p>';}
 }
 async function completeStaffTask(id){
