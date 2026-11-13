@@ -1026,6 +1026,14 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 #ownerStaffTasksList{overflow-x:auto}
 @media(max-width:650px){.support-compose{flex-wrap:wrap}}
 </style>
+<style id="admin-click-to-open-panels">
+.admin-subnav{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px;padding:10px;border:1px solid #e3e9f0;border-radius:11px;background:#fff}
+.admin-subnav button{padding:10px 14px;border:1px solid #dce3ec;border-radius:8px;background:#f7f9fc;color:#173b63;font-weight:700}
+.admin-subnav button.active,.admin-subnav button:hover{background:#173b63;color:#fff}
+.admin-workspace-panel{margin:12px 0;padding:16px;border:1px solid #e3e9f0;border-radius:12px;background:#fff}
+#adminTab-suppliers .supplier-management-section{display:none}
+#adminTab-products .admin-product-section{margin-top:12px}
+</style>
 </head>
 <body>
 <div class="topbar">A WORLD OF DISCOVERY • SHOP PRODUCTS FROM INTERNATIONAL SELLERS</div>
@@ -1435,6 +1443,12 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <section id="staffPanel" class="panel secondary-page" style="display:none">
 <div class="admin-heading"><div><span class="admin-kicker">RIANDERBLOG TEAM WORKSPACE</span><h2>Staff Panel</h2><p id="staffPanelStatus">Checking staff access…</p></div><button class="secondary" onclick="loadStaffPanel()">Refresh</button></div>
 <div id="staffOwnerTools" style="display:none;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
+<div class="admin-subnav staff-admin-subnav">
+<button type="button" onclick="toggleAdminWorkspacePanel('staffInviteForm')">＋ Invite staff</button>
+<button type="button" onclick="toggleAdminWorkspacePanel('staffAssignForm')">＋ Assign a task</button>
+<button type="button" onclick="toggleAdminWorkspacePanel('staffManagementList')">Staff members & assigned work</button>
+</div>
+<div id="staffInviteForm" class="admin-workspace-panel" style="display:none">
 <h3>Invite staff</h3><p class="small-note">Invite by email. Staff use their own account and never receive owner access. These category settings do not assign work; every job must be assigned separately below.</p>
 <input id="staffInviteEmail" type="email" placeholder="Staff email address" style="width:100%;max-width:420px;padding:12px;border:1px solid #dce3ec;border-radius:9px">
 <div class="staff-permission-grid">
@@ -1446,6 +1460,8 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <label><input type="checkbox" id="staffPermSocial"> Social-media promotions</label>
 </div>
 <button class="primary" onclick="inviteStaffMember()">Send invitation</button><p id="staffInviteStatus" class="small-note"></p>
+</div>
+<div id="staffAssignForm" class="admin-workspace-panel" style="display:none">
 <h3>Assign a task</h3>
 <p class="small-note">Only you assign work. For review and delivery tasks, enter the exact record ID. Staff cannot browse unassigned work.</p>
 <div class="form-grid">
@@ -1460,8 +1476,11 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <label style="grid-column:1/-1">Instructions<textarea id="staffTaskInstructions" rows="3" placeholder="Describe the work and any requirements"></textarea></label>
 </div>
 <button class="primary" onclick="assignStaffTask()">Assign task</button><p id="staffTaskAssignStatus" class="small-note"></p>
+</div>
+<div id="staffManagementList" class="admin-workspace-panel" style="display:none">
 <h3>Assigned work</h3><div id="ownerStaffTasksList">Loading…</div>
 <h3>Your staff</h3><div id="staffMembersList">Loading…</div>
+</div>
 </div>
 <div id="staffTaskWorkspace" style="display:none">
 <div id="staffProductCreatePanel" class="admin-tools" style="display:none;margin:16px 0;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
@@ -1686,6 +1705,14 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 
 <div id="adminTab-suppliers" class="admin-tab" style="display:none">
   <div class="admin-overview-intro"><div><span class="admin-kicker">SUPPLIER CONTROL CENTRE</span><h2>Supplier management</h2><p>All supplier records and operations are organised here, from onboarding to product approval, delivery and payouts.</p></div></div>
+  <div class="admin-subnav supplier-admin-subnav">
+    <button type="button" onclick="adminOpenSupplierSection('supplierApplicationsSection')">Supplier applications</button>
+    <button type="button" onclick="adminOpenSupplierSection('supplierProductsSection')">Product submissions</button>
+    <button type="button" onclick="adminOpenSupplierSection('supplierFulfilmentSection')">Shipment & delivery</button>
+    <button type="button" onclick="adminOpenSupplierSection('supplierDisputesSection')">Reports & disputes</button>
+    <button type="button" onclick="adminOpenSupplierSection('supplierWithdrawalsSection')">Withdrawals</button>
+    <button type="button" onclick="adminOpenSupplierSection('supplierLedgerSection')">Wallet & transactions</button>
+  </div>
   <div class="admin-quick-grid supplier-control-summary">
     <div class="admin-quick-card"><span>01</span><strong>Supplier applications</strong><small>Business profiles, contacts and onboarding decisions.</small></div>
     <div class="admin-quick-card"><span>02</span><strong>Product approvals</strong><small>Review supplier listings before publication.</small></div>
@@ -1725,15 +1752,21 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   </div>
 
   <div id="adminTab-applications" class="admin-tab" style="display:none">
-
-
+    <div class="admin-subnav affiliate-admin-subnav">
+      <button type="button" onclick="toggleAdminWorkspacePanel('adminAffiliateProgrammes')">Affiliate programmes</button>
+      <button type="button" onclick="toggleAdminWorkspacePanel('adminAffiliateApplications')">Affiliate applications</button>
+    </div>
+    <div id="adminAffiliateProgrammes" class="admin-workspace-panel" style="display:none">
     <div class="admin-tools">
       <h3>Affiliate programmes</h3>
       <div id="adminProgrammeList" class="small-note">Not loaded yet.</div>
     </div>
+    </div>
+    <div id="adminAffiliateApplications" class="admin-workspace-panel" style="display:none">
     <div class="admin-tools">
       <h3>Affiliate applications</h3>
       <div id="adminAffiliateApplicationList" class="small-note">Not loaded yet.</div>
+    </div>
     </div>
     <p class="small-note">Admin actions require matching Supabase Row Level Security (RLS) policies. The admin ID check in this page only controls visibility; it is not database security.</p>
     <a href="https://supabase.com/dashboard/project/yymdyxlbdgbrgrykdspx/editor" target="_blank" rel="noopener">Open Supabase database</a>
@@ -1890,6 +1923,12 @@ async function resolveItemDispute(id,resolution){
  }catch(e){alert('Could not resolve report: '+e.message);}
 }
 
+function toggleAdminWorkspacePanel(id){
+ const target=document.getElementById(id);if(!target)return;
+ const parent=target.parentElement;
+ if(parent)parent.querySelectorAll(':scope > .admin-workspace-panel').forEach(el=>{if(el!==target)el.style.display='none';});
+ target.style.display=target.style.display==='none'?'block':'none';
+}
 function adminOpenSupplierSection(sectionId) {
  if(sectionId==='supplierDisputesSection') loadAdminItemDisputes();
   adminShowTab('suppliers');
@@ -1900,6 +1939,7 @@ function adminOpenSupplierSection(sectionId) {
   });
   const summary=panel.querySelector('.supplier-control-summary');
   if(summary)summary.style.display='none';
+  panel.querySelectorAll('.supplier-management-section').forEach(section=>section.style.display=section.id===sectionId?'block':'none');
   const target=document.getElementById(sectionId);
   if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
   const menu=document.getElementById('adminSuppliersDropdown');
