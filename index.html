@@ -5141,16 +5141,17 @@ async function loadStaffTasks(p){
  if(result.error){document.getElementById('staffPanelStatus').textContent='Could not load assigned tasks: '+result.error.message;return;}
  let tasks=result.data||[];
  const deliveryOnly=p?.staff_type==='delivery_assembly';
- tasks=tasks.filter(t=>deliveryOnly?t.task_type==='delivery_assembly':t.task_type!=='delivery_assembly'&&t.task_type!=='fulfilment_approval');
+ tasks=tasks.filter(t=>deliveryOnly?t.task_type==='delivery_assembly':t.task_type!=='delivery_assembly');
  // Core category queues are automatic. Only custom/extra work remains manually assigned.
  if(!deliveryOnly){
-  const [sup,pro,ord,aff]=await Promise.all([
+  const [sup,pro,ord,aff,ful]=await Promise.all([
    db.from('supplier_applications').select('id').eq('status','pending').order('created_at',{ascending:false}).limit(100),
    db.from('products').select('id').eq('review_status','pending').order('created_at',{ascending:false}).limit(100),
    db.from('orders').select('id').eq('order_status','awaiting_admin_approval').order('created_at',{ascending:false}).limit(100),
-   db.from('affiliate_applications').select('id').eq('status','pending').order('created_at',{ascending:false}).limit(100)
+   db.from('affiliate_applications').select('id').eq('status','pending').order('created_at',{ascending:false}).limit(100),
+   db.from('supplier_item_fulfilments').select('id').in('status',['shipped_submitted','delivered_submitted']).order('updated_at',{ascending:false}).limit(100)
   ]);
-  for(const [res,type,title] of [[sup,'supplier_application','Review supplier application'],[pro,'product_approval','Review product'],[ord,'order_approval','Approve customer order'],[aff,'affiliate_application','Review affiliate application']]){
+  for(const [res,type,title] of [[sup,'supplier_application','Review supplier application'],[pro,'product_approval','Review product'],[ord,'order_approval','Approve customer order'],[aff,'affiliate_application','Review affiliate application'],[ful,'fulfilment_approval','Approve supplier shipment / delivery']]){
    if(res.error)throw res.error;
    for(const row of (res.data||[]))if(!tasks.some(t=>t.task_type===type&&t.related_record_id===String(row.id)))tasks.push({id:'auto-'+type+'-'+row.id,task_type:type,title,related_record_id:String(row.id),instructions:'Automatically available to General staff',status:'pending',isAuto:true});
   }
@@ -5162,7 +5163,8 @@ async function loadStaffTasks(p){
  }
  const addTask=tasks.some(t=>t.task_type==='add_product');
  const canAddProducts=!deliveryOnly;
- if(deliveryOnly)await loadStaffTeamOrders(user.id);\n const generalAccess=!deliveryOnly;
+ if(deliveryOnly)await loadStaffTeamOrders(user.id);
+ const generalAccess=!deliveryOnly;
  document.getElementById('staffProductAction').style.display=canAddProducts?'block':'none';
  document.getElementById('staffProductCreatePanel').style.display='none';
  document.getElementById('staffPromotionLink').style.display=generalAccess?'inline-block':'none';
