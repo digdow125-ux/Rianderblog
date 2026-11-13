@@ -19,6 +19,16 @@ main{max-width:1180px;margin:28px auto;padding:0 18px}.hero{background:var(--whi
 <header><div class="brand"><div class="logo">R</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub · Marketing workspace</small></div></div><div class="header-actions"><span id="userLabel" class="muted" style="color:#d5deea"></span><button id="signOut" class="btn light hidden">Sign out</button></div></header>
 <main>
 <section class="hero"><div class="eyebrow">GROW YOUR MARKETPLACE</div><h1>Plan. Create. Promote.</h1><p>Create promotional videos, social posts and marketplace news. Teach customers how to shop on RIANDERBLOG, then prepare content for your social channels.</p></section>
+<section id="socialConnections" class="panel" style="margin-bottom:20px">
+<h2>Connect your social accounts</h2><p class="muted">This panel is visible before sign-in. Sign in below to activate secure account connections.</p>
+<p class="muted">Start with Facebook and Instagram. Connect securely through Meta's official sign-in. Instagram must be a professional account linked to your Facebook Page.</p>
+<div class="row" style="align-items:center;justify-content:space-between">
+<div><strong>Facebook Page + Instagram</strong><div id="metaConnectionStatus" class="muted">Checking connection…</div></div>
+<button id="connectMeta" class="btn gold">Connect Facebook / Instagram</button>
+</div>
+<div id="metaConnectionMessage" class="notice hidden"></div>
+<p class="muted" style="font-size:12px;margin-top:12px">TikTok, YouTube, X and WhatsApp Business need their own developer/API authorization. They will be added as separate secure connections; they are not connected by this Meta button.</p>
+</section>
 <section id="authPanel" class="panel auth"><h2>Sign in to your workspace</h2><p class="muted">Use your RIANDERBLOG administrator account. Your saved posts are private to your account.</p>
 <div class="field"><label>Email</label><input id="email" type="email" autocomplete="email" placeholder="Your email"></div>
 <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Password"></div>
@@ -32,16 +42,7 @@ main{max-width:1180px;margin:28px auto;padding:0 18px}.hero{background:var(--whi
 <div id="automationMessage" class="notice hidden"></div>
 </section>
 
-<section id="socialConnections" class="panel" style="margin-bottom:20px">
-<h2>Connect your social accounts</h2>
-<p class="muted">Start with Facebook and Instagram. Connect securely through Meta's official sign-in. Instagram must be a professional account linked to your Facebook Page.</p>
-<div class="row" style="align-items:center;justify-content:space-between">
-<div><strong>Facebook Page + Instagram</strong><div id="metaConnectionStatus" class="muted">Checking connection…</div></div>
-<button id="connectMeta" class="btn gold">Connect Facebook / Instagram</button>
-</div>
-<div id="metaConnectionMessage" class="notice hidden"></div>
-<p class="muted" style="font-size:12px;margin-top:12px">TikTok, YouTube, X and WhatsApp Business need their own developer/API authorization. They will be added as separate secure connections; they are not connected by this Meta button.</p>
-</section>
+
 
 <div class="grid">
 <section class="panel"><h2>Content studio</h2>
@@ -99,6 +100,7 @@ async function loadMetaConnection(){
  }catch(e){status.textContent="Connection status unavailable: "+(e.message||"Please try again.");}
 }
 $("connectMeta").onclick=async()=>{
+ if(!currentUser){message("metaConnectionMessage","Please sign in to your Promotion Hub account first, then tap Connect again.","error");$("email").focus();return;}
  const b=$("connectMeta");b.disabled=true;b.textContent="Opening secure sign-in…";clearMessage("metaConnectionMessage");
  try{
   const {data,error}=await sb.functions.invoke("meta-connect",{body:{action:"begin"}});
