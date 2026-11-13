@@ -435,16 +435,24 @@ async function boot(){
    return;
   }
   let result=await db.auth.getSession();
-  if(result.error)throw result.error;
-  let session=result.data.session;
-  // Allow the marketplace's shared localStorage session a moment to initialise on this page.
-  if(!session){
-   await new Promise(resolve=>setTimeout(resolve,900));
+  if(result?.error)throw result.error;
+  let session=result?.data?.session||null;
+  // Recheck once while the browser restores the shared marketplace session.
+  if(!session?.user?.id){
+   await new Promise(resolve=>setTimeout(resolve,1200));
    result=await db.auth.getSession();
-   if(result.error)throw result.error;
-   session=result.data.session;
+   if(result?.error)throw result.error;
+   session=result?.data?.session||null;
   }
-  currentUser=session?.user||null;
+  currentUser=session?.user?.id?session.user:null;
+  if(!currentUser?.id){
+   document.body.classList.remove("hub-admin-ready","hub-staff-ready");
+   document.getElementById("accountTitle").textContent="RIANDERBLOG login not detected";
+   document.getElementById("accountInfo").textContent="No active marketplace account was found in this browser tab. Sign in to RIANDERBLOG first, then reopen this Hub.";
+   msg("productStatus","Products are protected until your account is verified.");
+   msg("settingsStatus","No second sign-in is needed. The Hub will use the marketplace session.");
+   return;
+  }
   let staffMember=null;
   const isOwner=!!currentUser&&currentUser.id===ADMIN_USER_ID;
   if(currentUser&&!isOwner){
@@ -474,7 +482,7 @@ async function boot(){
   msg("settingsStatus","Account check failed: "+(error?.message||String(error)));
  }finally{bootRunning=false;}
 }
-db.auth.onAuthStateChange(function(){setTimeout(boot,250)});
+if(db?.auth?.onAuthStateChange){db.auth.onAuthStateChange(function(){setTimeout(boot,500)});}
 boot();
 </script>
 </body>
