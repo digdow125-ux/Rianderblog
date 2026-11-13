@@ -4861,19 +4861,38 @@ async function installRianderblogApp(){
 const STAFF_LABELS={supplier_approvals:'Supplier applications',product_approvals:'Product approvals',add_products:'Add marketplace products',order_approvals:'Order approvals',delivery_updates:'Shipping and delivery',social_media:'Social-media promotions'};
 function staffOwner(){return !!window.currentAdminUser&&window.currentAdminUser.id===ADMIN_USER_ID;}
 async function loadStaffPanel(){
- const box=document.getElementById('staffPanelStatus'),owner=staffOwner();
- let member=window.rianderStaffMembership;
- if(!owner){
-  const u=await db.auth.getUser();if(!u.data.user){box.textContent='Sign in to RIANDERBLOG first.';return;}
-  const r=await db.from('staff_members').select('id,email,permissions,status').eq('user_id',u.data.user.id).maybeSingle();
-  if(r.error||!r.data||r.data.status!=='active'){box.textContent='Staff access is not active. Contact the owner.';return;}member=r.data;
+ const box=document.getElementById('staffPanelStatus');
+ if(!box)return;
+ const owner=staffOwner();
+ box.textContent='Checking your RIANDERBLOG sign-in…';
+ const withTimeout=(promise,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' timed out. Check your internet connection, then tap Refresh.')),12000))]);
+ try{
+  let member=window.rianderStaffMembership;
+  if(!owner){
+   const auth=await withTimeout(db.auth.getUser(),'Sign-in check');
+   const user=auth?.data?.user;
+   if(!user){box.textContent='Please sign in to RIANDERBLOG first, then reopen Staff Panel.';return;}
+   box.textContent='Checking staff membership…';
+   const r=await withTimeout(db.from('staff_members').select('id,email,permissions,status').eq('user_id',user.id).maybeSingle(),'Staff access check');
+   if(r.error)throw r.error;
+   if(!r.data||r.data.status!=='active'){box.textContent='This account is not an active staff member. Sign in with the staff account or contact the owner.';return;}
+   member=r.data;
+  }
+  box.textContent=owner?'Owner verified. Loading staff management…':'Staff account verified. Loading your assigned work…';
+  const ownerTools=document.getElementById('staffOwnerTools'),workspace=document.getElementById('staffTaskWorkspace');
+  if(ownerTools)ownerTools.style.display=owner?'block':'none';
+  if(workspace)workspace.style.display='block';
+  if(owner){
+   await withTimeout(loadStaffMembers(),'Staff list loading');
+   await withTimeout(loadOwnerStaffTasks(),'Assigned tasks loading');
+  }
+  const permissions=owner?{}:(member?.permissions||{});
+  await withTimeout(loadStaffTasks(permissions),'Staff workspace loading');
+  box.textContent=owner?'Owner verified. You decide what work is assigned and when.':'Staff account verified. Only work personally assigned to your account is shown.';
+ }catch(error){
+  console.error('RIANDERBLOG Staff Panel:',error);
+  box.textContent='Staff Panel could not finish loading: '+(error?.message||'Unknown error')+'. Tap Refresh to try again.';
  }
- box.textContent=owner?'Owner verified. You decide what work is assigned and when.':'Staff account verified. Only work personally assigned to your account is shown.';
- document.getElementById('staffOwnerTools').style.display=owner?'block':'none';
- document.getElementById('staffTaskWorkspace').style.display='block';
- if(owner){await loadStaffMembers();await loadOwnerStaffTasks();}
- const p=owner?{}:(member.permissions||{});
- await loadStaffTasks(p);
 }
 async function inviteStaffMember(){
  const email=document.getElementById('staffInviteEmail').value.trim(),status=document.getElementById('staffInviteStatus');
