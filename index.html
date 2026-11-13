@@ -4224,29 +4224,42 @@ async function loadSupplierProducts(supplierId){
 // SUPPLIER SHIPMENT / DELIVERY WORKFLOW
 async function loadSupplierFulfilments(supplierId){
  const box=document.getElementById('supplierFulfilmentControls');if(!box)return;
- box.innerHTML='<p class="small-note">Loading fulfilment steps...</p>';
+ box.innerHTML='<p class="small-note">Loading approved orders for delivery...</p>';
  try{
-  const ir=await db.from('order_items').select('id,order_id,product_name,quantity,expected_delivery_at').eq('supplier_id',supplierId).order('created_at',{ascending:false});if(ir.error)throw ir.error;
-  const items=ir.data||[];if(!items.length){box.innerHTML='<p>No orders need fulfilment yet.</p>';return;}
-  const ids=items.map(x=>x.id),oids=[...new Set(items.map(x=>x.order_id))];
-  const [fr,orr]=await Promise.all([db.from('supplier_item_fulfilments').select('*').in('order_item_id',ids),db.from('orders').select('id,order_number,payment_status,customer_name').in('id',oids)]);
+  const ir=await db.from('order_items').select('id,order_id,product_name,quantity,unit_price,expected_delivery_at').eq('supplier_id',supplierId).order('created_at',{ascending:false});
+  if(ir.error)throw ir.error;
+  const allItems=ir.data||[];
+  if(!allItems.length){box.innerHTML='<p>No supplier orders yet. Approved paid orders will appear here automatically.</p>';return;}
+  const ids=allItems.map(x=>x.id),oids=[...new Set(allItems.map(x=>x.order_id))];
+  const [fr,orr]=await Promise.all([
+   db.from('supplier_item_fulfilments').select('*').in('order_item_id',ids),
+   db.from('orders').select('id,order_number,payment_status,order_status,customer_name,customer_phone,shipping_address,currency,created_at').in('id',oids)
+  ]);
   if(fr.error)throw fr.error;if(orr.error)throw orr.error;
   const fm=new Map((fr.data||[]).map(x=>[x.order_item_id,x])),om=new Map((orr.data||[]).map(x=>[x.id,x]));
-  const labels={not_submitted:'Ready to ship',shipped_submitted:'Waiting for admin to confirm shipment',shipped_approved:'Shipment confirmed · ready for delivery',delivered_submitted:'Waiting for admin to confirm delivery',delivered_approved:'Waiting for customer confirmation',customer_confirmed:'Completed · funds released'};
-  box.innerHTML='<div class="admin-table-wrap"><table class="fulfilment-table"><thead><tr><th>Order</th><th>Product</th><th>Delivery deadline</th><th>Status</th><th>Action</th></tr></thead><tbody>'+items.map(i=>{
-   const f=fm.get(i.id),o=om.get(i.order_id)||{},st=f?.status||'not_submitted';let act='';
-   if(o.payment_status!=='paid')act='Waiting for payment';
-   else if(st==='not_submitted')act='<button class="primary" onclick="openSupplierFulfilmentForm('+i.id+',\'shipped\')">Submit shipment</button>';
-   else if(st==='shipped_submitted')act='Waiting for admin';
-   else if(st==='shipped_approved')act='<button class="primary" onclick="openSupplierFulfilmentForm('+i.id+',\'delivered\')">Submit delivery</button>';
-   else if(st==='delivered_submitted')act='Waiting for admin';
-   else if(st==='delivered_approved')act='Waiting for customer';
-   else act='Completed · funds released';
-   const deadline=i.expected_delivery_at?new Date(i.expected_delivery_at):null,late=deadline&&Date.now()>deadline.getTime()&&st!=='customer_confirmed';
-   const deadlineText=deadline?deadline.toLocaleString()+(late?' · OVERDUE — funds remain held':''):'Not set';
-   return '<tr><td>'+escapeHTML(o.order_number||i.order_id)+'<small>'+escapeHTML(o.customer_name||'Customer')+'</small></td><td>'+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</td><td>'+escapeHTML(deadlineText)+'</td><td>'+escapeHTML(labels[st]||st)+'</td><td>'+act+(f?.admin_note?'<small>Admin: '+escapeHTML(f.admin_note)+'</small>':'')+'</td></tr>';
-  }).join('')+'</tbody></table></div><div id="supplierFulfilmentForm" class="fulfilment-form" style="display:none"></div>';
- }catch(e){box.textContent='Could not load fulfilment: '+e.message;}
+  const eligible=allItems.map(i=>({item:i,order:om.get(i.order_id)})).filter(x=>x.order&&['approved','processing','shipped','in_transit','delivered'].includes(x.order.order_status));
+  if(!eligible.length){box.innerHTML='<p>No approved orders are waiting for fulfilment. New approved orders will appear here automatically.</p>';return;}
+  const labels={not_submitted:'READY TO SHIP',shipped_submitted:'SHIPMENT SENT — ADMIN REVIEW',shipped_approved:'SHIPMENT APPROVED — DELIVER THE ORDER',delivered_submitted:'DELIVERY MARKED DONE — ADMIN REVIEW',delivered_approved:'DELIVERED — WAITING FOR CUSTOMER',customer_confirmed:'COMPLETED'};
+  const rows=eligible.map(({item:i,order:o})=>{
+   const f=fm.get(i.id),st=f?.status||'not_submitted';let act='';
+   if(o.payment_status!=='paid')act='<span class="small-note">Waiting for confirmed payment</span>';
+   else if(st==='not_submitted')act='<button class="primary" type="button" onclick="openSupplierFulfilmentForm('+i.id+',\'shipped\')">Submit shipment</button>';
+   else if(st==='shipped_submitted')act='<span class="small-note">Waiting for RIANDERBLOG admin</span>';
+   else if(st==='shipped_approved')act='<button class="primary" type="button" onclick="openSupplierFulfilmentForm('+i.id+',\'delivered\')">Mark delivered / submit proof</button>';
+   else if(st==='delivered_submitted')act='<span class="small-note">Delivery marked done — awaiting admin confirmation</span>';
+   else if(st==='delivered_approved')act='<span class="small-note">Admin confirmed delivery; waiting for customer receipt</span>';
+   else act='<span class="small-note">Completed and customer confirmed</span>';
+   const deadline=i.expected_delivery_at?new Date(i.expected_delivery_at):null,late=deadline&&Date.now()>deadline.getTime()&&!['customer_confirmed','delivered_approved'].includes(st);
+   return '<tr><td><strong>'+escapeHTML(o.order_number||o.id.slice(0,8))+'</strong><small>'+escapeHTML(o.created_at?new Date(o.created_at).toLocaleString():'—')+'</small></td>'+
+    '<td>'+escapeHTML(o.customer_name||'Customer')+'<small>'+escapeHTML(o.customer_phone||'No phone provided')+'</small></td>'+
+    '<td>'+escapeHTML(i.product_name||'Product')+'<small>Quantity: '+Number(i.quantity||1)+'</small></td>'+
+    '<td>'+escapeHTML(o.currency||'USD')+' '+(Number(i.unit_price||0)*Number(i.quantity||1)).toFixed(2)+'</td>'+
+    '<td>'+escapeHTML(o.shipping_address||'Destination not provided')+'</td>'+
+    '<td>'+escapeHTML(deadline?deadline.toLocaleString()+(late?' · OVERDUE':''):'Not set')+'</td>'+
+    '<td><strong>'+escapeHTML(labels[st]||st)+'</strong>'+(f?.admin_note?'<small>Admin: '+escapeHTML(f.admin_note)+'</small>':'')+'</td><td>'+act+'</td></tr>';
+  }).join('');
+  box.innerHTML='<p class="small-note">Approved orders appear here automatically. Complete each step and submit delivery proof so RIANDERBLOG can confirm it and the customer can confirm receipt.</p><div class="admin-table-wrap"><table class="fulfilment-table" style="min-width:1100px"><thead><tr><th>Order</th><th>Customer / phone</th><th>Product / quantity</th><th>Item amount</th><th>Delivery destination</th><th>Deadline</th><th>Delivery status</th><th>Action</th></tr></thead><tbody>'+rows+'</tbody></table></div><div id="supplierFulfilmentForm" class="fulfilment-form" style="display:none"></div>';
+ }catch(e){box.textContent='Could not load approved supplier deliveries: '+e.message;}
 }
 function openSupplierFulfilmentForm(id,action){
  const box=document.getElementById('supplierFulfilmentForm');if(!box)return;const ship=action==='shipped';box.dataset.itemId=id;box.dataset.action=action;
