@@ -1490,6 +1490,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 </div>
 </div>
 <div id="staffTaskWorkspace" style="display:none">
+<div id="staffProductAction" style="display:none;margin:16px 0"><button type="button" class="primary" onclick="toggleStaffProductForm()">＋ Add Product</button><p class="small-note">Tap the button whenever you need to add a marketplace product.</p></div>
 <div id="staffProductCreatePanel" class="admin-tools" style="display:none;margin:16px 0;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
 <h3>Add a marketplace product</h3><p class="small-note">Add a product listing with 1–5 pictures. Your listing will appear on the marketplace. Staff can add products but cannot edit or delete existing listings.</p>
 <div class="staff-permission-grid">
@@ -5053,6 +5054,15 @@ async function deleteStaffMember(id){
   alert('Could not remove staff member: '+(error?.message||'Unknown error'));
  }
 }
+function toggleStaffProductForm(){
+ const panel=document.getElementById('staffProductCreatePanel');
+ const button=document.querySelector('#staffProductAction button');
+ if(!panel)return;
+ const opening=panel.style.display==='none'||!panel.style.display;
+ panel.style.display=opening?'block':'none';
+ if(button)button.textContent=opening?'Close Add Product':'＋ Add Product';
+ if(opening)panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
 async function staffAddMarketplaceProduct(){
  const status=document.getElementById('staffNewProductStatus');status.textContent='Saving product…';
  try{
@@ -5107,7 +5117,8 @@ async function loadStaffTasks(p){
  const addTask=tasks.some(t=>t.task_type==='add_product');
  const canAddProducts=!deliveryOnly;
  const generalAccess=!deliveryOnly;
- document.getElementById('staffProductCreatePanel').style.display=canAddProducts?'block':'none';
+ document.getElementById('staffProductAction').style.display=canAddProducts?'block':'none';
+ document.getElementById('staffProductCreatePanel').style.display='none';
  document.getElementById('staffPromotionLink').style.display=generalAccess?'inline-block':'none';
  document.getElementById('staffSocialNote').textContent=generalAccess?'Promotion Hub access is included with your General staff invitation.':'This account is assigned to delivery and assembly only.';
  const panels={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks',other:'staffOtherTasks'};
