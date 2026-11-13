@@ -1396,6 +1396,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <div class="staff-permission-grid">
 <label><input type="checkbox" id="staffPermSupplier"> Supplier approvals</label>
 <label><input type="checkbox" id="staffPermProducts"> Product approvals</label>
+<label><input type="checkbox" id="staffPermAddProducts"> Add marketplace products</label>
 <label><input type="checkbox" id="staffPermOrders"> Order approvals</label>
 <label><input type="checkbox" id="staffPermDelivery"> Shipping and delivery</label>
 <label><input type="checkbox" id="staffPermSocial"> Social-media promotions</label>
@@ -1404,6 +1405,18 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <h3>Your staff</h3><div id="staffMembersList">Loading…</div>
 </div>
 <div id="staffTaskWorkspace" style="display:none">
+<div id="staffProductCreatePanel" class="admin-tools" style="display:none;margin:16px 0;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
+<h3>Add a marketplace product</h3><p class="small-note">Add a product listing with 1–5 pictures. Your listing will appear on the marketplace. Staff can add products but cannot edit or delete existing listings.</p>
+<div class="staff-permission-grid">
+<label>Product name<input id="staffNewProductName" type="text" placeholder="Product name" style="display:block;width:100%;padding:10px"></label>
+<label>Price<input id="staffNewProductPrice" type="number" min="0" step="0.01" placeholder="0.00" style="display:block;width:100%;padding:10px"></label>
+<label>Currency<select id="staffNewProductCurrency" style="display:block;width:100%;padding:10px"><option>MWK</option><option>USD</option><option>GBP</option><option>EUR</option><option>ZAR</option><option>MZN</option><option>TZS</option><option>UGX</option></select></label>
+<label>Category<input id="staffNewProductCategory" type="text" placeholder="Fashion, Electronics…" style="display:block;width:100%;padding:10px"></label>
+<label style="grid-column:1/-1">Description<textarea id="staffNewProductDescription" rows="3" placeholder="Describe the product" style="display:block;width:100%;padding:10px"></textarea></label>
+<label style="grid-column:1/-1">Upload product pictures (1–5)<input id="staffNewProductImages" type="file" accept="image/*" multiple style="display:block;width:100%;padding:8px"></label>
+<label style="grid-column:1/-1">Or paste image URL(s), one per line<input id="staffNewProductImageUrls" type="text" placeholder="https://example.com/image.jpg" style="display:block;width:100%;padding:10px"></label>
+<label style="grid-column:1/-1">Supplier / affiliate link (optional)<input id="staffNewProductAffiliate" type="url" placeholder="https://supplier.com/product" style="display:block;width:100%;padding:10px"></label>
+</div><button class="primary" onclick="staffAddMarketplaceProduct()">Add product</button><p id="staffNewProductStatus" class="small-note"></p></div>
 <div class="staff-task-grid">
 <section class="admin-tools"><h3>Supplier applications</h3><div id="staffSupplierTasks"></div></section>
 <section class="admin-tools"><h3>Product approvals</h3><div id="staffProductTasks"></div></section>
@@ -4686,7 +4699,7 @@ async function installRianderblogApp(){
 
 <script>
 
-const STAFF_LABELS={supplier_approvals:'Supplier applications',product_approvals:'Product approvals',order_approvals:'Order approvals',delivery_updates:'Shipping and delivery',social_media:'Social-media promotions'};
+const STAFF_LABELS={supplier_approvals:'Supplier applications',product_approvals:'Product approvals',add_products:'Add marketplace products',order_approvals:'Order approvals',delivery_updates:'Shipping and delivery',social_media:'Social-media promotions'};
 function staffOwner(){return !!window.currentAdminUser&&window.currentAdminUser.id===ADMIN_USER_ID;}
 async function loadStaffPanel(){
  const box=document.getElementById('staffPanelStatus'),owner=staffOwner();
@@ -4695,14 +4708,15 @@ async function loadStaffPanel(){
  box.textContent=owner?'Owner verified. You control staff invitations and permissions.':'Staff account verified. Only assigned tasks are available.';
  document.getElementById('staffOwnerTools').style.display=owner?'block':'none';document.getElementById('staffTaskWorkspace').style.display='block';
  if(owner)await loadStaffMembers();
- const p=owner?{supplier_approvals:true,product_approvals:true,order_approvals:true,delivery_updates:true,social_media:true}:member.permissions||{};
+ const p=owner?{supplier_approvals:true,product_approvals:true,add_products:true,order_approvals:true,delivery_updates:true,social_media:true}:member.permissions||{};
+ document.getElementById('staffProductCreatePanel').style.display=p.add_products?'block':'none';
  await loadStaffTasks(p);
  if(p.delivery_updates)await loadStaffFulfilmentTasks();
  const social=owner||!!p.social_media;document.getElementById('staffPromotionLink').style.display=social?'inline-block':'none';document.getElementById('staffSocialNote').textContent=social?'You can prepare and share promotions. Automatic posting still requires approved platform connections.':'Social-media permission has not been assigned.';
 }
 async function inviteStaffMember(){
  const email=document.getElementById('staffInviteEmail').value.trim(),status=document.getElementById('staffInviteStatus');
- const permissions={supplier_approvals:document.getElementById('staffPermSupplier').checked,product_approvals:document.getElementById('staffPermProducts').checked,order_approvals:document.getElementById('staffPermOrders').checked,delivery_updates:document.getElementById('staffPermDelivery').checked,social_media:document.getElementById('staffPermSocial').checked};
+ const permissions={supplier_approvals:document.getElementById('staffPermSupplier').checked,product_approvals:document.getElementById('staffPermProducts').checked,add_products:document.getElementById('staffPermAddProducts').checked,order_approvals:document.getElementById('staffPermOrders').checked,delivery_updates:document.getElementById('staffPermDelivery').checked,social_media:document.getElementById('staffPermSocial').checked};
  status.textContent='Sending invitation…';
  try{if(!staffOwner())throw new Error('Only the owner can invite staff.');const r=await db.functions.invoke('staff-invite',{body:{email,permissions}});if(r.error)throw r.error;if(r.data?.error)throw new Error(r.data.error);status.textContent=r.data.invitation_sent?'Invitation email sent. Ask the staff member to accept it.':'Existing account added to staff.';document.getElementById('staffInviteEmail').value='';await loadStaffMembers();}
  catch(e){status.textContent='Invitation failed: '+e.message;}
@@ -4713,6 +4727,22 @@ async function loadStaffMembers(){
  box.innerHTML=r.data.map(s=>{const labels=Object.keys(STAFF_LABELS).filter(k=>s.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'No permissions';const next=s.status==='active'?'suspended':'active';return '<div class="staff-member"><div><strong>'+escapeHTML(s.email)+'</strong><small>'+escapeHTML(s.status)+' · '+escapeHTML(labels)+'</small></div><button class="secondary" onclick="setStaffStatus(\''+s.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div>';}).join('');
 }
 async function setStaffStatus(id,status){if(!staffOwner())return;const r=await db.from('staff_members').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return;}await loadStaffMembers();}
+async function staffAddMarketplaceProduct(){
+ const status=document.getElementById('staffNewProductStatus');status.textContent='Saving product…';
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
+  const name=document.getElementById('staffNewProductName').value.trim(),price=Number(document.getElementById('staffNewProductPrice').value);
+  if(!name||!Number.isFinite(price)||price<0)throw new Error('Enter a product name and a valid price.');
+  const images=await resolveProductImages('staffNewProductImages','staffNewProductImageUrls',[],'',user);
+  const link=safeUrl(document.getElementById('staffNewProductAffiliate').value.trim());
+  const row={name,price,currency:document.getElementById('staffNewProductCurrency').value,category:document.getElementById('staffNewProductCategory').value.trim()||'General',description:document.getElementById('staffNewProductDescription').value.trim(),image_url:images[0],product_image_urls:images,affiliate_url:link||'',is_active:true,created_by:user.id,supplier_id:null,review_status:'approved'};
+  const result=await db.from('products').insert(row);if(result.error)throw result.error;
+  ['staffNewProductName','staffNewProductPrice','staffNewProductCategory','staffNewProductDescription','staffNewProductImageUrls','staffNewProductAffiliate'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('staffNewProductImages').value='';
+  status.textContent='Product added successfully and is now listed on RIANDERBLOG.';
+  if(typeof loadProducts==='function')await loadProducts();
+ }catch(e){status.textContent='Could not add product: '+e.message;}
+}
 async function loadStaffTasks(p){
  const boxes={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks'};Object.values(boxes).forEach(id=>document.getElementById(id).innerHTML='<p class="small-note">Not assigned.</p>');
  if(p.supplier_approvals){const r=await db.from('supplier_applications').select('id,business_name,contact_name,country,email').eq('status','pending').limit(40);const b=document.getElementById(boxes.supplier);b.innerHTML=r.error?escapeHTML(r.error.message):(!r.data?.length?'No applications waiting.':r.data.map(x=>'<div class="staff-task-row"><strong>'+escapeHTML(x.business_name)+'</strong><small>'+escapeHTML(x.contact_name)+' · '+escapeHTML(x.country)+' · '+escapeHTML(x.email)+'</small><button class="primary" onclick="staffReviewSupplier(\''+x.id+'\',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewSupplier(\''+x.id+'\',\'rejected\')">Reject</button></div>').join(''));}
