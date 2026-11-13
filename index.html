@@ -982,6 +982,30 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 
 </style>
 <style>.staff-permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin:14px 0}.staff-permission-grid label{padding:10px;border:1px solid #e5e8ee;border-radius:9px;font-size:13px}.staff-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:18px}.staff-task-grid .admin-tools{padding:15px;border:1px solid #e5e8ee;border-radius:12px;background:#fff}.staff-task-row{padding:11px 0;border-bottom:1px solid #edf0f4;font-size:13px}.staff-task-row small{display:block;color:#748397;margin:4px 0 8px}.staff-task-row button,.staff-member button{padding:7px 10px;border:0;border-radius:7px;font-weight:700;margin-right:5px}.staff-member{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f4;flex-wrap:wrap}.staff-member small{display:block;color:#748397}</style>
+<style id="clear-in-page-panels">
+/* Clear in-page panels: no floating notification or support windows */
+.header-actions{flex-wrap:wrap}
+#notificationPanel{
+ position:static!important;flex:1 0 100%;width:100%!important;max-width:100%!important;
+ max-height:360px;margin-top:9px;box-shadow:none!important;border-radius:9px;
+}
+.notification-item.unread{
+ background:#fff5d9!important;border-left:5px solid #d6ad55!important;
+ padding-left:11px;font-weight:700;
+}
+.notification-item.unread strong{color:#10213e;font-weight:800}
+.notification-item:focus,.notification-item:hover{background:#edf3fa}
+.support-launcher{
+ position:static!important;display:block;width:fit-content;margin:18px 18px 8px;
+ border-radius:8px;box-shadow:none!important;
+}
+.support-window{
+ position:static!important;display:none;width:calc(100% - 36px)!important;
+ max-width:760px;height:auto!important;max-height:620px;margin:8px 18px 22px;
+ box-shadow:none!important;border-radius:10px;
+}
+.support-window.open{display:flex}
+</style>
 </head>
 <body>
 <div class="topbar">A WORLD OF DISCOVERY • SHOP PRODUCTS FROM INTERNATIONAL SELLERS</div>
