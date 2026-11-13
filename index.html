@@ -4878,9 +4878,8 @@ async function loadOwnerStaffTasks(){
 }
 async function cancelStaffTask(id){
  if(!staffOwner())return;
- if(!confirm('Cancel this assigned task?'))return;
  const r=await db.from('staff_tasks').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',id);
- if(r.error){alert(r.error.message);return;}await loadOwnerStaffTasks();
+ const box=document.getElementById('staffTaskAssignStatus');if(r.error){if(box)box.textContent='Could not cancel task: '+r.error.message;return;}if(box)box.textContent='Task cancelled.';await loadOwnerStaffTasks();
 }
 async function setStaffStatus(id,status){if(!staffOwner())return;const r=await db.from('staff_members').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return;}await loadStaffMembers();}
 async function staffAddMarketplaceProduct(){
@@ -4938,7 +4937,7 @@ async function loadStaffTasks(p){
     if(r.data){
      const o=r.data;html+='<small><b>Order:</b> '+escapeHTML(o.order_number||o.id)+' · <b>Customer:</b> '+escapeHTML(o.customer_name||'Customer')+' · <b>Total:</b> '+escapeHTML(o.currency||'')+' '+Number(o.total_amount||0).toFixed(2)+' · <b>Status:</b> '+escapeHTML(o.order_status)+'</small>';
      if(t.task_type==='order_approval')html+='<button class="primary" onclick="staffReviewOrder(\''+o.id+'\',\'approved\')">Approve order</button><button class="secondary" onclick="staffReviewOrder(\''+o.id+'\',\'rejected\')">Reject order</button>';
-     else html+='<small><b>Phone:</b> '+escapeHTML(o.customer_phone||'Not provided')+' · <b>Address:</b> '+escapeHTML(o.shipping_address||'Not provided')+'</small><button class="primary" onclick="staffUpdateDelivery(\''+o.id+'\',\'shipped\')">Mark collected / shipped</button><button class="secondary" onclick="staffUpdateDelivery(\''+o.id+'\',\'completed\')">Mark delivered / assembled</button>';
+     else html+='<small><b>Phone:</b> '+escapeHTML(o.customer_phone||'Not provided')+' · <b>Address:</b> '+escapeHTML(o.shipping_address||'Not provided')+'</small><label>Carrier / delivery team<input id="deliveryCarrier-'+o.id+'" type="text" placeholder="Optional"></label><label>Tracking number<input id="deliveryTracking-'+o.id+'" type="text" placeholder="Optional"></label><label>Delivery / assembly note<textarea id="deliveryNote-'+o.id+'" rows="2" placeholder="Add an update"></textarea></label><button class="primary" onclick="staffUpdateDelivery(\''+o.id+'\',\'shipped\')">Mark collected / shipped</button><button class="secondary" onclick="staffUpdateDelivery(\''+o.id+'\',\'completed\')">Mark delivered / assembled</button>';
     }else html+='<small>Assigned order is unavailable or already handled.</small>';
    }else if(t.task_type==='fulfilment_approval'){
     const r=await db.from('supplier_item_fulfilments').select('id,order_id,status,carrier,tracking_number,supplier_note,delivery_evidence_url').eq('id',t.related_record_id).maybeSingle();
@@ -4959,10 +4958,17 @@ async function completeStaffTask(id){
  const r=await db.from('staff_tasks').update({status:'completed',completed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',id);
  if(r.error){alert('Could not complete task: '+r.error.message);return;}await loadStaffPanel();
 }
-async function staffReviewSupplier(id,status){const r=await db.rpc('admin_review_supplier_application',{p_application_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
-async function staffReviewProduct(id,status){if(!confirm('Confirm '+status+'?'))return;const r=await db.rpc('staff_review_product',{p_product_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
-async function staffReviewOrder(id,status){if(!confirm('Confirm '+status+' for this order?'))return;const r=await db.rpc('staff_review_order',{p_order_id:id,p_status:status});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
-async function staffUpdateDelivery(id,status){const carrier=prompt('Courier / delivery company (optional):')||'',tracking=prompt('Tracking number (optional):')||'',note=prompt('Delivery note (optional):')||'';const r=await db.rpc('staff_add_order_tracking_update',{p_order_id:id,p_status:status,p_note:note,p_carrier:carrier,p_tracking_number:tracking});if(r.error){alert(r.error.message);return;}await loadStaffPanel();}
+async function staffReviewSupplier(id,status){const box=document.getElementById('staffPanelStatus');box.textContent='Saving supplier review…';const r=await db.rpc('admin_review_supplier_application',{p_application_id:id,p_status:status});if(r.error){box.textContent='Could not review supplier: '+r.error.message;return;}box.textContent='Supplier application '+status+'.';await loadStaffPanel();}
+async function staffReviewProduct(id,status){const box=document.getElementById('staffPanelStatus');box.textContent='Saving product review…';const r=await db.rpc('staff_review_product',{p_product_id:id,p_status:status});if(r.error){box.textContent='Could not review product: '+r.error.message;return;}box.textContent='Product '+status+'.';await loadStaffPanel();}
+async function staffReviewOrder(id,status){const box=document.getElementById('staffPanelStatus');box.textContent='Saving order decision…';const r=await db.rpc('staff_review_order',{p_order_id:id,p_status:status});if(r.error){box.textContent='Could not review order: '+r.error.message;return;}box.textContent='Order '+status+'.';await loadStaffPanel();}
+async function staffUpdateDelivery(id,status){
+ const carrier=document.getElementById('deliveryCarrier-'+id)?.value.trim()||'',tracking=document.getElementById('deliveryTracking-'+id)?.value.trim()||'',note=document.getElementById('deliveryNote-'+id)?.value.trim()||'';
+ const box=document.getElementById('staffPanelStatus');box.textContent='Saving delivery update…';
+ const r=await db.rpc('staff_add_order_tracking_update',{p_order_id:id,p_status:status,p_note:note,p_carrier:carrier,p_tracking_number:tracking});
+ if(r.error){box.textContent='Could not update delivery: '+r.error.message;return;}
+ box.textContent=status==='completed'?'Delivery / assembly marked complete.':'Order marked collected / shipped.';
+ await loadStaffPanel();
+}
 
 </script>
 <script>
@@ -4979,11 +4985,11 @@ async function loadStaffFulfilmentTasks(){
  box.innerHTML=r.data.map(x=>{const o=om.get(x.order_id)||{},i=im.get(x.order_item_id)||{},ship=x.status==='shipped_submitted',proof=safeUrl(x.delivery_evidence_url||'');return '<div class="staff-task-row"><strong>'+escapeHTML(o.order_number||x.order_id)+' · '+escapeHTML(i.product_name||'Product')+' × '+Number(i.quantity||1)+'</strong><small>'+(ship?'Shipment submitted':'Delivery proof submitted')+' · '+escapeHTML(x.supplier_note||'')+'</small><small>'+escapeHTML(x.carrier||'')+' '+escapeHTML(x.tracking_number||'')+(proof?' · <a href="'+escapeHTML(proof)+'" target="_blank" rel="noopener">View proof</a>':'')+'</small><button class="primary" onclick="staffReviewFulfilment(\''+x.id+'\',\''+(ship?'approve_shipment':'approve_delivery')+'\')">Approve</button><button class="secondary" onclick="staffReviewFulfilment(\''+x.id+'\',\'reject\')">Reject</button></div>';}).join('');
 }
 async function staffReviewFulfilment(id,action){
- const note=action==='reject'?(prompt('Reason for rejection (supplier will see this):')||''):'';
- if(action==='reject'&&!note.trim())return;
+ const note=action==='reject'?'Rejected by assigned reviewer':'';
+ const box=document.getElementById('staffPanelStatus');box.textContent='Saving shipment / delivery proof review…';
  const r=await db.rpc('admin_review_item_fulfilment',{p_fulfilment_id:id,p_action:action,p_admin_note:note});
- if(r.error){alert('Could not review fulfilment: '+r.error.message);return;}
- alert(action==='reject'?'Submission rejected.':'Submission approved.');
+ if(r.error){box.textContent='Could not review fulfilment: '+r.error.message;return;}
+ box.textContent=action==='reject'?'Submission rejected.':'Submission approved.';
  await loadStaffPanel();
 }
 
