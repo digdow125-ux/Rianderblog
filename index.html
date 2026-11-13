@@ -1501,7 +1501,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <label style="grid-column:1/-1">Supplier / affiliate link (optional)<input id="staffNewProductAffiliate" type="url" placeholder="https://supplier.com/product" style="display:block;width:100%;padding:10px"></label>
 </div><button class="primary" onclick="staffAddMarketplaceProduct()">Add product</button><p id="staffNewProductStatus" class="small-note"></p></div>
 <div class="staff-task-grid">
-<section class="admin-tools"><h3>Supplier applications</h3><div id="staffSupplierTasks"></div></section>
+<section class="admin-tools"><h3>Supplier &amp; affiliate applications</h3><div id="staffSupplierTasks"></div></section>
 <section class="admin-tools"><h3>Product approvals</h3><div id="staffProductTasks"></div></section>
 <section class="admin-tools"><h3>Order approvals</h3><div id="staffOrderTasks"></div></section>
 <section class="admin-tools"><h3>Shipping and delivery</h3><div id="staffDeliveryTasks"></div></section>
@@ -5080,9 +5080,30 @@ async function loadStaffTasks(p){
  if(result.error){document.getElementById('staffPanelStatus').textContent='Could not load assigned tasks: '+result.error.message;return;}
  let tasks=result.data||[];
  const deliveryOnly=p?.staff_type==='delivery_assembly';
- tasks=tasks.filter(t=>deliveryOnly?t.task_type==='delivery_assembly':t.task_type!=='delivery_assembly');
+ tasks=tasks.filter(t=>deliveryOnly?t.task_type==='delivery_assembly'||t.task_type==='fulfilment_approval':t.task_type!=='delivery_assembly'&&t.task_type!=='fulfilment_approval');
+ // Core category queues are automatic. Only custom/extra work remains manually assigned.
+ if(!deliveryOnly){
+  const [sup,pro,ord,aff]=await Promise.all([
+   db.from('supplier_applications').select('id').eq('status','pending').order('created_at',{ascending:false}).limit(100),
+   db.from('products').select('id').eq('review_status','pending').order('created_at',{ascending:false}).limit(100),
+   db.from('orders').select('id').eq('order_status','awaiting_admin_approval').order('created_at',{ascending:false}).limit(100),
+   db.from('affiliate_applications').select('id').eq('status','pending').order('created_at',{ascending:false}).limit(100)
+  ]);
+  for(const [res,type,title] of [[sup,'supplier_application','Review supplier application'],[pro,'product_approval','Review product'],[ord,'order_approval','Approve customer order'],[aff,'affiliate_application','Review affiliate application']]){
+   if(res.error)throw res.error;
+   for(const row of (res.data||[]))if(!tasks.some(t=>t.task_type===type&&t.related_record_id===String(row.id)))tasks.push({id:'auto-'+type+'-'+row.id,task_type:type,title,related_record_id:String(row.id),instructions:'Automatically available to General staff',status:'pending',isAuto:true});
+  }
+ }else{
+  const [ord,ful]=await Promise.all([
+   db.from('orders').select('id').in('order_status',['approved','processing','shipped']).order('created_at',{ascending:false}).limit(100),
+   db.from('supplier_item_fulfilments').select('id').in('status',['shipped_submitted','delivered_submitted']).order('updated_at',{ascending:false}).limit(100)
+  ]);
+  if(ord.error)throw ord.error;if(ful.error)throw ful.error;
+  for(const row of ord.data||[])if(!tasks.some(t=>t.task_type==='delivery_assembly'&&t.related_record_id===String(row.id)))tasks.push({id:'auto-delivery-'+row.id,task_type:'delivery_assembly',title:'Track order delivery / assembly',related_record_id:String(row.id),instructions:'Automatically available to Delivery & Assembly staff',status:'pending',isAuto:true});
+  for(const row of ful.data||[])if(!tasks.some(t=>t.task_type==='fulfilment_approval'&&t.related_record_id===String(row.id)))tasks.push({id:'auto-fulfilment-'+row.id,task_type:'fulfilment_approval',title:'Review shipping / delivery proof',related_record_id:String(row.id),instructions:'Automatically available to Delivery & Assembly staff',status:'pending',isAuto:true});
+ }
  const addTask=tasks.some(t=>t.task_type==='add_product');
- const canAddProducts=!deliveryOnly&&p?.add_products===true;
+ const canAddProducts=!deliveryOnly;
  const generalAccess=!deliveryOnly;
  document.getElementById('staffProductCreatePanel').style.display=canAddProducts?'block':'none';
  document.getElementById('staffPromotionLink').style.display=generalAccess?'inline-block':'none';
@@ -5107,6 +5128,10 @@ async function loadStaffTasks(p){
     const r=await db.from('products').select('id,name,category,price,currency').eq('id',t.related_record_id).maybeSingle();
     if(r.data)html+='<small>'+escapeHTML(r.data.name)+' · '+escapeHTML(r.data.category||'')+' · '+escapeHTML(r.data.currency||'')+' '+Number(r.data.price||0).toFixed(2)+'</small><button class="primary" onclick="staffReviewProduct('+Number(r.data.id)+',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewProduct('+Number(r.data.id)+',\'rejected\')">Reject</button>';
     else html+='<small>Assigned product is unavailable or already handled.</small>';
+   }else if(t.task_type==='affiliate_application'){
+    const r=await db.from('affiliate_applications').select('id,applicant_name,full_name,email,country,status').eq('id',t.related_record_id).maybeSingle();
+    if(r.data)html+='<small>'+escapeHTML(r.data.applicant_name||r.data.full_name||'Applicant')+' · '+escapeHTML(r.data.email||'')+' · '+escapeHTML(r.data.country||'')+'</small><button class="primary" onclick="staffReviewAffiliate(\''+r.data.id+'\',\'approved\')">Approve</button><button class="secondary" onclick="staffReviewAffiliate(\''+r.data.id+'\',\'rejected\')">Reject</button>';
+    else html+='<small>Affiliate application is unavailable or already handled.</small>';
    }else if(t.task_type==='order_approval'||t.task_type==='delivery_assembly'){
     const r=await db.from('orders').select('id,order_number,customer_name,customer_email,customer_phone,shipping_address,total_amount,currency,order_status,created_at').eq('id',t.related_record_id).maybeSingle();
     if(r.data){
@@ -5124,7 +5149,7 @@ async function loadStaffTasks(p){
   const bucket=t.task_type==='supplier_application'?'supplier':t.task_type==='product_approval'?'product':t.task_type==='order_approval'?'order':t.task_type==='delivery_assembly'?'delivery':t.task_type==='fulfilment_approval'?'fulfilment':null;
   if(bucket)sections[bucket].push(html);
   else sections.supplier.push(html);
-  if(t.status==='pending')await db.from('staff_tasks').update({status:'in_progress',seen_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',t.id);
+  if(t.status==='pending'&&!t.isAuto)await db.from('staff_tasks').update({status:'in_progress',seen_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',t.id);
  }
  const ids={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks',other:'staffOtherTasks'};
  for(const [key,id] of Object.entries(ids)){const el=document.getElementById(id);if(el)el.innerHTML=sections[key].join('')||'<p class="small-note">No assigned tasks in this category.</p>';}
@@ -5136,6 +5161,7 @@ async function completeStaffTask(id){
 async function staffReviewSupplier(id,status){const box=document.getElementById('staffPanelStatus');box.textContent='Saving supplier review…';const r=await db.rpc('admin_review_supplier_application',{p_application_id:id,p_status:status});if(r.error){box.textContent='Could not review supplier: '+r.error.message;return;}box.textContent='Supplier application '+status+'.';await loadStaffPanel();}
 async function staffReviewProduct(id,status){const box=document.getElementById('staffPanelStatus');box.textContent='Saving product review…';const r=await db.rpc('staff_review_product',{p_product_id:id,p_status:status});if(r.error){box.textContent='Could not review product: '+r.error.message;return;}box.textContent='Product '+status+'.';await loadStaffPanel();}
 async function staffReviewOrder(id,status){const box=document.getElementById('staffPanelStatus');box.textContent='Saving order decision…';const r=await db.rpc('staff_review_order',{p_order_id:id,p_status:status});if(r.error){box.textContent='Could not review order: '+r.error.message;return;}box.textContent='Order '+status+'.';await loadStaffPanel();}
+async function staffReviewAffiliate(id,status){const box=document.getElementById('staffPanelStatus');box.textContent='Saving affiliate application review…';const r=await db.rpc('staff_review_affiliate_application',{p_application_id:id,p_status:status});if(r.error){box.textContent='Could not review affiliate application: '+r.error.message;return;}box.textContent='Affiliate application '+status+'.';await loadStaffPanel();}
 async function staffUpdateDelivery(id,status){
  const carrier=document.getElementById('deliveryCarrier-'+id)?.value.trim()||'',tracking=document.getElementById('deliveryTracking-'+id)?.value.trim()||'',note=document.getElementById('deliveryNote-'+id)?.value.trim()||'';
  const box=document.getElementById('staffPanelStatus');box.textContent='Saving delivery update…';
