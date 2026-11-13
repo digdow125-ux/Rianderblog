@@ -4948,7 +4948,7 @@ async function loadStaffMembers(){
    const action=next==='active'?'Activate':'Suspend';
    const statusClass=x.status==='active'?'staff-status-active':'staff-status-other';
    const editor='<div id="staffPermissionEditor-'+x.id+'" data-staff-type="'+escapeHTML(x.permissions?.staff_type||'general')+'" style="display:none;padding:12px;background:#f7f9fc;border-radius:10px"><strong>Staff permissions</strong><div class="staff-permission-grid">'+Object.entries(STAFF_LABELS).map(([k,label])=>'<label><input type="checkbox" data-staff-permission="'+k+'" '+(x.permissions?.[k]?'checked':'')+'> '+escapeHTML(label)+'</label>').join('')+'</div><button class="primary" type="button" onclick="saveStaffPermissions(\''+x.id+'\')">Save changes</button> <span id="staffPermissionStatus-'+x.id+'" class="small-note"></span></div>';
-   return '<tr><td data-label="Email"><strong>'+escapeHTML(x.email)+'</strong></td><td data-label="Staff type">'+role+'</td><td data-label="Permissions"><span title="'+escapeHTML(labels)+'">'+escapeHTML(labels)+'</span></td><td data-label="Status"><span class="'+statusClass+'">'+escapeHTML(x.status)+'</span></td><td data-label="Actions"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\''+x.id+'\')">Edit permissions</button><button class="secondary" type="button" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+action+'</button></div></td></tr><tr><td colspan="5">'+editor+'</td></tr>';
+   return '<tr><td data-label="Email"><strong>'+escapeHTML(x.email)+'</strong></td><td data-label="Staff type">'+role+'</td><td data-label="Permissions"><span title="'+escapeHTML(labels)+'">'+escapeHTML(labels)+'</span></td><td data-label="Status"><span class="'+statusClass+'">'+escapeHTML(x.status)+'</span></td><td data-label="Actions"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\''+x.id+'\')">Edit permissions</button><button class="secondary" type="button" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+action+'</button><button type="button" style="background:#fee2e2;color:#991b1b" onclick="deleteStaffMember(\\''+x.id+'\\')">Delete</button></div></td></tr><tr><td colspan="5">'+editor+'</td></tr>';
   }).join('');
   box.innerHTML='<div style="width:100%;overflow-x:auto"><table class="staff-members-table" style="width:100%;border-collapse:collapse;min-width:760px"><thead><tr><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Staff email</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Staff type</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Permissions</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Status</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Actions</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
  }catch(error){
@@ -5024,7 +5024,34 @@ async function saveStaffPermissions(id){
  if(r.error){status.textContent='Could not save: '+r.error.message;return;}
  status.textContent='Permissions updated.';await loadStaffMembers();
 }
-async function setStaffStatus(id,status){if(!staffOwner())return;const r=await db.from('staff_members').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return;}await loadStaffMembers();}
+async function setStaffStatus(id,status){
+ if(!staffOwner())return;
+ const r=await db.from('staff_members').update({status,updated_at:new Date().toISOString()}).eq('id',id);
+ if(r.error){alert('Could not update staff status: '+r.error.message);return;}
+ await loadStaffMembers();
+}
+async function deleteStaffMember(id){
+ if(!staffOwner())return;
+ const row=await db.from('staff_members').select('id,email,user_id').eq('id',id).maybeSingle();
+ if(row.error){alert('Could not find this staff member: '+row.error.message);return;}
+ if(!row.data){alert('This staff member is no longer in the list.');await loadStaffMembers();return;}
+ if(row.data.user_id===ADMIN_USER_ID){alert('The owner account cannot be deleted from My Staff.');return;}
+ const email=row.data.email||'this staff member';
+ if(!confirm('Remove '+email+' from RIANDERBLOG staff? Their staff access will be revoked. Pending or in-progress assigned tasks will be cancelled. Their personal sign-in account will NOT be deleted.'))return;
+ try{
+  if(row.data.user_id){
+   const tasks=await db.from('staff_tasks').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('staff_user_id',row.data.user_id).in('status',['pending','in_progress']);
+   if(tasks.error)throw tasks.error;
+  }
+  const removed=await db.from('staff_members').delete().eq('id',id);
+  if(removed.error)throw removed.error;
+  alert(email+' has been removed from the RIANDERBLOG staff list.');
+  await loadStaffMembers();
+  await loadOwnerStaffTasks();
+ }catch(error){
+  alert('Could not remove staff member: '+(error?.message||'Unknown error'));
+ }
+}
 async function staffAddMarketplaceProduct(){
  const status=document.getElementById('staffNewProductStatus');status.textContent='Saving product…';
  try{
