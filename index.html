@@ -1432,7 +1432,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 
 
 <section id="staffPanel" class="panel secondary-page" style="display:none">
-<div class="admin-heading"><div><span class="admin-kicker">RIANDERBLOG TEAM WORKSPACE</span><h2>Staff Panel</h2><p id="staffPanelStatus">Checking staff access…</p></div><button class="secondary" onclick="loadStaffPanel()">Refresh</button></div>
+<div class="admin-heading"><div><span class="admin-kicker">RIANDERBLOG TEAM WORKSPACE</span><h2>Staff Panel</h2><p id="staffPanelStatus">Checking staff access…</p></div><button class="secondary" onclick="window.loadStaffPanel()">Refresh</button></div>
 <div id="staffOwnerTools" style="display:none;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
 <div class="admin-subnav staff-admin-subnav">
 <button type="button" onclick="toggleAdminWorkspacePanel('staffInviteForm')">＋ Invite staff</button>
@@ -1827,7 +1827,7 @@ if(id==="suppliers"&&typeof loadSupplierWorkspace==="function")loadSupplierWorks
   if(id==="messages"&&typeof loadMarketplaceConversations==="function")loadMarketplaceConversations();
   if(id==="affiliates"&&typeof loadProgrammes==="function")loadProgrammes();
   if(id==="adminPanel"&&typeof loadAdminDashboard==="function")loadAdminDashboard();
-  if(id==="staffPanel"&&typeof loadStaffPanel==="function")loadStaffPanel();
+  if(id==="staffPanel"&&typeof window.loadStaffPanel==="function")window.loadStaffPanel();
 }catch(err){
   console.error("RIANDERBLOG section error:",err);
 }
@@ -4889,6 +4889,9 @@ async function loadStaffPanel(){
   box.textContent='Staff Panel could not finish loading: '+(error?.message||'Unknown error')+'. Tap Refresh to try again.';
  }
 }
+// Explicitly expose the loader so navigation and the Refresh button always reach the same function.
+window.loadStaffPanel = loadStaffPanel;
+
 async function inviteStaffMember(){
  const email=document.getElementById('staffInviteEmail').value.trim(),status=document.getElementById('staffInviteStatus');
  const permissions={supplier_approvals:document.getElementById('staffPermSupplier').checked,product_approvals:document.getElementById('staffPermProducts').checked,add_products:document.getElementById('staffPermAddProducts').checked,order_approvals:document.getElementById('staffPermOrders').checked,delivery_updates:document.getElementById('staffPermDelivery').checked,social_media:document.getElementById('staffPermSocial').checked};
