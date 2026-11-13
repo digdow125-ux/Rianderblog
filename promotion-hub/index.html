@@ -280,6 +280,7 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 <script id="rb-hub-menu-controller">
 (function(){
  function toggleHubMenu(){const links=document.getElementById('hubNavLinks');const button=document.getElementById('hubMenuToggle');if(!links||!button)return;const open=links.classList.toggle('open');button.setAttribute('aria-expanded',open?'true':'false');}
+ window.toggleHubMenu=toggleHubMenu;
  function showHubView(view){
   const main=document.querySelector('.rb-main-workspace');
   const activities=document.getElementById('otherActivities');
