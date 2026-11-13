@@ -434,7 +434,6 @@ async function boot(){
    msg("settingsStatus","The Supabase sign-in library did not load.");
    return;
   }
-  await loadProducts();
   let result=await db.auth.getSession();
   if(result.error)throw result.error;
   let session=result.data.session;
