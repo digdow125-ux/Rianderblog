@@ -1963,7 +1963,24 @@ async function loadAdminOrdersTable() {
     box.textContent = "Could not load orders: " + error.message;
   }
 }
-async function adminAssignOrderDeliverer(orderId,userId){try{await adminGuard();const {data:{user}}=await db.auth.getUser();const payload={delivery_assigned_to:userId||null,delivery_assigned_by:userId?user.id:null,delivery_assigned_at:userId?new Date().toISOString():null};const {error}=await db.from("orders").update(payload).eq("id",orderId);if(error)throw error;alert(userId?"Delivery / assembly staff assigned.":"Assignment cleared.");await loadAdminOrdersTable();}catch(e){alert("Could not assign staff: "+e.message);}}
+async function adminAssignOrderDeliverer(orderId,userId){
+ const status=document.getElementById('adminOrdersStatus')||document.getElementById('adminStatus');
+ try{
+  await adminGuard();const {data:{user}}=await db.auth.getUser();
+  const payload={delivery_assigned_to:userId||null,delivery_assigned_by:userId?user.id:null,delivery_assigned_at:userId?new Date().toISOString():null};
+  const {error}=await db.from("orders").update(payload).eq("id",orderId);if(error)throw error;
+  if(userId){
+   const {data:order}=await db.from('orders').select('order_number,customer_name').eq('id',orderId).maybeSingle();
+   const {error:taskError}=await db.from('staff_tasks').insert({staff_user_id:userId,assigned_by:user.id,task_type:'delivery_assembly',title:'Delivery / assembly for '+(order?.order_number||'customer order'),instructions:'Customer: '+(order?.customer_name||'Customer')+'. Complete the assigned delivery / assembly and update the order tracking.',related_record_id:orderId});
+   if(taskError)throw taskError;
+  }else{
+   const {error:cancelError}=await db.from('staff_tasks').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('task_type','delivery_assembly').eq('related_record_id',orderId).in('status',['pending','in_progress']);
+   if(cancelError)throw cancelError;
+  }
+  if(status)status.textContent=userId?'Delivery / assembly assignment saved and a staff task was created.':'Delivery / assembly assignment cleared and active tasks cancelled.';
+  await loadAdminOrdersTable();
+ }catch(e){if(status)status.textContent='Could not assign staff: '+e.message;}
+}
 async function adminSaveOrderTracking(orderId){
   try{
     await adminGuard();
