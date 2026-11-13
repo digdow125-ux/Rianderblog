@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0d1b2e">
-<title>RIANDERBLOG Promotion Hub</title>
+<title>RIANDERBLOG · Promotion Queue</title>
 <style>
 :root{--navy:#0d1b2e;--navy2:#142b49;--gold:#d9b45b;--ink:#18263a;--muted:#738096;--line:#e5eaf1;--bg:#f4f6fa;--white:#fff;--green:#17835d;--red:#b84a4a}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
@@ -57,6 +57,33 @@ footer{text-align:center;color:#8792a2;font-size:12px;padding:20px}
 /* Keep catalogue as a conventional table on phones and tablets */
 @media(max-width:900px){.catalogue-table thead{display:table-header-group!important}.catalogue-table,.catalogue-table tbody{display:table!important;width:100%!important}.catalogue-table tr{display:table-row!important;width:auto!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important}.catalogue-table td{display:table-cell!important;width:auto!important;grid-template:none!important}.catalogue-table td:before{content:none!important}.catalogue-table th{display:table-cell!important}}
 body.hub-staff-ready #schedule,body.hub-staff-ready #tutorial-plan{display:none!important}
+
+/* Dedicated page layout: show only the selected tool, never stacked panels */
+body[data-hub-page] .rb-main-workspace,
+body[data-hub-page] #otherActivities{display:none!important}
+body[data-hub-page="product"] .rb-main-workspace{display:block!important}
+body[data-hub-page="product"] #products{display:block!important}
+body[data-hub-page="product"] #tutorial-maker{display:none!important}
+body[data-hub-page="social"] #otherActivities{display:block!important}
+body[data-hub-page="social"] #schedule{display:block!important}
+body[data-hub-page="social"] #tutorial-plan,
+body[data-hub-page="social"] #queue{display:none!important}
+body[data-hub-page="tutorial-plan"] #otherActivities{display:block!important}
+body[data-hub-page="tutorial-plan"] #tutorial-plan{display:block!important}
+body[data-hub-page="tutorial-plan"] #schedule,
+body[data-hub-page="tutorial-plan"] #queue{display:none!important}
+body[data-hub-page="queue"] #otherActivities{display:block!important}
+body[data-hub-page="queue"] #queue{display:block!important}
+body[data-hub-page="queue"] #schedule,
+body[data-hub-page="queue"] #tutorial-plan{display:none!important}
+body[data-hub-page="tutorial-maker"] .rb-main-workspace{display:block!important}
+body[data-hub-page="tutorial-maker"] #tutorial-maker{display:block!important}
+body[data-hub-page="tutorial-maker"] #products{display:none!important}
+body[data-hub-page] #otherActivities .rb-activity-heading,
+body[data-hub-page] #otherActivities .rb-activity-nav{display:none!important}
+body[data-hub-page] .rb-activity-grid{display:block!important}
+body[data-hub-page] main{min-height:65vh}
+
 </style>
 <style id="adminOnlyHubGate">body:not(.hub-admin-ready):not(.hub-staff-ready) main > :not(.auth):not(.hero):not(.grid),body:not(.hub-admin-ready):not(.hub-staff-ready) .grid > :not(.products),body:not(.hub-admin-ready):not(.hub-staff-ready) footer{display:none!important}</style>
 <style id="clear-in-page-panels">
@@ -236,8 +263,8 @@ footer{background:#101f35;color:#aebdce;padding:23px;font-size:11px;letter-spaci
 .rb-activity-grid>.panel.rb-view-open{display:block!important}
 @media(max-width:650px){.rb-hub-nav-inner{display:block;padding:10px 0}.rb-hub-menu-toggle{display:block}.rb-hub-links{display:none;flex-direction:column;align-items:stretch;gap:0;padding-top:8px}.rb-hub-links.open{display:flex}.rb-hub-menu a{padding:12px 5px;border-top:1px solid rgba(255,255,255,.12)}}
 </style></head>
-<body>
-<header class="rb-hub-header"><div class="rb-hub-brand"><a class="brand" href="https://digdow125-ux.github.io/Rianderblog/"><div class="mark">R</div><div><strong>RIANDERBLOG</strong><small>Global marketplace · Promotion Hub</small></div></a></div><nav class="rb-hub-menu" aria-label="RIANDERBLOG navigation"><div class="rb-hub-nav-inner"><button class="rb-hub-menu-toggle" id="hubMenuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleHubMenu()">☰</button><div class="rb-hub-links" id="hubNavLinks"><a href="index.html">🏠 Main</a><a href="social-accounts.html">📱 Social accounts &amp; schedule</a><a href="tutorial-plan.html">🎬 Tutorial plan</a><a href="promotion-queue.html" class="active">📣 Promotion queue</a><a href="https://digdow125-ux.github.io/Rianderblog/">← Back to marketplace</a></div></div></nav></header>
+<body data-hub-page="queue">
+<header class="rb-hub-header"><div class="rb-hub-brand"><a class="brand" href="https://digdow125-ux.github.io/Rianderblog/"><div class="mark">R</div><div><strong>RIANDERBLOG</strong><small>Global marketplace · Promotion Hub</small></div></a></div><nav class="rb-hub-menu" aria-label="RIANDERBLOG navigation"><div class="rb-hub-nav-inner"><button class="rb-hub-menu-toggle" id="hubMenuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleHubMenu()">☰</button><div class="rb-hub-links" id="hubNavLinks"><a href="index.html">🛍️ Promote a Product</a><a href="tutorial-maker.html">🎬 Tutorial Maker</a><a href="social-accounts.html">📱 Social Accounts</a><a href="tutorial-plan.html">📅 Tutorial Plan</a><a href="promotion-queue.html">📣 Promotion Queue</a><a href="https://digdow125-ux.github.io/Rianderblog/">← Back to marketplace</a></div></div></nav></header>
 <main>
 <section class="hero"><div><h1>Promote your products automatically.</h1><p>One product catalogue. One promotion workspace. Prepare campaigns for your social channels and manage your daily publishing schedule.</p></div><div class="pill">CONNECTED TO YOUR MARKETPLACE</div></section>
 <section class="auth"><div><strong id="accountTitle">Checking your RIANDERBLOG account…</strong><p id="accountInfo">The Promotion Hub automatically uses the account already signed in to the RIANDERBLOG marketplace. No second sign-in is required.</p></div><button type="button" onclick="boot()">Retry account check</button></section>
