@@ -41,6 +41,12 @@ body.hub-staff-ready #schedule,body.hub-staff-ready #tutorial-plan{display:none!
 #captionComposer>section{width:100%!important;max-width:none!important;max-height:none!important;
  overflow:visible!important;box-shadow:none!important}
 </style>
+<style id="no-floating-hub-panels">
+/* All Promotion Hub panels stay in page flow; no panel covers another panel. */
+.workspace,.grid,.products,.settings{min-width:0}
+.modal,.overlay,.drawer,.popup,.dropdown-menu{position:static!important;inset:auto!important;transform:none!important;max-width:100%!important;width:100%!important;max-height:none!important;box-shadow:none!important}
+#captionComposer{position:static!important;inset:auto!important;z-index:auto!important;display:block!important}
+</style>
 </head>
 <body>
 <header><div class="brand"><div class="mark">RB</div><div><strong>RIANDERBLOG</strong><small>Promotion Hub</small></div></div><a class="button" href="https://digdow125-ux.github.io/Rianderblog/">Back to marketplace</a></header>
@@ -300,14 +306,15 @@ async function boot(){
   let staffMember=null;
   const isOwner=!!currentUser&&currentUser.id===ADMIN_USER_ID;
   if(currentUser&&!isOwner){
-   const staffResult=await db.from("staff_members").select("id,email,permissions,status").eq("user_id",currentUser.id).maybeSingle();
-   if(!staffResult.error&&staffResult.data?.status==="active"&&staffResult.data.permissions?.social_media===true)staffMember=staffResult.data;
+   const staffResult=await db.from("staff_members").select("id,email,status").eq("user_id",currentUser.id).maybeSingle();
+   const taskResult=await db.from("staff_tasks").select("id").eq("staff_user_id",currentUser.id).eq("task_type","promotion_hub").in("status",["pending","in_progress"]).limit(1);
+   if(!staffResult.error&&staffResult.data?.status==="active"&&!taskResult.error&&taskResult.data?.length)staffMember=staffResult.data;
   }
   if(!isOwner&&!staffMember){
    document.body.classList.remove("hub-admin-ready","hub-staff-ready");
    document.getElementById("accountTitle").textContent=currentUser?"No Promotion Hub permission":"RIANDERBLOG login not detected";
    document.getElementById("accountInfo").textContent=currentUser
-    ?"This account has no active social-media staff permission. Ask the RIANDERBLOG owner to enable it."
+    ?"This account has no active Promotion Hub task. Ask the RIANDERBLOG owner to assign one in the Staff Panel."
     :"Your marketplace login has not appeared in this tab yet. Return to RIANDERBLOG and sign in, then reopen this Hub.";
    msg("productStatus","Products are protected until your account is verified.");
    msg("settingsStatus","The Hub uses your existing marketplace login. No second sign-in is needed.");
