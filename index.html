@@ -1446,7 +1446,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   <div id="adminTab-wallet" class="admin-tab" style="display:none">
     <div class="admin-tools">
       <h3>RIANDERBLOG Wallet</h3>
-      <p class="small-note">View your verified affiliate commissions and marketplace earnings.</p>
+      <p class="small-note">Your verified marketplace commissions and affiliate earnings, separated by currency. Available balances include posted commissions; pending balances are not yet withdrawable.</p>
       <button class="primary" onclick="loadAdminWallet()">Refresh Wallet</button>
       <div id="adminWalletMessage" class="small-note">Wallet balances have not been loaded yet.</div>
       <div id="adminWalletBalances" class="market-grid admin-stat-grid"></div>
@@ -2375,9 +2375,9 @@ async function loadAdminDashboard() {
 
       return `
         <div class="market-card">
-          <p class="small-note">${currency} · Admin wallet</p>
+          <p class="small-note">${currency} · Commission wallet</p>
           <h3>${currency} ${available}</h3>
-          <p>Pending: ${currency} ${pending}</p>
+          <p>Pending commissions: ${currency} ${pending}</p>
         </div>
       `;
     }).join("");
