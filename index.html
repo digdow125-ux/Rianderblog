@@ -1865,10 +1865,13 @@ async function loadAdminOrdersTable() {
     const { data, error } = await db.from("orders").select("*").order("created_at", { ascending: false }).limit(100);
     if (error) throw error;
     if (!data || data.length === 0) { box.textContent = "No customer orders found."; return; }
+    const approverIds=[...new Set(data.map(o=>o.approved_by).filter(Boolean))];
+    let approverNames={};
+    if(approverIds.length){const pr=await db.from("profiles").select("id,full_name").in("id",approverIds);if(!pr.error)approverNames=Object.fromEntries((pr.data||[]).map(p=>[p.id,p.full_name||"Staff member"]));}
     box.innerHTML = `
       <div class="admin-orders-table-scroll">
         <table class="admin-orders-table">
-          <thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Order status</th><th>Date</th><th>Manage / tracking</th></tr></thead>
+          <thead><tr><th>Order</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Order status</th><th>Confirmed by</th><th>Date</th><th>Manage / tracking</th></tr></thead>
           <tbody>
             ${data.map(order => `
               <tr>
@@ -1877,6 +1880,7 @@ async function loadAdminOrdersTable() {
                 <td class="admin-order-amount">${escapeHTML(order.currency||'')} ${escapeHTML(Number(order.total_amount||0).toFixed(2))}</td>
                 <td><span class="admin-order-pill">${escapeHTML(order.payment_status||'unknown')}</span></td>
                 <td><span class="customer-order-status">${escapeHTML(orderStatusLabel(order.order_status))}</span></td>
+                <td>${order.approved_by?`<strong>${escapeHTML(approverNames[order.approved_by]||"Staff member")}</strong><small>${order.approved_at?escapeHTML(new Date(order.approved_at).toLocaleString()):"Approval recorded"}</small>`:"—"}</td>
                 <td>${order.created_at?escapeHTML(new Date(order.created_at).toLocaleDateString()):'—'}</td>
                 <td><details class="admin-order-manage"><summary>Update order</summary>
                   <div class="admin-order-track-fields">
@@ -1906,13 +1910,13 @@ async function adminSaveOrderTracking(orderId){
     if(!status)throw new Error('Choose an order status.');
     const {data:{user},error:userError}=await db.auth.getUser();
     if(userError)throw userError;
-    const {data:order,error:orderError}=await db.from('orders').select('id,payment_status').eq('id',orderId).maybeSingle();
+    const {data:order,error:orderError}=await db.from('orders').select('id,payment_status,order_status').eq('id',orderId).maybeSingle();
     if(orderError)throw orderError;
     if(!order)throw new Error('Order not found.');
     if(order.payment_status!=='paid' && status!=='cancelled'){
       throw new Error('This order must have confirmed payment before it can move into fulfilment or delivery.');
     }
-    const {data:updated,error:updateError}=await db.from('orders').update({order_status:status}).eq('id',orderId).select('id').maybeSingle();
+    const statusUpdate={order_status:status};if(status==='processing'&&order.order_status==='awaiting_admin_approval'){statusUpdate.approved_by=user.id;statusUpdate.approved_at=new Date().toISOString();}const {data:updated,error:updateError}=await db.from('orders').update(statusUpdate).eq('id',orderId).select('id').maybeSingle();
     if(updateError)throw updateError;
     if(!updated)throw new Error('Order status was not updated. Check administrator access.');
     const {error:historyError}=await db.from('order_tracking_updates').insert({
@@ -1933,7 +1937,7 @@ async function adminApproveOrder(orderId) {
 
     const { data, error } = await db
       .from("orders")
-      .update({ order_status: "processing" })
+      .update({ order_status: "processing", approved_by: (await db.auth.getUser()).data.user.id, approved_at: new Date().toISOString() })
       .eq("id", orderId)
       .eq("payment_status", "paid")
       .eq("order_status", "awaiting_admin_approval")
