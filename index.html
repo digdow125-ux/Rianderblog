@@ -1008,8 +1008,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 </style>
 <style id="no-floating-workspaces">
 /* Workspace layout rule: panels remain in normal document flow. */
-.nav-links{position:static!important;left:auto!important;top:auto!important;z-index:auto!important;max-width:none!important;min-width:0!important;box-shadow:none!important;flex-direction:row!important;flex-wrap:wrap!important}
-.nav-links.open{display:flex!important}
+/* Restore the original responsive navigation menu and dropdown behaviour. */
 .notification-panel{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;max-height:none!important;box-shadow:none!important;margin:12px 0}
 .header-actions{position:static!important;flex-wrap:wrap}
 .detail-backdrop{position:static!important;inset:auto!important;background:transparent!important;z-index:auto!important;padding:0!important;display:none!important}
@@ -1025,7 +1024,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 .admin-nav-dropdown .admin-nav-submenu{position:static!important;inset:auto!important;width:100%!important;box-shadow:none!important}
 #staffTaskWorkspace .staff-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 #ownerStaffTasksList{overflow-x:auto}
-@media(max-width:650px){.nav-links{flex-direction:column!important;align-items:stretch!important}.support-compose{flex-wrap:wrap}}
+@media(max-width:650px){.support-compose{flex-wrap:wrap}}
 </style>
 </head>
 <body>
@@ -1587,6 +1586,18 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     </div>
   </div>
 
+  <div class="admin-subnav" role="tablist" aria-label="Product management sections">
+    <button type="button" class="active" onclick="adminShowProductSection('catalogue',this)">Marketplace products</button>
+    <button type="button" onclick="adminShowProductSection('editor',this)">＋ Add product</button>
+    <button type="button" onclick="adminShowProductSection('approvals',this)">Product approvals</button>
+  </div>
+  <section id="adminProductSection-catalogue" class="admin-product-section">
+    <section class="admin-products-panel admin-products-catalogue">
+      <div class="admin-products-section-title"><div><span class="admin-products-step">01</span><div><h3>Marketplace catalogue</h3><p>Approved listings and their visibility. Edit, deactivate or remove a listing.</p></div></div><button class="secondary" type="button" onclick="renderAdminProducts()">↻ Refresh list</button></div>
+      <div id="adminProductList" class="admin-products-list admin-table-wrap">Products will appear here.</div>
+    </section>
+  </section>
+  <section id="adminProductSection-editor" class="admin-product-section" style="display:none">
   <div class="admin-products-workspace">
     <section class="admin-products-panel admin-products-editor">
       <div class="admin-products-section-title">
@@ -1663,12 +1674,13 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     </aside>
   </div>
 
-  <section class="admin-products-panel admin-products-catalogue">
-    <div class="admin-products-section-title">
-      <div><span class="admin-products-step">03</span><div><h3>Marketplace catalogue</h3><p>Edit listings, manage visibility or remove products.</p></div></div>
-      <button class="secondary" type="button" onclick="renderAdminProducts()">↻ Refresh list</button>
-    </div>
-    <div id="adminProductList" class="admin-products-list">Products will appear here.</div>
+  </div>
+  </section>
+  <section id="adminProductSection-approvals" class="admin-product-section" style="display:none">
+    <section class="admin-products-panel admin-products-catalogue">
+      <div class="admin-products-section-title"><div><span class="admin-products-step">03</span><div><h3>Supplier product approvals</h3><p>Review submitted products in a table and approve or reject each one.</p></div></div><button class="secondary" type="button" onclick="loadPendingSupplierProducts()">↻ Refresh approvals</button></div>
+      <div id="adminProductApprovalsTable" class="admin-table-wrap">Product submissions will appear here.</div>
+    </section>
   </section>
 </div>
 
@@ -2577,9 +2589,20 @@ async function loadAdminDashboard() {
   }
       }
 function productReviewBadge(p){const status=p.review_status||'approved';const label=status==='approved'?'APPROVED':status==='rejected'?'REJECTED':'NOT APPROVED · PENDING';const cls=status==='approved'?'review-approved':status==='rejected'?'review-rejected':'review-pending';return '<span class="product-review-badge '+cls+'">'+label+'</span>';}
-function renderAdminProducts(){const box=document.getElementById('adminProductList');if(!box)return;box.innerHTML=allProducts.length?allProducts.map(p=>'<div class="admin-row '+((p.review_status||'approved')==='approved'?'':'product-needs-review')+'"><div><strong>'+escapeHTML(p.name)+'</strong><div class="small-note">'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+' · '+(p.is_active?'Visible to customers':'Not visible to customers')+'</div>'+productReviewBadge(p)+'</div><div class="admin-actions"><button class="secondary" onclick="editAdminProduct(\''+escapeHTML(p.id)+'\')">Edit</button><button class="remove" onclick="deleteAdminProduct(\''+escapeHTML(p.id)+'\')">Delete</button></div></div>').join(''):'No products available.';}
+function renderAdminProducts(){
+ const box=document.getElementById('adminProductList');if(!box)return;
+ const rows=allProducts||[];
+ box.innerHTML=rows.length?'<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Product</th><th>Price</th><th>Review status</th><th>Visibility</th><th>Actions</th></tr></thead><tbody>'+rows.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Uncategorised')+'</small></td><td>'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+'</td><td>'+productReviewBadge(p)+'</td><td>'+(p.is_active?'Visible':'Hidden')+'</td><td><button class="secondary" onclick="editAdminProduct(\\''+escapeHTML(p.id)+'\\')">Edit</button> <button class="remove" onclick="deleteAdminProduct(\\''+escapeHTML(p.id)+'\\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No products available.';
+}
+function adminShowProductSection(section,button){
+ document.querySelectorAll('#adminTab-products .admin-product-section').forEach(el=>el.style.display='none');
+ const target=document.getElementById('adminProductSection-'+section);if(target)target.style.display='block';
+ document.querySelectorAll('#adminTab-products .admin-subnav button').forEach(el=>el.classList.toggle('active',el===button));
+ if(section==='catalogue')renderAdminProducts();
+ if(section==='approvals')loadPendingSupplierProducts();
+}
 async function loadPendingSupplierProducts(){
- const box=document.getElementById('pendingSupplierProductList');if(!box)return;box.textContent='Loading supplier product submissions...';
+ const box=document.getElementById('adminProductApprovalsTable')||document.getElementById('pendingSupplierProductList');if(!box)return;box.textContent='Loading supplier product submissions...';
  try{
   await adminGuard();
   const {data,error}=await db.from('products').select('id,name,description,price,currency,category,image_url,created_at,supplier_id,review_status,is_active').not('supplier_id','is',null).order('created_at',{ascending:false});
