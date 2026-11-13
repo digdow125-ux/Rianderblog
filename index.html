@@ -1530,8 +1530,8 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
           <input id="adminProductImageUrl" type="url" placeholder="https://example.com/product-image.jpg">
         </div>
         <div class="admin-products-field admin-products-field-wide">
-          <label for="adminProductLink">Supplier product link</label>
-          <input id="adminProductLink" type="url" placeholder="Paste the supplier or affiliate product URL">
+          <label for="adminProductLink">Supplier product link (optional)</label>
+          <input id="adminProductLink" type="url" placeholder="Optional — paste a supplier or affiliate product URL">
           <span class="admin-products-hint">Used for product sourcing and administration.</span>
         </div>
       </div>
@@ -2146,10 +2146,6 @@ async function saveAdminProduct(){
       throw new Error('Enter a product name and valid price.');
     }
 
-    if(!link){
-      throw new Error('Enter a valid affiliate or supplier product link.');
-    }
-
     const id=document.getElementById('adminProductId').value;
     const oldProduct=id
       ? allProducts.find(x=>String(x.id)===String(id))
@@ -2169,6 +2165,7 @@ async function saveAdminProduct(){
       category:document.getElementById('adminProductCategory').value.trim()||'Other',
       image_url:image,
       product_image_urls:images,
+      affiliate_url:link || oldProduct?.affiliate_url || null,
       description:document.getElementById('adminProductDescription').value.trim(),
       is_active:document.getElementById('adminProductActive').checked
     };
