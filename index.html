@@ -456,14 +456,14 @@ main{max-width:1220px}
 /* Premium account and guest-shopping experience */
 .new-shop-guide{margin:16px 0 22px;padding:20px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(16,33,62,.045)}
 .new-shop-guide-heading h3{margin:5px 0 16px;color:#10213e;font-size:19px}
-.new-shop-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.new-shop-step{display:flex;align-items:flex-start;gap:10px;padding:13px;border-radius:10px;background:#f6f8fb}
+.new-shop-steps{display:flex;flex-flow:row nowrap;gap:12px;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.new-shop-step{display:flex;align-items:flex-start;gap:10px;flex:1 0 calc(33.333% - 8px);min-width:220px;padding:14px;border:1px solid #e5eaf1;border-radius:10px;background:#f6f8fb;scroll-snap-align:start}
 .new-shop-step>span{display:grid;place-items:center;flex:0 0 28px;height:28px;border-radius:50%;background:#10213e;color:#e0b95e;font-weight:800}
 .new-shop-step strong,.new-shop-step small{display:block}
 .new-shop-step strong{color:#10213e;font-size:13px}
 .new-shop-step small{margin-top:4px;color:#687589;font-size:12px;line-height:1.5}
-.new-shop-help{margin:14px 0 0;color:#687589;font-size:12px;line-height:1.5}
-@media(max-width:700px){.new-shop-guide{padding:16px}.new-shop-steps{grid-template-columns:1fr}.new-shop-step{padding:12px}}
+.new-shop-help{margin:10px 0 0;color:#687589;font-size:12px;line-height:1.5}
+@media(max-width:700px){.new-shop-guide{padding:16px}.new-shop-step{flex:0 0 min(82vw,290px);min-width:0;padding:12px}.new-shop-guide-heading h3{font-size:17px}}
 .guest-welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0 22px;padding:22px 24px;border:1px solid #e8dfcc;border-radius:15px;background:linear-gradient(110deg,#fff 0%,#fbf7ee 100%);box-shadow:0 7px 22px rgba(16,33,62,.05)}
 .guest-kicker,.account-kicker,.paychangu-kicker{display:block;color:#a47a2e;font-size:10px;font-weight:800;letter-spacing:1.8px}
 .guest-welcome h3{margin:7px 0;color:#10213e;font-size:20px}
