@@ -4889,7 +4889,7 @@ async function loadStaffMembers(){
  const active=(r.data||[]).filter(x=>x.status==='active'&&x.user_id);
  if(select)select.innerHTML='<option value="">Choose staff member</option>'+active.map(x=>'<option value="'+escapeHTML(x.user_id)+'">'+escapeHTML(x.email)+'</option>').join('');
  if(!r.data?.length){box.textContent='No staff invited yet.';return;}
- box.innerHTML=r.data.map(x=>{const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'Task-based access only';const next=x.status==='active'?'suspended':'active';return '<div class="staff-member"><div><strong>'+escapeHTML(x.email)+'</strong><small>'+escapeHTML(x.status)+' · '+escapeHTML(labels)+'</small></div><button class="secondary" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+(next==='active'?'Activate':'Suspend')+'</button></div>';}).join('');
+ box.innerHTML=r.data.map(x=>{const labels=Object.keys(STAFF_LABELS).filter(k=>x.permissions?.[k]).map(k=>STAFF_LABELS[k]).join(', ')||'Task-based access only';const next=x.status==='active'?'suspended':'active';return '<div class="staff-member" style="display:block;margin:10px 0;padding:14px;border:1px solid #e3e8ef;border-radius:12px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><strong>'+escapeHTML(x.email)+'</strong><small style="display:block">'+escapeHTML(x.status)+' · '+escapeHTML(labels)+'</small></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\\''+x.id+'\\')">Edit what they can do</button><button class="secondary" type="button" onclick="setStaffStatus(\\''+x.id+'\\',\\''+next+'\\')">'+(next==='active'?'Activate':'Suspend')+'</button></div></div><div id="staffPermissionEditor-'+x.id+'" style="display:none;margin-top:12px;padding:12px;background:#f7f9fc;border-radius:10px"><strong>Staff permissions</strong><div class="staff-permission-grid">'+Object.entries(STAFF_LABELS).map(([k,label])=>'<label><input type="checkbox" data-staff-permission="'+k+'" '+(x.permissions?.[k]?'checked':'')+'> '+escapeHTML(label)+'</label>').join('')+'</div><button class="primary" type="button" onclick="saveStaffPermissions(\\''+x.id+'\\')">Save changes</button><span id="staffPermissionStatus-'+x.id+'" class="small-note"></span></div></div>';}).join('');
 }
 async function loadTaskRecordOptions(){
  const type=document.getElementById('staffTaskType')?.value,select=document.getElementById('staffTaskRecordSelect'),idInput=document.getElementById('staffTaskRecordId');
@@ -4944,6 +4944,16 @@ async function cancelStaffTask(id){
  if(!staffOwner())return;
  const r=await db.from('staff_tasks').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',id);
  const box=document.getElementById('staffTaskAssignStatus');if(r.error){if(box)box.textContent='Could not cancel task: '+r.error.message;return;}if(box)box.textContent='Task cancelled.';await loadOwnerStaffTasks();
+}
+function staffTogglePermissionEditor(id){if(!staffOwner())return;const panel=document.getElementById('staffPermissionEditor-'+id);if(panel)panel.style.display=panel.style.display==='none'?'block':'none';}
+async function saveStaffPermissions(id){
+ if(!staffOwner())return;
+ const panel=document.getElementById('staffPermissionEditor-'+id),status=document.getElementById('staffPermissionStatus-'+id);if(!panel||!status)return;
+ const permissions={};panel.querySelectorAll('[data-staff-permission]').forEach(input=>{permissions[input.dataset.staffPermission]=input.checked;});
+ status.textContent='Saving…';
+ const r=await db.from('staff_members').update({permissions,updated_at:new Date().toISOString()}).eq('id',id);
+ if(r.error){status.textContent='Could not save: '+r.error.message;return;}
+ status.textContent='Permissions updated.';await loadStaffMembers();
 }
 async function setStaffStatus(id,status){if(!staffOwner())return;const r=await db.from('staff_members').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return;}await loadStaffMembers();}
 async function staffAddMarketplaceProduct(){
