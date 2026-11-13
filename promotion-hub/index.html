@@ -82,16 +82,31 @@ async function refreshSession(){const {data}=await sb.auth.getSession(); setUser
 function setUser(user){currentUser=user;$("authPanel").classList.toggle("hidden",!!user);$("appPanel").classList.toggle("hidden",!user);$("signOut").classList.toggle("hidden",!user);$("userLabel").textContent=user?.email||"";if(user){loadProducts();loadPosts();loadAutomationSettings();loadMetaConnection();}}
 sb.auth.onAuthStateChange((_event,session)=>setUser(session?.user||null));
 $("googleLogin").onclick=async()=>{
+ const b=$("googleLogin");
  clearMessage("authMessage");
- const b=$("googleLogin"); b.disabled=true; b.textContent="Opening Google sign-in…";
+ b.disabled=true;
+ b.textContent="Connecting to Google…";
+ message("authMessage","Connecting securely to Google. Please wait…");
  try{
-  const {data,error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.origin+window.location.pathname,skipBrowserRedirect:true}});
+  if(!window.supabase?.createClient)throw new Error("The sign-in service did not load. Refresh this page in Chrome and try again.");
+  const {error}=await sb.auth.signInWithOAuth({
+   provider:"google",
+   options:{redirectTo:window.location.href}
+  });
   if(error)throw error;
-  if(!data?.url)throw new Error("Supabase did not return the Google sign-in URL. Check that Google is enabled in Supabase Authentication providers.");
-  window.location.assign(data.url);
+  // Supabase normally redirects automatically. Keep a visible fallback if it does not.
+  b.textContent="Opening Google…";
+  setTimeout(()=>{
+   if(document.visibilityState==="visible"){
+    b.disabled=false;
+    b.textContent="🌐 Continue with Google";
+    message("authMessage","Google did not open. Check that Google is enabled in Supabase and that this exact Promotion Hub URL is allowed in Authentication → URL Configuration.","error");
+   }
+  },12000);
  }catch(e){
   message("authMessage","Google sign-in error: "+(e.message||"Please try again."),"error");
-  b.disabled=false; b.textContent="🌐 Continue with Google";
+  b.disabled=false;
+  b.textContent="🌐 Continue with Google";
  }
 };
 $("login").onclick=async()=>{clearMessage("authMessage");const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)message("authMessage",error.message,"error");};
