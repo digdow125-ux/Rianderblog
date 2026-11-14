@@ -209,6 +209,8 @@ footer strong{color:var(--gold)}
 .listing h4{margin:0 0 5px;color:var(--navy)}
 .small-note{font-size:12px;color:var(--muted);line-height:1.5}
 
+.affiliate-form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.affiliate-form-actions button{min-width:130px}.affiliate-management-workspace .admin-tools{margin-top:18px}.affiliate-management-workspace .admin-tools table{width:100%;border-collapse:collapse}.affiliate-management-workspace .admin-tools th,.affiliate-management-workspace .admin-tools td{padding:10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.affiliate-management-workspace .admin-tools td small{display:block;color:var(--muted);margin-top:4px}.affiliate-management-workspace .admin-tools td button{margin:3px}
+
 /* RIANDERBLOG marketplace storefront layout */
 :root{--orange:#f36b25;--orange-dark:#d95517;--market-blue:#173b63}
 .topbar{background:#f36b25;color:#fff;font-weight:700}
@@ -2156,7 +2158,7 @@ main{max-width:1440px}
       <p class="small-note">Add a product only after obtaining permission and a genuine affiliate tracking URL from the partner network.</p>
       <div class="form-grid"><input id="extProductTitle" placeholder="Product name"><input id="extProductCategory" placeholder="Category"><input id="extProductPrice" type="number" min="0" step="0.01" placeholder="Price (optional)"><select id="extProductCurrency"><option>USD</option><option>MWK</option><option>ZAR</option><option>MZN</option><option>TZS</option><option>UGX</option><option>GBP</option><option>EUR</option></select><input id="extProductCommission" type="number" min="0" max="100" step="0.001" placeholder="Advertised commission rate (optional)"><select id="extProductNetwork"><option value="">Choose network</option></select><input id="extProductImage" type="url" placeholder="Product image URL"><input id="extProductUrl" type="url" placeholder="Original product page URL"><input id="extProductAffiliateUrl" type="url" placeholder="Genuine affiliate tracking URL"><textarea id="extProductDescription" placeholder="Product description and promotion notes"></textarea></div>
       <label><input id="extProductFeatured" type="checkbox"> Feature this offer</label><label><input id="extProductActive" type="checkbox"> Publish on Recommended Deals</label>
-      <button class="primary" onclick="saveExternalAffiliateProduct()">Save external product</button><p id="extProductStatus" role="status"></p>
+      <input id="extProductEditId" type="hidden" value=""><div class="affiliate-form-actions"><button id="extProductSaveButton" class="primary" type="button" onclick="saveExternalAffiliateProduct()">Save external product</button><button id="extProductCancelEdit" class="secondary" type="button" onclick="cancelExternalAffiliateProductEdit()" style="display:none">Cancel editing</button><button class="secondary" type="button" onclick="resetExternalAffiliateProductForm()">Clear form</button></div><p id="extProductStatus" role="status" aria-live="polite"></p><p class="small-note">Manual workflow: copy the product details and approved tracking link from the partner website, paste them here, then save. Use the original product URL for reference and the affiliate URL for customer clicks.</p>
     </div>
     <div class="admin-tools"><h3>External offers and publication status</h3><p class="small-note">Review, publish or unpublish partner products. Remove offers whose tracking links expire or whose partner terms change.</p><div id="externalAffiliateAdminList">Loading external offers…</div></div>
     <div class="admin-tools"><h3>Commission verification and reporting</h3><p class="small-note">Use the partner network's own reporting dashboard as the source of truth for clicks, conversions, reversals and approved commission. RIANDERBLOG must not count pending or estimated commission as withdrawable income.</p><ul><li>Record the partner network and reporting period.</li><li>Reconcile approved sales against cancelled or returned orders.</li><li>Only record commission after the network confirms it.</li><li>Keep payout references and currency for accounting.</li></ul><p class="small-note">Affiliate disclosure: RIANDERBLOG may earn a commission when a customer purchases through a qualifying partner link. The partner handles the sale, payment, shipping and returns.</p></div>
@@ -2536,10 +2538,61 @@ async function openExternalAffiliateManagement(){
   }
 }
 async function loadExternalAffiliateAdmin(){try{await adminGuard();}catch(e){return;}await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks(),loadExternalAffiliateDashboard(),loadExternalAffiliateCampaigns(),loadExternalAffiliateCommissions(),refreshExternalAffiliateSelects()]);}
-async function loadExternalAffiliateProductsAdmin(){const box=document.getElementById('externalAffiliateAdminList');if(!box)return;const {data,error}=await db.from('external_affiliate_products').select('id,title,category,is_active,is_featured,commission_rate').order('created_at',{ascending:false});if(error){box.textContent=error.message;return;}box.innerHTML=data?.length?'<table><thead><tr><th>Product</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+data.map(p=>'<tr><td>'+escapeHTML(p.title)+'<small>'+escapeHTML(p.category||'Other')+'</small></td><td>'+(p.commission_rate==null?'—':p.commission_rate+'%')+'</td><td>'+(p.is_active?'Live':'Draft')+'</td><td><button onclick="toggleExternalAffiliateProduct(\''+p.id+'\','+(!p.is_active)+')">'+(p.is_active?'Unpublish':'Publish')+'</button> <button onclick="deleteExternalAffiliateProduct(\''+p.id+'\')">Delete</button></td></tr>').join('')+'</tbody></table>':'No external products yet.';}
+async function loadExternalAffiliateProductsAdmin(){
+ const box=document.getElementById('externalAffiliateAdminList');if(!box)return;
+ const {data,error}=await db.from('external_affiliate_products').select('id,title,category,is_active,is_featured,commission_rate,price,currency,description,image_url,product_url,affiliate_url,network_id').order('created_at',{ascending:false});
+ if(error){box.textContent='Could not load external offers: '+error.message;return;}
+ box.innerHTML=data?.length?'<div class="admin-table-wrap"><table><thead><tr><th>Product</th><th>Price</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+data.map(p=>'<tr><td><strong>'+escapeHTML(p.title)+'</strong><small>'+escapeHTML(p.category||'Other')+'</small></td><td>'+(p.price==null?'—':escapeHTML(p.currency||'USD')+' '+Number(p.price).toFixed(2))+'</td><td>'+(p.commission_rate==null?'—':Number(p.commission_rate)+'%')+'</td><td>'+(p.is_active?'Live':'Draft')+'</td><td><button type="button" onclick="editExternalAffiliateProduct(\\''+p.id+'\\')">Edit</button> <button type="button" onclick="toggleExternalAffiliateProduct(\\''+p.id+'\\','+(!p.is_active)+')">'+(p.is_active?'Unpublish':'Publish')+'</button> <button type="button" onclick="deleteExternalAffiliateProduct(\\''+p.id+'\\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No external products yet.';
+}
 async function loadExternalAffiliateNetworks(){const {data,error}=await db.from('external_affiliate_networks').select('id,name,status').order('name');const sel=document.getElementById('extProductNetwork'),box=document.getElementById('externalAffiliateNetworkList');if(error){if(box)box.textContent=error.message;return;}if(sel)sel.innerHTML='<option value="">Choose network</option>'+(data||[]).map(n=>'<option value="'+n.id+'">'+escapeHTML(n.name)+'</option>').join('');if(box)box.innerHTML=data?.length?'<div class="affiliate-network-list">'+data.map(n=>'<article class="admin-tools affiliate-network-card"><div><strong>'+escapeHTML(n.name)+'</strong><p class="small-note">Status: '+escapeHTML(n.status)+'</p></div><div class="affiliate-network-actions">'+(n.signup_url?'<a class="primary" href="'+escapeHTML(safeURL(n.signup_url))+'" target="_blank" rel="noopener noreferrer">Connect / Open account ↗</a>':(n.website?'<a class="primary" href="'+escapeHTML(safeURL(n.website))+'" target="_blank" rel="noopener noreferrer">Connect / Open account ↗</a>':'<span class="small-note">Add the official partner portal URL</span>'))+(n.website?'<a class="secondary" href="'+escapeHTML(safeURL(n.website))+'" target="_blank" rel="noopener noreferrer">Visit partner website ↗</a>':'')+'</div></article>').join('')+'</div>':'No networks yet. Add your first partner network above.';}
 async function saveExternalAffiliateNetwork(){const box=document.getElementById('extNetworkStatus');try{await adminGuard();const name=document.getElementById('extNetworkName').value.trim();if(!name)throw Error('Enter network name.');const {error}=await db.from('external_affiliate_networks').insert({name,website:document.getElementById('extNetworkWebsite').value.trim()||null,signup_url:document.getElementById('extNetworkSignup').value.trim()||null});if(error)throw error;box.textContent='Network saved.';await loadExternalAffiliateNetworks();}catch(e){box.textContent=e.message;}}
-async function saveExternalAffiliateProduct(){const box=document.getElementById('extProductStatus');try{await adminGuard();const title=document.getElementById('extProductTitle').value.trim(),raw=document.getElementById('extProductAffiliateUrl').value.trim();if(!title||!raw)throw Error('Product name and affiliate tracking URL are required.');const link=safeURL(raw);if(!link||!/^https?:\/\//i.test(link))throw Error('Enter a valid affiliate URL.');const im=document.getElementById('extProductImage').value.trim(),page=document.getElementById('extProductUrl').value.trim();const {error}=await db.from('external_affiliate_products').insert({title,category:document.getElementById('extProductCategory').value.trim()||'Other',description:document.getElementById('extProductDescription').value.trim()||null,price:document.getElementById('extProductPrice').value?Number(document.getElementById('extProductPrice').value):null,currency:document.getElementById('extProductCurrency').value,commission_rate:document.getElementById('extProductCommission').value?Number(document.getElementById('extProductCommission').value):null,network_id:document.getElementById('extProductNetwork').value||null,image_url:im?safeURL(im):null,product_url:page?safeURL(page):null,affiliate_url:link,is_featured:document.getElementById('extProductFeatured').checked,is_active:document.getElementById('extProductActive').checked});if(error)throw error;box.textContent='External product saved.';await loadExternalAffiliateProductsAdmin();}catch(e){box.textContent=e.message;}}
+function resetExternalAffiliateProductForm(){
+ ['extProductEditId','extProductTitle','extProductCategory','extProductPrice','extProductCommission','extProductImage','extProductUrl','extProductAffiliateUrl','extProductDescription'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+ const network=document.getElementById('extProductNetwork');if(network)network.value='';
+ const currency=document.getElementById('extProductCurrency');if(currency)currency.value='USD';
+ ['extProductFeatured','extProductActive'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+ const save=document.getElementById('extProductSaveButton');if(save)save.textContent='Save external product';
+ const cancel=document.getElementById('extProductCancelEdit');if(cancel)cancel.style.display='none';
+}
+function cancelExternalAffiliateProductEdit(){resetExternalAffiliateProductForm();const box=document.getElementById('extProductStatus');if(box)box.textContent='Editing cancelled. Your saved offer was not changed.';}
+async function editExternalAffiliateProduct(id){
+ const box=document.getElementById('extProductStatus');
+ try{
+  await adminGuard();
+  const {data,error}=await db.from('external_affiliate_products').select('id,title,category,is_active,is_featured,commission_rate,price,currency,description,image_url,product_url,affiliate_url,network_id').eq('id',id).single();
+  if(error)throw error;
+  const values={extProductEditId:data.id,extProductTitle:data.title,extProductCategory:data.category,extProductPrice:data.price,extProductCommission:data.commission_rate,extProductImage:data.image_url,extProductUrl:data.product_url,extProductAffiliateUrl:data.affiliate_url,extProductDescription:data.description,extProductNetwork:data.network_id,extProductCurrency:data.currency||'USD'};
+  Object.entries(values).forEach(([key,value])=>{const el=document.getElementById(key);if(el)el.value=value??'';});
+  document.getElementById('extProductFeatured').checked=!!data.is_featured;
+  document.getElementById('extProductActive').checked=!!data.is_active;
+  document.getElementById('extProductSaveButton').textContent='Update external product';
+  document.getElementById('extProductCancelEdit').style.display='inline-block';
+  box.textContent='Editing '+data.title+'. Make changes and choose Update external product.';
+  document.getElementById('extProductTitle').scrollIntoView({behavior:'smooth',block:'center'});
+ }catch(e){if(box)box.textContent='Could not open this offer for editing: '+e.message;}
+}
+async function saveExternalAffiliateProduct(){
+ const box=document.getElementById('extProductStatus');
+ try{
+  await adminGuard();
+  const value=id=>document.getElementById(id).value.trim();
+  const title=value('extProductTitle'),raw=value('extProductAffiliateUrl');
+  if(!title||!raw)throw Error('Product name and genuine affiliate tracking URL are required.');
+  const link=safeURL(raw);if(!link||!/^https?:\\/\\//i.test(link))throw Error('Enter a valid affiliate tracking URL beginning with http:// or https://.');
+  const cleanOptional=(rawValue,label)=>{if(!rawValue)return null;const clean=safeURL(rawValue);if(!clean||!/^https?:\\/\\//i.test(clean))throw Error('Enter a valid '+label+' URL or leave it blank.');return clean;};
+  const price=value('extProductPrice'),commission=value('extProductCommission');
+  if(price&&(!Number.isFinite(Number(price))||Number(price)<0))throw Error('Enter a valid non-negative product price.');
+  if(commission&&(!Number.isFinite(Number(commission))||Number(commission)<0||Number(commission)>100))throw Error('Commission rate must be between 0 and 100.');
+  const row={title,category:value('extProductCategory')||'Other',description:value('extProductDescription')||null,price:price?Number(price):null,currency:document.getElementById('extProductCurrency').value,commission_rate:commission?Number(commission):null,network_id:document.getElementById('extProductNetwork').value||null,image_url:cleanOptional(value('extProductImage'),'product image'),product_url:cleanOptional(value('extProductUrl'),'original product page'),affiliate_url:link,is_featured:document.getElementById('extProductFeatured').checked,is_active:document.getElementById('extProductActive').checked};
+  const editId=value('extProductEditId');
+  const result=editId?await db.from('external_affiliate_products').update(row).eq('id',editId):await db.from('external_affiliate_products').insert(row);
+  if(result.error)throw result.error;
+  box.textContent=editId?'External product updated successfully.':'External product saved successfully.';
+  resetExternalAffiliateProductForm();
+  await loadExternalAffiliateProductsAdmin();
+  await refreshExternalAffiliateSelects();
+ }catch(e){box.textContent='Could not save external product: '+e.message;}
+}
 async function toggleExternalAffiliateProduct(id,active){try{await adminGuard();const {error}=await db.from('external_affiliate_products').update({is_active:active}).eq('id',id);if(error)throw error;await loadExternalAffiliateProductsAdmin();}catch(e){alert(e.message);}}
 async function deleteExternalAffiliateProduct(id){if(!confirm('Delete external affiliate product?'))return;try{await adminGuard();const {error}=await db.from('external_affiliate_products').delete().eq('id',id);if(error)throw error;await loadExternalAffiliateProductsAdmin();}catch(e){alert(e.message);}}
 
