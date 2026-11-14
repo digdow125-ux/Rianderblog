@@ -430,7 +430,7 @@ const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
 const SITE_URL="https://digdow125-ux.github.io/Rianderblog/";
 const ADMIN_USER_ID="a32248b7-5745-4dd4-8af0-bce4eb465f66";
 const HUB_URL=SITE_URL+"promotion-hub/";
-const PRODUCT_SHARE_URL=(id)=>SUPABASE_URL+"/functions/v1/product-share?id="+encodeURIComponent(String(id))+"&v=19";
+const PRODUCT_SHARE_URL=(id)=>SITE_URL+"share/"+encodeURIComponent(String(id))+"/?v="+Date.now();
 const db=window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}}) : null;
 let currentUser=null, currentStaffMember=null, isHubOwner=false, products=[], connections=[], queueItems=[], promotionTaskItems=[], selectedProductIndex=-1;
 const shareImageFileCache=new Map();
