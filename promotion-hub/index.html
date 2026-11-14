@@ -536,7 +536,13 @@ async function shareSelected(platform){
  // Android will show compatible apps (Facebook, WhatsApp, Telegram, etc.) in its share sheet.
  try{
   let file=shareImageFileCache.get(String(p.id));
-  if(!file)file=await prepareShareImageFile(p);
+  if(!file){
+   msg("shareStatus","Preparing the marketplace product photo. Please tap Share again when the photo is ready.");
+   file=await prepareShareImageFile(p);
+   if(!file){msg("shareStatus","Could not prepare the product photo. Check that the marketplace image is publicly accessible, then try again.");return}
+   msg("shareStatus","Product photo is ready. Tap Share again to send it to your social apps.");
+   return;
+  }
   if(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
    await navigator.share({files:[file],title:p.name||"RIANDERBLOG product",text:caption+" "+link});
    msg("shareStatus","Product photo, name, price and marketplace link are ready in Android's share menu. Choose "+targetName+" if it appears, or another social app.");
