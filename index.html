@@ -1963,7 +1963,19 @@ main{max-width:1440px}
     <section class="admin-products-panel admin-products-catalogue">
       <div class="admin-products-section-title"><div><span class="admin-products-step">01</span><div><h3>Marketplace catalogue</h3><p>Approved listings and their visibility. Edit, deactivate or remove a listing.</p></div></div><button class="secondary" type="button" onclick="renderAdminProducts()">↻ Refresh list</button></div>
       <div id="adminProductList" class="admin-products-list admin-table-wrap">Products will appear here.</div>
-    </section>
+    
+
+  <div id="externalAffiliateManagement" class="admin-tools affiliate-management-workspace admin-only">
+  <div class="admin-heading"><div><span class="admin-kicker">EXTERNAL PARTNER MARKETING</span><h2>Affiliate Management</h2><p>Manage RIANDERBLOG's promotions of products from other companies. This workspace is separate from the customer Affiliate Centre and the Admin Panel.</p></div></div>
+  <div class="affiliate-management-content">
+    <div class="admin-tools"><span class="admin-kicker">EXTERNAL PARTNER MARKETING</span><h2>External Affiliate Management</h2><p>Manage products and genuine tracking links from other companies. Separate from RIANDERBLOG customer affiliates.</p>
+    <h3>Add affiliate network</h3><div class="form-grid"><input id="extNetworkName" placeholder="Network / company name"><input id="extNetworkWebsite" type="url" placeholder="Network website"><input id="extNetworkSignup" type="url" placeholder="Affiliate signup URL"></div><button class="secondary" onclick="saveExternalAffiliateNetwork()">＋ Save network</button><p id="extNetworkStatus"></p>
+    <hr><h3>Add external product</h3><div class="form-grid"><input id="extProductTitle" placeholder="Product name"><input id="extProductCategory" placeholder="Category"><input id="extProductPrice" type="number" min="0" step="0.01" placeholder="Price (optional)"><select id="extProductCurrency"><option>USD</option><option>MWK</option><option>ZAR</option><option>MZN</option><option>TZS</option><option>UGX</option><option>GBP</option><option>EUR</option></select><input id="extProductCommission" type="number" min="0" max="100" step="0.001" placeholder="Commission %"><select id="extProductNetwork"><option value="">Choose network</option></select><input id="extProductImage" type="url" placeholder="Image URL"><input id="extProductUrl" type="url" placeholder="Original product URL"><input id="extProductAffiliateUrl" type="url" placeholder="Genuine affiliate tracking URL"><textarea id="extProductDescription" placeholder="Short description"></textarea></div><label><input id="extProductFeatured" type="checkbox"> Feature offer</label><label><input id="extProductActive" type="checkbox"> Publish on Recommended Deals</label><button class="primary" onclick="saveExternalAffiliateProduct()">Save external product</button><p id="extProductStatus"></p></div>
+    <div class="admin-tools"><h3>External products</h3><div id="externalAffiliateAdminList">Loading...</div></div><div class="admin-tools"><h3>Affiliate networks</h3><div id="externalAffiliateNetworkList">Loading...</div></div><p class="small-note">Sales and earnings are not counted until verified by the affiliate network.</p>
+  </div>
+</div>
+
+</section>
   </section>
   <section id="adminProductSection-editor" class="admin-product-section" style="display:none">
   <div class="admin-products-workspace">
@@ -2122,15 +2134,7 @@ main{max-width:1440px}
     <a href="https://supabase.com/dashboard/project/yymdyxlbdgbrgrykdspx/editor" target="_blank" rel="noopener">Open Supabase database</a>
   </section>
 
-<section id="externalAffiliateManagement" class="panel secondary-page admin-box admin-only" style="display:none">
-  <div class="admin-heading"><div><span class="admin-kicker">EXTERNAL PARTNER MARKETING</span><h2>Affiliate Management</h2><p>Manage RIANDERBLOG's promotions of products from other companies. This workspace is separate from the customer Affiliate Centre and the Admin Panel.</p></div></div>
-  <div class="affiliate-management-workspace">
-    <div class="admin-tools"><span class="admin-kicker">EXTERNAL PARTNER MARKETING</span><h2>External Affiliate Management</h2><p>Manage products and genuine tracking links from other companies. Separate from RIANDERBLOG customer affiliates.</p>
-    <h3>Add affiliate network</h3><div class="form-grid"><input id="extNetworkName" placeholder="Network / company name"><input id="extNetworkWebsite" type="url" placeholder="Network website"><input id="extNetworkSignup" type="url" placeholder="Affiliate signup URL"></div><button class="secondary" onclick="saveExternalAffiliateNetwork()">＋ Save network</button><p id="extNetworkStatus"></p>
-    <hr><h3>Add external product</h3><div class="form-grid"><input id="extProductTitle" placeholder="Product name"><input id="extProductCategory" placeholder="Category"><input id="extProductPrice" type="number" min="0" step="0.01" placeholder="Price (optional)"><select id="extProductCurrency"><option>USD</option><option>MWK</option><option>ZAR</option><option>MZN</option><option>TZS</option><option>UGX</option><option>GBP</option><option>EUR</option></select><input id="extProductCommission" type="number" min="0" max="100" step="0.001" placeholder="Commission %"><select id="extProductNetwork"><option value="">Choose network</option></select><input id="extProductImage" type="url" placeholder="Image URL"><input id="extProductUrl" type="url" placeholder="Original product URL"><input id="extProductAffiliateUrl" type="url" placeholder="Genuine affiliate tracking URL"><textarea id="extProductDescription" placeholder="Short description"></textarea></div><label><input id="extProductFeatured" type="checkbox"> Feature offer</label><label><input id="extProductActive" type="checkbox"> Publish on Recommended Deals</label><button class="primary" onclick="saveExternalAffiliateProduct()">Save external product</button><p id="extProductStatus"></p></div>
-    <div class="admin-tools"><h3>External products</h3><div id="externalAffiliateAdminList">Loading...</div></div><div class="admin-tools"><h3>Affiliate networks</h3><div id="externalAffiliateNetworkList">Loading...</div></div><p class="small-note">Sales and earnings are not counted until verified by the affiliate network.</p>
-  </div>
-</section>
+
 </main>
 
 <footer>
@@ -2428,9 +2432,17 @@ function adminShowTab(tab) {
 
 
 async function loadExternalAffiliateDeals(){const box=document.getElementById('externalAffiliateDeals');if(!box)return;const {data,error}=await db.from('external_affiliate_products').select('title,description,image_url,affiliate_url,price,currency,is_featured').eq('is_active',true).order('is_featured',{ascending:false}).order('created_at',{ascending:false}).limit(60);if(error){box.textContent='Partner offers temporarily unavailable.';return;}if(!data?.length){box.textContent='New partner offers coming soon.';return;}box.innerHTML=data.map(p=>{const im=safeURL(p.image_url||''),url=safeURL(p.affiliate_url||'');return '<article class="product-card">'+(im?'<img loading="lazy" src="'+escapeHTML(im)+'" alt="'+escapeHTML(p.title)+'">':'')+'<div class="product-card-body"><h3>'+escapeHTML(p.title)+'</h3><p>'+escapeHTML(p.description||'Partner offer')+'</p><strong>'+(p.price!==null?escapeHTML(p.currency||'USD')+' '+Number(p.price).toFixed(2):'View offer')+'</strong><a class="primary" href="'+escapeHTML(url)+'" target="_blank" rel="sponsored nofollow noopener">Visit partner website ↗</a></div></article>';}).join('');}
-async function openExternalAffiliateManagement(){
-  try{await adminGuard();showSection('externalAffiliateManagement');await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks()]);}
-  catch(error){console.error('Affiliate Management access denied:',error);alert('Administrator access is required to open Affiliate Management.');}
+async async function openExternalAffiliateManagement(){
+  try{
+    await adminGuard();
+    showSection('adminPanel');
+    await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks()]);
+    const workspace=document.getElementById('externalAffiliateManagement');
+    if(workspace)workspace.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(error){
+    console.error('Affiliate Management access denied:',error);
+    alert('Administrator access is required to open Affiliate Management.');
+  }
 }
 async function loadExternalAffiliateAdmin(){try{await adminGuard();}catch(e){return;}await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks()]);}
 async function loadExternalAffiliateProductsAdmin(){const box=document.getElementById('externalAffiliateAdminList');if(!box)return;const {data,error}=await db.from('external_affiliate_products').select('id,title,category,is_active,is_featured,commission_rate').order('created_at',{ascending:false});if(error){box.textContent=error.message;return;}box.innerHTML=data?.length?'<table><thead><tr><th>Product</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+data.map(p=>'<tr><td>'+escapeHTML(p.title)+'<small>'+escapeHTML(p.category||'Other')+'</small></td><td>'+(p.commission_rate==null?'—':p.commission_rate+'%')+'</td><td>'+(p.is_active?'Live':'Draft')+'</td><td><button onclick="toggleExternalAffiliateProduct(\''+p.id+'\','+(!p.is_active)+')">'+(p.is_active?'Unpublish':'Publish')+'</button> <button onclick="deleteExternalAffiliateProduct(\''+p.id+'\')">Delete</button></td></tr>').join('')+'</tbody></table>':'No external products yet.';}
