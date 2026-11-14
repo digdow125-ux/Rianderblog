@@ -1174,6 +1174,8 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   -webkit-box-orient:vertical;
   -webkit-line-clamp:2;
 }
+#productList .product-card-category,
+#productList .product-desc { display:none !important; }
 #productList .product-desc {
   display:-webkit-box;
   min-height:0;
@@ -3060,9 +3062,7 @@ function displayProducts() {
           ${image ? `<img src="${image}" alt="${escapeHTML(p.name)}" loading="lazy">` : '<div class="product-image-placeholder">RIANDERBLOG</div>'}
         </button>
         <div class="product-card-info">
-          <span class="product-card-category">${escapeHTML(p.category || "Featured")}</span>
           <h3><button type="button" class="product-title-link" onclick="openDetails('${escapeHTML(p.id)}')">${escapeHTML(p.name)}</button></h3>
-          <p class="product-desc">${escapeHTML(shortDescription)}</p>
           <p class="price">${formatPrice(p.price,p.currency || "USD")}</p>
           <div class="product-actions">
             <button class="details-btn" onclick="openDetails('${escapeHTML(p.id)}')">View Details</button>
@@ -5900,9 +5900,7 @@ async function staffReviewFulfilment(id,action){
     const imageUrl=String(p.image_url||"");
     if(imageUrl.startsWith("https://")||imageUrl.startsWith("http://")){const img=make("img");img.src=imageUrl;img.alt=String(p.name||"Product");img.loading="lazy";img.onerror=()=>img.remove();card.appendChild(img);}
     card.appendChild(make("h3","",p.name||"Product"));
-    card.appendChild(make("p","product-desc",p.description||"Explore this product for more information."));
     card.appendChild(make("p","price",(p.currency||"USD")+" "+Number(p.price||0).toLocaleString()));
-    card.appendChild(make("p","small-note",p.category||"Marketplace product"));
     grid.appendChild(card);
    });
    box.replaceChildren(grid);
