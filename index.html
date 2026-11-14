@@ -5681,44 +5681,59 @@ async function staffReviewFulfilment(id,action){
 
 
 <script>
-/* Independent public catalogue recovery: keeps products visible if the main app script fails. */
+/* Independent public catalogue recovery.
+   Run after DOM parsing, not window.load: a slow third-party script must not block the catalogue. */
 (function(){
  const url="https://yymdyxlbdgbrgrykdspx.supabase.co";
  const key="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+ let running=false;
  function make(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=String(text);return el;}
+ function loadClientLibrary(){
+  if(window.supabase&&typeof window.supabase.createClient==="function")return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+   const script=document.createElement("script");
+   script.src="https://unpkg.com/@supabase/supabase-js@2";
+   script.onload=()=>window.supabase&&typeof window.supabase.createClient==="function"?resolve():reject(new Error("Supabase library did not initialise."));
+   script.onerror=()=>reject(new Error("Could not load the marketplace connection library. Check internet access."));
+   document.head.appendChild(script);
+  });
+ }
  async function recoverCatalogue(){
-  const box=document.getElementById('productList');
-  if(!box)return;
-  if(box.querySelector('.product'))return;
+  if(running)return;
+  const box=document.getElementById("productList");
+  if(!box||box.querySelector(".product"))return;
+  running=true;
   try{
-   if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Marketplace connection library did not load. Reload the page with internet access.');
-   const client=window.supabase.createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'rianderblog-public-catalogue-recovery'}});
-   const result=await client.from('products').select('id,name,description,price,currency,category,image_url,is_active').eq('is_active',true).order('created_at',{ascending:false});
+   await loadClientLibrary();
+   const client=window.supabase.createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:"rianderblog-public-catalogue-recovery-v2"}});
+   const result=await client.from("products").select("id,name,description,price,currency,category,image_url,is_active").eq("is_active",true).order("created_at",{ascending:false});
    if(result.error)throw result.error;
    const products=result.data||[];
-   if(!products.length){box.textContent='No active products are published at the moment.';return;}
-   if(box.querySelector('.product'))return;
+   if(!products.length){box.textContent="No active products are published at the moment.";return;}
+   if(box.querySelector(".product"))return;
    const grid=document.createDocumentFragment();
    products.forEach(p=>{
-    const card=make('article','product');
-    const imageUrl=String(p.image_url||'');
-    if(/^https?:\/\//i.test(imageUrl)){const img=make('img');img.src=imageUrl;img.alt=String(p.name||'Product');img.loading='lazy';img.onerror=()=>img.remove();card.appendChild(img);}
-    card.appendChild(make('h3','',p.name||'Product'));
-    card.appendChild(make('p','product-desc',p.description||'Explore this product for more information.'));
-    card.appendChild(make('p','price',(p.currency||'USD')+' '+Number(p.price||0).toLocaleString()));
-    card.appendChild(make('p','small-note',p.category||'Marketplace product'));
+    const card=make("article","product");
+    const imageUrl=String(p.image_url||"");
+    if(/^https?:\\/\\//i.test(imageUrl)){const img=make("img");img.src=imageUrl;img.alt=String(p.name||"Product");img.loading="lazy";img.onerror=()=>img.remove();card.appendChild(img);}
+    card.appendChild(make("h3","",p.name||"Product"));
+    card.appendChild(make("p","product-desc",p.description||"Explore this product for more information."));
+    card.appendChild(make("p","price",(p.currency||"USD")+" "+Number(p.price||0).toLocaleString()));
+    card.appendChild(make("p","small-note",p.category||"Marketplace product"));
     grid.appendChild(card);
    });
    box.replaceChildren(grid);
-   console.warn('RIANDERBLOG: catalogue recovery renderer displayed '+products.length+' active products. Main catalogue renderer should still be diagnosed.');
+   console.warn("RIANDERBLOG recovery catalogue displayed "+products.length+" active products.");
   }catch(error){
-   console.error('RIANDERBLOG independent catalogue recovery:',error);
-   if(!box.querySelector('.product'))box.textContent='Products could not load: '+(error&&error.message?error.message:'Please check your connection and refresh.');
-  }
+   console.error("RIANDERBLOG independent catalogue recovery:",error);
+   if(!box.querySelector(".product"))box.textContent="Products could not load: "+(error&&error.message?error.message:"Please check your connection and refresh.");
+  }finally{running=false;}
  }
- window.addEventListener('load',()=>setTimeout(recoverCatalogue,5000));
-})();
-</script>
+ function schedule(){setTimeout(recoverCatalogue,1200);}
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",schedule,{once:true});
+ else schedule();
+ window.addEventListener("load",schedule,{once:true});
+})();</script>
 
 </body>
 </html>
