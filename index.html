@@ -1277,7 +1277,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
     <select id="supplierProductCategory" required aria-label="Choose product category"><option value="">Choose a category</option><option value="Electronics">Electronics</option><option value="Fashion">Fashion</option><option value="Accessories">Accessories</option><option value="Home &amp; Living">Home &amp; Living</option><option value="Beauty">Beauty</option><option value="Sports">Sports</option><option value="Food &amp; Groceries">Food &amp; Groceries</option><option value="Health &amp; Personal Care">Health &amp; Personal Care</option><option value="Toys &amp; Games">Toys &amp; Games</option><option value="Automotive">Automotive</option><option value="Books &amp; Stationery">Books &amp; Stationery</option><option value="Other">Other</option></select>
 <input id="supplierProductStock" type="number" min="0" step="1" placeholder="Quantity available in your shop">
 <input id="supplierProductMinimumOrder" type="number" min="1" step="1" value="1" placeholder="Minimum order quantity (e.g. 2)">
-<input id="supplierProductColours" placeholder="Available colours, separated by commas">
+<label for="supplierProductColours">Available colours (select all that apply)</label><select id="supplierProductColours" multiple size="5" style="width:100%;padding:10px;border:1px solid #d8dee8;border-radius:7px"><option value="Black">Black</option><option value="White">White</option><option value="Red">Red</option><option value="Blue">Blue</option><option value="Green">Green</option><option value="Yellow">Yellow</option><option value="Pink">Pink</option><option value="Purple">Purple</option><option value="Orange">Orange</option><option value="Brown">Brown</option><option value="Grey">Grey</option><option value="Silver">Silver</option><option value="Gold">Gold</option><option value="Beige">Beige</option></select><p class="small-note">Select every colour currently in stock.</p>
 <label for="supplierProductDeliveryDays">Delivery time (maximum 7 days)</label>
 <select id="supplierProductDeliveryDays"><option value="1">1 day</option><option value="2">2 days</option><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7" selected>7 days</option></select>
 <label><strong>Product pictures (minimum 1, maximum 5)</strong></label>
@@ -1521,7 +1521,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <label>Product name<input id="staffNewProductName" type="text" placeholder="Product name" style="display:block;width:100%;padding:10px"></label>
 <label>Price<input id="staffNewProductPrice" type="number" min="0" step="0.01" placeholder="0.00" style="display:block;width:100%;padding:10px"></label>
 <label>Currency<select id="staffNewProductCurrency" style="display:block;width:100%;padding:10px"><option>MWK</option><option>USD</option><option>GBP</option><option>EUR</option><option>ZAR</option><option>MZN</option><option>TZS</option><option>UGX</option></select></label>
-<label>Choose product category<select id="staffNewProductCategory" required style="display:block;width:100%;padding:10px"><option value="">Choose a category</option><option value="Electronics">Electronics</option><option value="Fashion">Fashion</option><option value="Accessories">Accessories</option><option value="Home &amp; Living">Home &amp; Living</option><option value="Beauty">Beauty</option><option value="Sports">Sports</option><option value="Food &amp; Groceries">Food &amp; Groceries</option><option value="Health &amp; Personal Care">Health &amp; Personal Care</option><option value="Toys &amp; Games">Toys &amp; Games</option><option value="Automotive">Automotive</option><option value="Books &amp; Stationery">Books &amp; Stationery</option><option value="Other">Other</option></select></label>
+<label>Quantity on hand<input id="staffNewProductStock" type="number" min="0" step="1" value="0" style="display:block;width:100%;padding:10px"></label><label>Minimum order quantity<input id="staffNewProductMinimumOrder" type="number" min="1" step="1" value="1" style="display:block;width:100%;padding:10px"></label><label style="grid-column:1/-1">Available colours (select all that apply)<select id="staffNewProductColours" multiple size="5" style="display:block;width:100%;padding:10px"><option value="Black">Black</option><option value="White">White</option><option value="Red">Red</option><option value="Blue">Blue</option><option value="Green">Green</option><option value="Yellow">Yellow</option><option value="Pink">Pink</option><option value="Purple">Purple</option><option value="Orange">Orange</option><option value="Brown">Brown</option><option value="Grey">Grey</option><option value="Silver">Silver</option><option value="Gold">Gold</option><option value="Beige">Beige</option></select></label><label>Choose product category<select id="staffNewProductCategory" required style="display:block;width:100%;padding:10px"><option value="">Choose a category</option><option value="Electronics">Electronics</option><option value="Fashion">Fashion</option><option value="Accessories">Accessories</option><option value="Home &amp; Living">Home &amp; Living</option><option value="Beauty">Beauty</option><option value="Sports">Sports</option><option value="Food &amp; Groceries">Food &amp; Groceries</option><option value="Health &amp; Personal Care">Health &amp; Personal Care</option><option value="Toys &amp; Games">Toys &amp; Games</option><option value="Automotive">Automotive</option><option value="Books &amp; Stationery">Books &amp; Stationery</option><option value="Other">Other</option></select></label>
 <label style="grid-column:1/-1">Description<textarea id="staffNewProductDescription" rows="3" placeholder="Describe the product" style="display:block;width:100%;padding:10px"></textarea></label>
 <label style="grid-column:1/-1">Upload product pictures (1–5)<input id="staffNewProductImages" type="file" accept="image/*" multiple style="display:block;width:100%;padding:8px"></label>
 <label style="grid-column:1/-1">Or paste image URL(s), one per line<input id="staffNewProductImageUrls" type="text" placeholder="https://example.com/image.jpg" style="display:block;width:100%;padding:10px"></label>
@@ -1679,6 +1679,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
           <label for="adminProductCategory">Category</label>
           <select id="adminProductCategory" required><option value="">Choose a category</option><option value="Electronics">Electronics</option><option value="Fashion">Fashion</option><option value="Accessories">Accessories</option><option value="Home &amp; Living">Home &amp; Living</option><option value="Beauty">Beauty</option><option value="Sports">Sports</option><option value="Food &amp; Groceries">Food &amp; Groceries</option><option value="Health &amp; Personal Care">Health &amp; Personal Care</option><option value="Toys &amp; Games">Toys &amp; Games</option><option value="Automotive">Automotive</option><option value="Books &amp; Stationery">Books &amp; Stationery</option><option value="Other">Other</option></select>
         </div>
+        <div class="admin-products-field"><label for="adminProductStock">Quantity on hand</label><input id="adminProductStock" type="number" min="0" step="1" value="0"></div><div class="admin-products-field"><label for="adminProductMinimumOrder">Minimum order quantity</label><input id="adminProductMinimumOrder" type="number" min="1" step="1" value="1"></div><div class="admin-products-field admin-products-field-wide"><label for="adminProductColours">Available colours (select all that apply)</label><select id="adminProductColours" multiple size="5" style="width:100%;padding:10px;border:1px solid #d8dee8;border-radius:7px"><option value="Black">Black</option><option value="White">White</option><option value="Red">Red</option><option value="Blue">Blue</option><option value="Green">Green</option><option value="Yellow">Yellow</option><option value="Pink">Pink</option><option value="Purple">Purple</option><option value="Orange">Orange</option><option value="Brown">Brown</option><option value="Grey">Grey</option><option value="Silver">Silver</option><option value="Gold">Gold</option><option value="Beige">Beige</option></select></div>
         <div class="admin-products-field admin-products-field-wide">
           <label for="adminProductDescription">Product description</label>
           <textarea id="adminProductDescription" rows="4" placeholder="Describe the product, its features and important details..."></textarea>
@@ -2305,7 +2306,9 @@ function clearAdminProductForm(){
     'adminProductCategory',
     'adminProductLink',
     'adminProductDescription',
-    'adminProductImageUrl'
+    'adminProductImageUrl',
+    'adminProductStock',
+    'adminProductMinimumOrder'
   ].forEach(id=>{
     document.getElementById(id).value='';
   });
@@ -2313,6 +2316,7 @@ function clearAdminProductForm(){
   document.getElementById('adminProductImage').value='';
   document.getElementById('adminProductCurrency').value='USD';
   document.getElementById('adminProductActive').checked=true;
+  [...document.getElementById('adminProductColours').options].forEach(o=>o.selected=false);
 
   adminMessage('adminProductMessage','');
 }
@@ -2326,6 +2330,9 @@ function editAdminProduct(id){
   document.getElementById('adminProductPrice').value=p.price??'';
   document.getElementById('adminProductCurrency').value=p.currency||'USD';
   document.getElementById('adminProductCategory').value=[...document.getElementById('adminProductCategory').options].some(o=>o.value===(p.category||''))?(p.category||''):'Other';
+  document.getElementById('adminProductStock').value=p.stock_quantity??0;
+  document.getElementById('adminProductMinimumOrder').value=p.minimum_order_quantity??1;
+  [...document.getElementById('adminProductColours').options].forEach(o=>o.selected=(p.available_colours||[]).includes(o.value));
 
   document.getElementById('adminProductImage').value='';
   document.getElementById('adminProductImageUrl').value=p.image_url||'';
@@ -2351,6 +2358,8 @@ async function saveAdminProduct(){
     const name=document.getElementById('adminProductName').value.trim();
     const price=Number(document.getElementById('adminProductPrice').value);
     const link=safeUrl(document.getElementById('adminProductLink').value.trim());
+    const stock=Number(document.getElementById('adminProductStock').value||0),minimumOrder=Number(document.getElementById('adminProductMinimumOrder').value||1);
+    if(!Number.isInteger(stock)||stock<0||!Number.isInteger(minimumOrder)||minimumOrder<1||(stock>0&&minimumOrder>stock))throw new Error('Enter valid stock and minimum order quantities.');
 
     if(!name || !Number.isFinite(price) || price<0){
       throw new Error('Enter a product name and valid price.');
@@ -2375,6 +2384,9 @@ async function saveAdminProduct(){
       price:price,
       currency:document.getElementById('adminProductCurrency').value,
       category:document.getElementById('adminProductCategory').value.trim()||'Other',
+      stock_quantity:stock,
+      minimum_order_quantity:minimumOrder,
+      available_colours:[...document.getElementById('adminProductColours').selectedOptions].map(o=>o.value),
       image_url:image,
       product_image_urls:images,
       affiliate_url:link || oldProduct?.affiliate_url || '',
@@ -2893,6 +2905,7 @@ function addToCart(id) {
   const p=allProducts.find(x=>String(x.id)===String(id));
   if(!p)return;
   const colour=document.getElementById('chooseColour')?.value||'';
+  if((p.available_colours||[]).length&&!colour){alert('Please open View Details and choose an available colour before adding this product.');return;}
   const existing=cart.find(x=>String(x.id)===String(id)&&(x.selected_colour||'')===colour);
   const totalAlready=cart.filter(x=>String(x.id)===String(id)).reduce((sum,x)=>sum+Number(x.quantity||0),0);
   const minimumOrder=Math.max(1,Number(p.minimum_order_quantity||1));
@@ -4682,7 +4695,7 @@ function editSupplierProduct(id){
   document.getElementById('supplierProductCategory').value=[...document.getElementById('supplierProductCategory').options].some(o=>o.value===(p.category||''))?(p.category||''):'Other';
   document.getElementById('supplierProductStock').value=p.stock_quantity??0;
   document.getElementById('supplierProductMinimumOrder').value=p.minimum_order_quantity??1;
-  document.getElementById('supplierProductColours').value=(p.available_colours||[]).join(', ');
+  [...document.getElementById('supplierProductColours').options].forEach(o=>o.selected=(p.available_colours||[]).includes(o.value));
   document.getElementById('supplierProductDeliveryDays').value=String(p.delivery_days||7);
 
   document.getElementById('supplierProductImage').value='';
@@ -4710,7 +4723,7 @@ async function saveSupplierProduct(){
     const price=Number(document.getElementById('supplierProductPrice').value);
     const stock=Number(document.getElementById('supplierProductStock').value);
     const minimumOrder=Number(document.getElementById('supplierProductMinimumOrder').value||1);
-    const colours=document.getElementById('supplierProductColours').value.split(',').map(x=>x.trim()).filter(Boolean);
+    const colours=[...document.getElementById('supplierProductColours').selectedOptions].map(o=>o.value);
     const deliveryDays=Number(document.getElementById('supplierProductDeliveryDays').value);
 
     if(!name||!Number.isFinite(price)||price<=0){
@@ -5192,10 +5205,13 @@ async function staffAddMarketplaceProduct(){
   if(!name||!Number.isFinite(price)||price<0)throw new Error('Enter a product name and a valid price.');
   const images=await resolveProductImages('staffNewProductImages','staffNewProductImageUrls',[],'',user);
   const link=safeUrl(document.getElementById('staffNewProductAffiliate').value.trim());
-  const row={name,price,currency:document.getElementById('staffNewProductCurrency').value,category:document.getElementById('staffNewProductCategory').value.trim()||'General',description:document.getElementById('staffNewProductDescription').value.trim(),image_url:images[0],product_image_urls:images,affiliate_url:link||'',is_active:true,created_by:user.id,supplier_id:null,review_status:'approved'};
+  const stock=Number(document.getElementById('staffNewProductStock').value||0),minimumOrder=Number(document.getElementById('staffNewProductMinimumOrder').value||1),colours=[...document.getElementById('staffNewProductColours').selectedOptions].map(o=>o.value);
+  if(!Number.isInteger(stock)||stock<0||!Number.isInteger(minimumOrder)||minimumOrder<1||(stock>0&&minimumOrder>stock))throw new Error('Enter valid stock and minimum order quantities.');
+  const row={name,price,currency:document.getElementById('staffNewProductCurrency').value,category:document.getElementById('staffNewProductCategory').value.trim()||'General',stock_quantity:stock,minimum_order_quantity:minimumOrder,available_colours:colours,description:document.getElementById('staffNewProductDescription').value.trim(),image_url:images[0],product_image_urls:images,affiliate_url:link||'',is_active:true,created_by:user.id,supplier_id:null,review_status:'approved'};
   const result=await db.from('products').insert(row);if(result.error)throw result.error;
-  ['staffNewProductName','staffNewProductPrice','staffNewProductCategory','staffNewProductDescription','staffNewProductImageUrls','staffNewProductAffiliate'].forEach(id=>document.getElementById(id).value='');
+  ['staffNewProductName','staffNewProductPrice','staffNewProductCategory','staffNewProductDescription','staffNewProductImageUrls','staffNewProductAffiliate','staffNewProductStock','staffNewProductMinimumOrder'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('staffNewProductImages').value='';
+  [...document.getElementById('staffNewProductColours').options].forEach(o=>o.selected=false);
   status.textContent='Product added successfully and is now listed on RIANDERBLOG.';
   if(typeof loadProducts==='function')await loadProducts();
   const assigned=await db.from('staff_tasks').select('id').eq('staff_user_id',user.id).eq('task_type','add_product').in('status',['pending','in_progress']).order('created_at',{ascending:true}).limit(1).maybeSingle();
