@@ -2011,7 +2011,7 @@ async function loadAdminOrdersTable() {
   box.textContent = "Loading orders...";
   try {
     await adminGuard();
-    const { data, error } = await db.from("orders").select("*").order("created_at", { ascending: false }).limit(100);
+    const { data, error } = await db.from("orders").select("*").neq("order_status","expired").order("created_at", { ascending: false }).limit(100);
     if (error) throw error;
     if (!data || data.length === 0) { box.textContent = "No customer orders found."; return; }
     const deliveryStaffResult=await db.from("staff_members").select("user_id,email,permissions,status").eq("status","active");
@@ -3372,7 +3372,7 @@ async function showCustomerOrderTracking(){
     if(error)throw error;
     const user=data.session?.user;
     if(!user){status.textContent="Please sign in to track your orders.";box.innerHTML='<button class="primary" onclick="showSection(\'account\')">Sign in / Create account</button>';return;}
-    const {data:orders,error:ordersError}=await db.from("orders").select("id,order_number,total_amount,currency,payment_status,order_status,shipping_address,created_at,updated_at").eq("user_id",user.id).order("created_at",{ascending:false});
+    const {data:orders,error:ordersError}=await db.from("orders").select("id,order_number,total_amount,currency,payment_status,order_status,shipping_address,created_at,updated_at").eq("user_id",user.id).neq("order_status","expired").order("created_at",{ascending:false});
     if(ordersError)throw ordersError;
     let updatesByOrder={};
     if(orders?.length){
