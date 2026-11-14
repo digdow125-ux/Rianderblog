@@ -2898,7 +2898,7 @@ function displayProducts() {
         <button class="add" onclick="addToCart('${escapeHTML(p.id)}')">Add to Cart</button>
       </div>
       <button class="share-product-btn" onclick="shareProduct('${escapeHTML(p.id)}')">↗ Share Product</button>
-      <button class="buy" onclick="startSupplierConversation('${escapeHTML(p.id)}')">Message Supplier</button>
+      <div class="small-note" style="margin-top:9px;padding:9px;background:#f5f7fa;border-radius:7px"><strong>Product enquiries:</strong> RIANDERBLOG Admin and Gift Chonde<br><a href="mailto:giftchonde1@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Gift Chonde</a> · <a href="mailto:digdow125@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Admin</a></div>\n      <button class="buy" onclick="startSupplierConversation('${escapeHTML(p.id)}')">Message Supplier</button>
     </article>
   `).join("");
 }
@@ -2971,7 +2971,7 @@ function openDetails(id) {
         <p><strong>Colours:</strong> ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')}</p>
         <p><strong>Delivery:</strong> within ${Number(p.delivery_days||7)} day(s), maximum 7 days</p>
         ${(p.available_colours||[]).length ? '<label for="chooseColour">Choose colour</label><select id="chooseColour">'+p.available_colours.map(c=>'<option value="'+escapeHTML(c)+'">'+escapeHTML(c)+'</option>').join('')+'</select>' : ''}
-        <div class="detail-actions">
+        <div class="small-note" style="margin-top:9px;padding:9px;background:#f5f7fa;border-radius:7px"><strong>Product enquiries:</strong> RIANDERBLOG Admin and Gift Chonde<br><a href="mailto:giftchonde1@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Gift Chonde</a> · <a href="mailto:digdow125@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Admin</a></div>\n        <div class="detail-actions">
           <button class="detail-add" onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">Add to Cart</button>
           <button class="detail-buy" onclick="startSupplierConversation('${escapeHTML(p.id)}');closeDetails()">Message Supplier</button>
           <button class="share-product-btn" onclick="shareProduct('${escapeHTML(p.id)}')">↗ Share Product</button>
@@ -5305,13 +5305,33 @@ async function loadStaffAddedProducts(){
  box.textContent='Loading your uploaded products…';
  try{
   const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
-  const {data,error}=await db.from('products').select('id,name,price,currency,category,stock_quantity,available_colours,is_active,review_status,created_at').eq('created_by',user.id).is('supplier_id',null).order('created_at',{ascending:false}).limit(100);
+  const {data,error}=await db.from('products').select('id,name,price,currency,category,stock_quantity,available_colours,is_active,review_status,created_at').is('supplier_id',null).order('created_at',{ascending:false}).limit(100);
   if(error)throw error;
   if(!data?.length){box.textContent='You have not uploaded any marketplace products yet.';return;}
-  box.innerHTML='<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:620px"><thead><tr><th>Product</th><th>Stock / Colours</th><th>Visibility</th><th>Review</th></tr></thead><tbody>'+data.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Other')+' · '+escapeHTML(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2)+'</small></td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.is_active?'Visible on marketplace':'Hidden from marketplace')+'</td><td>'+escapeHTML(p.review_status||'pending')+'</td></tr>').join('')+'</tbody></table></div>';
+  box.innerHTML='<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:620px"><thead><tr><th>Product</th><th>Stock / Colours</th><th>Visibility</th><th>Review</th><th>Action</th></tr></thead><tbody>'+data.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Other')+' · '+escapeHTML(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2)+'</small></td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.is_active?'Visible on marketplace':'Hidden from marketplace')+'</td><td>'+escapeHTML(p.review_status||'pending')+'</td></tr>').join('')+'</tbody></table></div>';
  }catch(e){box.textContent='Could not load your products: '+e.message;}
 }
-async function staffAddMarketplaceProduct(){
+
+async function staffEditMarketplaceProduct(id){
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
+  const {data:p,error}=await db.from('products').select('*').eq('id',id).is('supplier_id',null).maybeSingle();if(error)throw error;if(!p)throw new Error('Product not found or you do not have permission to edit it.');
+  const name=prompt('Product name:',p.name||'');if(name===null)return;
+  const priceText=prompt('Price ('+(p.currency||'MWK')+'):',String(p.price??''));if(priceText===null)return;
+  const price=Number(priceText);if(!name.trim()||!Number.isFinite(price)||price<0)throw new Error('Enter a valid product name and price.');
+  const category=prompt('Category:',p.category||'General');if(category===null)return;
+  const description=prompt('Product description:',p.description||'');if(description===null)return;
+  const stockText=prompt('Quantity in stock:',String(p.stock_quantity||0));if(stockText===null)return;
+  const stock=Number(stockText);if(!Number.isInteger(stock)||stock<0)throw new Error('Stock must be a whole number of 0 or more.');
+  const coloursText=prompt('Available colours (separate with commas):',(p.available_colours||[]).join(', '));if(coloursText===null)return;
+  const colours=coloursText.split(',').map(x=>x.trim()).filter(Boolean);
+  const {error:updateError}=await db.from('products').update({name:name.trim(),price,category:category.trim()||'General',description,stock_quantity:stock,available_colours:colours}).eq('id',id).is('supplier_id',null);
+  if(updateError)throw updateError;
+  alert('Product updated successfully.');
+  await loadProducts();await loadStaffAddedProducts();
+ }catch(e){alert('Could not edit product: '+(e.message||e));}
+}
+\nasync function staffAddMarketplaceProduct(){
  const status=document.getElementById('staffNewProductStatus');status.textContent='Saving product…';
  try{
   const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
