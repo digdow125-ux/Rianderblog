@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10213e">
+<title>Sign in or create an account | RIANDERBLOG</title>
+<link rel="icon" href="./app-icon.svg" type="image/svg+xml">
+<style>
+:root{--navy:#10213e;--navy2:#1a3154;--gold:#d6ad55;--ink:#263244;--muted:#718095;--paper:#f4f6fa}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(145deg,#eef2f8,#f8f9fb);font-family:Arial,Helvetica,sans-serif;color:var(--ink);display:grid;place-items:center;padding:22px}
+.wrap{width:min(960px,100%);background:#fff;border:1px solid #e2e7ef;border-radius:22px;overflow:hidden;box-shadow:0 22px 65px rgba(16,33,62,.12)}
+.top{padding:30px;background:linear-gradient(115deg,#0c1a31,#203d64);color:#fff;display:flex;align-items:center;gap:16px}
+.logo{width:58px;height:58px;border:2px solid var(--gold);border-radius:15px;display:grid;place-items:center;color:var(--gold);font-size:31px;font-weight:900;flex:none}
+.kicker{font-size:11px;letter-spacing:2px;color:#e5c77e;font-weight:800}.top h1{font-size:clamp(24px,4vw,34px);margin:7px 0}.top p{margin:0;color:#d5deea;line-height:1.55;font-size:14px}
+.body{display:grid;grid-template-columns:1fr minmax(290px,390px);gap:34px;padding:30px}
+.benefits h2{margin:4px 0 22px;color:var(--navy)}.benefit{display:flex;gap:12px;margin:19px 0;line-height:1.45}.tick{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#f5eddd;color:#9a712a;font-weight:900;flex:none}.benefit strong,.benefit small{display:block}.benefit small{color:var(--muted);font-size:13px;margin-top:4px}.free{margin-top:25px;color:#9a712a;font-weight:700;font-size:13px}
+.form{padding:22px;border:1px solid #e5e8ee;border-radius:15px;background:#fbfcfe}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:#edf1f6;border-radius:9px;margin-bottom:20px}
+.tabs button{border:0;background:transparent;color:#637187;padding:12px;border-radius:7px;font-weight:700;cursor:pointer}.tabs button.active{background:white;color:var(--navy);box-shadow:0 2px 7px #10213e16}
+label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#34435a}input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-size:15px;background:white}
+.terms{display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.5;margin:15px 0}.terms input{width:auto;margin-top:2px}.terms a{color:#9a712a}
+.primary,.google,.resend{width:100%;padding:13px;border-radius:9px;font-weight:700;cursor:pointer;margin-top:12px}.primary{border:0;background:var(--navy);color:#fff}.primary:disabled{opacity:.6;cursor:wait}.google{background:#fff;border:1px solid #dce2ea;color:#34435a}.google b{color:#4285f4;font-size:18px;margin-right:8px}.resend{background:#f0f3f8;border:1px solid #e0e6ef;color:#34435a;display:none}
+.divider{display:flex;align-items:center;gap:10px;color:#8993a2;font-size:11px;margin:18px 0}.divider:before,.divider:after{content:"";height:1px;background:#e2e6ed;flex:1}
+.message{min-height:38px;padding:11px;margin:13px 0 0;border-radius:8px;background:#f2f5f9;color:#647187;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.message.success{background:#eef8f0;color:#27613b}
+.back{display:block;text-align:center;color:#647187;text-decoration:none;font-size:12px;margin-top:18px}
+@media(max-width:700px){.body{grid-template-columns:1fr;padding:20px;gap:12px}.top{padding:23px}.benefits h2{margin-bottom:12px}.benefit{margin:12px 0}.free{margin-top:14px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="wrap">
+ <header class="top"><div class="logo">R</div><div><div class="kicker">RIANDERBLOG MARKETPLACE</div><h1>Your shopping journey starts here.</h1><p>Create your free account or sign in to manage orders, contact suppliers and pay securely.</p></div></header>
+ <main class="body">
+  <section class="benefits"><h2>One account. A simpler way to shop.</h2>
+   <div class="benefit"><span class="tick">✓</span><div><strong>Keep your orders together</strong><small>View your purchases and follow delivery updates from your dashboard.</small></div></div>
+   <div class="benefit"><span class="tick">✓</span><div><strong>Connect with suppliers</strong><small>Ask product questions and get help before ordering.</small></div></div>
+   <div class="benefit"><span class="tick">✓</span><div><strong>Checkout securely</strong><small>Enter delivery details and complete eligible payments through PayChangu.</small></div></div>
+   <p class="free">Creating an account is free.</p>
+  </section>
+  <section class="form">
+   <div class="tabs"><button id="signinTab" type="button" onclick="setMode('signin')">Sign in</button><button id="signupTab" type="button" onclick="setMode('signup')">Create account</button></div>
+   <form id="authForm" onsubmit="event.preventDefault();submitAuth()">
+    <label for="email">Email address</label><input id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+    <label for="password">Password</label><input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" minlength="6" required>
+    <label class="terms" id="termsRow" style="display:none"><input id="acceptTerms" type="checkbox"><span>I have read and agree to RIANDERBLOG's <a href="./policies.html#terms" target="_blank" rel="noopener">Terms and Conditions</a>.</span></label>
+    <button class="primary" id="submitButton" type="submit">Create my free account</button>
+   </form>
+   <div class="divider">or continue with</div>
+   <button class="google" type="button" onclick="signInWithGoogle()"><b>G</b> Continue with Google</button>
+   <button class="resend" id="resendButton" type="button" onclick="resendConfirmation()">Resend confirmation email</button>
+   <div class="message" id="message" role="status" aria-live="polite">Choose sign in or create account to continue.</div>
+   <a class="back" href="./index.html?product=0">Browsing a shared product link? Return to the marketplace</a>
+  </section>
+ </main>
+</div>
+<script>
+const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
+const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
+const params=new URLSearchParams(location.search);
+let mode=params.get("mode")==="signin"?"signin":"signup";
+let busy=false;
+const callbackUrl=location.origin+location.pathname.replace(/account\.html$/,"")+"?auth_callback=1";
+function say(message,success=false){const el=document.getElementById("message");el.textContent=message;el.classList.toggle("success",success);}
+function setMode(value){mode=value==="signin"?"signin":"signup";document.getElementById("signinTab").classList.toggle("active",mode==="signin");document.getElementById("signupTab").classList.toggle("active",mode==="signup");document.getElementById("submitButton").textContent=mode==="signup"?"Create my free account":"Sign in securely";document.getElementById("password").autocomplete=mode==="signup"?"new-password":"current-password";document.getElementById("termsRow").style.display=mode==="signup"?"flex":"none";say(mode==="signup"?"Create your free account to continue.":"Welcome back. Sign in to continue.");}
+function destination(){
+ const next=params.get("next")||localStorage.getItem("rianderblog_auth_next")||"home";
+ localStorage.removeItem("rianderblog_auth_next");
+ if(localStorage.getItem("rianderblog_onboarding_pending")==="1"){location.replace("./welcome.html");return;}
+ if(next==="checkout"){location.replace("./index.html#cart");return;}
+ location.replace("./index.html");
+}
+async function submitAuth(){
+ if(busy)return;
+ const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+ if(!email||!password){say("Enter your email address and password.");return;}
+ if(mode==="signup"&&!document.getElementById("acceptTerms").checked){say("Please agree to the Terms and Conditions before creating your account.");return;}
+ busy=true;const button=document.getElementById("submitButton");button.disabled=true;button.textContent=mode==="signup"?"Creating account…":"Signing in…";
+ try{
+  if(mode==="signup"){
+   localStorage.setItem("rianderblog_onboarding_pending","1");
+   const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl}});
+   if(error)throw error;
+   if(data.session){say("Your account is ready. Taking you to the welcome steps…",true);location.replace("./welcome.html");return;}
+   say("Account created. Please open the confirmation email. After confirming, you will be taken to the next step.");
+   document.getElementById("resendButton").style.display="block";
+  }else{
+   const {data,error}=await db.auth.signInWithPassword({email,password});
+   if(error)throw error;
+   if(!data.session)throw new Error("Sign-in was not completed. Please try again.");
+   say("You are signed in. Continuing…",true);destination();
+  }
+ }catch(e){
+  if(mode==="signup")localStorage.removeItem("rianderblog_onboarding_pending");
+  const msg=e?.message||String(e);
+  if(e?.code==="email_not_confirmed")say("Please confirm your email first, then sign in. You can resend the confirmation email below.");
+  else if(e?.code==="invalid_credentials")say("Email or password is incorrect. Check both and try again.");
+  else if(/rate limit|over_email_send_rate_limit/i.test(msg))say("Confirmation emails are temporarily rate-limited. Wait a little, then request another email.");
+  else say(msg);
+  if(mode==="signup")document.getElementById("resendButton").style.display="block";
+ }finally{busy=false;button.disabled=false;button.textContent=mode==="signup"?"Create my free account":"Sign in securely";}
+}
+async function signInWithGoogle(){
+ if(busy)return;
+ if(mode==="signup"&&!document.getElementById("acceptTerms").checked){say("Please agree to the Terms and Conditions before continuing with Google.");return;}
+ if(mode==="signup")localStorage.setItem("rianderblog_onboarding_pending","1");
+ const next=params.get("next");if(next)localStorage.setItem("rianderblog_auth_next",next);
+ const {error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:callbackUrl}});
+ if(error){localStorage.removeItem("rianderblog_onboarding_pending");say(error.message);}
+}
+async function resendConfirmation(){
+ const email=document.getElementById("email").value.trim();if(!email){say("Enter your email address first.");return;}
+ const b=document.getElementById("resendButton");b.disabled=true;b.textContent="Sending…";
+ try{const {error}=await db.auth.resend({type:"signup",email,options:{emailRedirectTo:callbackUrl}});if(error)throw error;say("A new confirmation email has been requested. Check your inbox.",true);}
+ catch(e){say(e?.message||String(e));}finally{b.disabled=false;b.textContent="Resend confirmation email";}
+}
+setMode(mode);
+(async()=>{
+ try{const {data,error}=await db.auth.getSession();if(error)throw error;if(data.session)destination();}
+ catch(e){say("Could not check your saved sign-in. Please try again: "+(e?.message||String(e)));}
+})();
+</script>
+</body>
+</html>
