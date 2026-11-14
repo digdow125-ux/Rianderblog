@@ -1892,12 +1892,32 @@ function toggleMenu(){const links=document.getElementById("navLinks");const btn=
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(links){links.classList.remove("open");links.style.display="none";}if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰";}}
 function showSection(id){
   if(id==="account"){
-    try{sessionStorage.setItem("rianderblog_account_mode","signin");}catch(e){}
-    setTimeout(()=>{
-      const mode=sessionStorage.getItem("rianderblog_account_mode")||"signin";
-      const next=(document.getElementById("cart")?.style.display==="block"||window.location.hash==="#cart")?"&next=checkout":"";
-      window.location.href="./account.html?mode="+encodeURIComponent(mode)+next;
-    },0);
+    (async()=>{
+      try{
+        const {data,error}=await db.auth.getSession();
+        if(error)throw error;
+        if(!data?.session){
+          const mode=sessionStorage.getItem("rianderblog_account_mode")||"signin";
+          const next=(document.getElementById("cart")?.style.display==="block"||window.location.hash==="#cart")?"&next=checkout":"";
+          window.location.href="./account.html?mode="+encodeURIComponent(mode)+next;
+          return;
+        }
+        const account=document.getElementById("account");
+        if(!account)throw new Error("Account profile section is unavailable.");
+        document.querySelectorAll("main > section").forEach(section=>{
+          const storefront=section.id==="products"||section.classList.contains("benefits")||section.classList.contains("hero");
+          section.style.display=storefront?"none":(section.id==="account"?"block":"none");
+        });
+        account.style.display="block";
+        closeMenu();
+        window.scrollTo({top:0,behavior:"auto"});
+        updateAccountExperience(data.session.user);
+        loadProfilePhoto(data.session.user);
+      }catch(error){
+        console.error("RIANDERBLOG account page:",error);
+        alert("Could not open your account: "+(error?.message||"Please refresh and try again."));
+      }
+    })();
     return false;
   }
   const target=document.getElementById(id);
@@ -3654,7 +3674,6 @@ db.auth.onAuthStateChange((event,session) => {
   if(user)loadProfilePhoto(user);
   updateAdminVisibility(user);
   startNotifications(user);
-  showDashboard();
 });
 
 // Restore the saved Supabase session explicitly on every page load.
