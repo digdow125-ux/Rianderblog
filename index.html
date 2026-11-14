@@ -2013,9 +2013,14 @@ async async function trackWebsiteVisit(){
  try{
   const pagePath=(location.pathname||'/').slice(0,200);
   const referrerHost=(()=>{try{return document.referrer?new URL(document.referrer).hostname.slice(0,255):null;}catch(_){return null;}})();
-  const {data,error}=await db.functions.invoke('visitor-track',{body:{page_path:pagePath,referrer_host:referrerHost}});
-  if(error)throw error;
-  if(data&&data.error)throw new Error(data.error);
+  const response=await fetch(SUPABASE_URL+'/functions/v1/visitor-track',{
+   method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({page_path:pagePath,referrer_host:referrerHost})
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||'Visitor tracking request failed.');
+  if(data&&data.tracked===false)console.info('Visitor IP was unavailable; visit was not counted.');
  }catch(error){console.warn('RIANDERBLOG visitor tracking unavailable:',error&&error.message?error.message:error);}
 }
 async function loadVisitorAnalytics(){
