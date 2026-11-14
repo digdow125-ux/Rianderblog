@@ -1,4 +1,4 @@
-const CACHE_NAME = "rianderblog-app-v6";
+const CACHE_NAME = "rianderblog-app-v7";
 const APP_FILES = ["./", "./index.html", "./manifest.webmanifest", "./app-icon.svg"];
 
 self.addEventListener("install", event => {
