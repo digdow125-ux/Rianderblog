@@ -2539,10 +2539,27 @@ async function openExternalAffiliateManagement(){
 }
 async function loadExternalAffiliateAdmin(){try{await adminGuard();}catch(e){return;}await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks(),loadExternalAffiliateDashboard(),loadExternalAffiliateCampaigns(),loadExternalAffiliateCommissions(),refreshExternalAffiliateSelects()]);}
 async function loadExternalAffiliateProductsAdmin(){
- const box=document.getElementById('externalAffiliateAdminList');if(!box)return;
- const {data,error}=await db.from('external_affiliate_products').select('id,title,category,is_active,is_featured,commission_rate,price,currency,description,image_url,product_url,affiliate_url,network_id').order('created_at',{ascending:false});
- if(error){box.textContent='Could not load external offers: '+error.message;return;}
- box.innerHTML=data?.length?'<div class="admin-table-wrap"><table><thead><tr><th>Product</th><th>Price</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+data.map(p=>'<tr><td><strong>'+escapeHTML(p.title)+'</strong><small>'+escapeHTML(p.category||'Other')+'</small></td><td>'+(p.price==null?'—':escapeHTML(p.currency||'USD')+' '+Number(p.price).toFixed(2))+'</td><td>'+(p.commission_rate==null?'—':Number(p.commission_rate)+'%')+'</td><td>'+(p.is_active?'Live':'Draft')+'</td><td><button type="button" onclick="editExternalAffiliateProduct(\\''+p.id+'\\')">Edit</button> <button type="button" onclick="toggleExternalAffiliateProduct(\\''+p.id+'\\','+(!p.is_active)+')">'+(p.is_active?'Unpublish':'Publish')+'</button> <button type="button" onclick="deleteExternalAffiliateProduct(\\''+p.id+'\\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No external products yet.';
+ const box=document.getElementById('externalAffiliateAdminList');
+ if(!box)return;
+ try{
+  const {data,error}=await db.from('external_affiliate_products')
+   .select('id,title,category,is_active,is_featured,commission_rate,price,currency,description,image_url,product_url,affiliate_url,network_id')
+   .order('created_at',{ascending:false});
+  if(error)throw error;
+  if(!data?.length){box.textContent='No external products yet.';return;}
+  box.innerHTML='<div class="admin-table-wrap"><table><thead><tr><th>Product</th><th>Price</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
+   data.map(p=>`<tr>
+    <td><strong>${escapeHTML(p.title)}</strong><small>${escapeHTML(p.category||'Other')}</small></td>
+    <td>${p.price==null?'—':escapeHTML(p.currency||'USD')+' '+Number(p.price).toFixed(2)}</td>
+    <td>${p.commission_rate==null?'—':Number(p.commission_rate)+'%'}</td>
+    <td>${p.is_active?'Live':'Draft'}</td>
+    <td>
+     <button type="button" onclick="editExternalAffiliateProduct('${escapeHTML(p.id)}')">Edit</button>
+     <button type="button" onclick="toggleExternalAffiliateProduct('${escapeHTML(p.id)}',${!p.is_active})">${p.is_active?'Unpublish':'Publish'}</button>
+     <button type="button" onclick="deleteExternalAffiliateProduct('${escapeHTML(p.id)}')">Delete</button>
+    </td>
+   </tr>`).join('')+'</tbody></table></div>';
+ }catch(error){box.textContent='Could not load external offers: '+(error?.message||error);}
 }
 async function loadExternalAffiliateNetworks(){const {data,error}=await db.from('external_affiliate_networks').select('id,name,status').order('name');const sel=document.getElementById('extProductNetwork'),box=document.getElementById('externalAffiliateNetworkList');if(error){if(box)box.textContent=error.message;return;}if(sel)sel.innerHTML='<option value="">Choose network</option>'+(data||[]).map(n=>'<option value="'+n.id+'">'+escapeHTML(n.name)+'</option>').join('');if(box)box.innerHTML=data?.length?'<div class="affiliate-network-list">'+data.map(n=>'<article class="admin-tools affiliate-network-card"><div><strong>'+escapeHTML(n.name)+'</strong><p class="small-note">Status: '+escapeHTML(n.status)+'</p></div><div class="affiliate-network-actions">'+(n.signup_url?'<a class="primary" href="'+escapeHTML(safeURL(n.signup_url))+'" target="_blank" rel="noopener noreferrer">Connect / Open account ↗</a>':(n.website?'<a class="primary" href="'+escapeHTML(safeURL(n.website))+'" target="_blank" rel="noopener noreferrer">Connect / Open account ↗</a>':'<span class="small-note">Add the official partner portal URL</span>'))+(n.website?'<a class="secondary" href="'+escapeHTML(safeURL(n.website))+'" target="_blank" rel="noopener noreferrer">Visit partner website ↗</a>':'')+'</div></article>').join('')+'</div>':'No networks yet. Add your first partner network above.';}
 async function saveExternalAffiliateNetwork(){const box=document.getElementById('extNetworkStatus');try{await adminGuard();const name=document.getElementById('extNetworkName').value.trim();if(!name)throw Error('Enter network name.');const {error}=await db.from('external_affiliate_networks').insert({name,website:document.getElementById('extNetworkWebsite').value.trim()||null,signup_url:document.getElementById('extNetworkSignup').value.trim()||null});if(error)throw error;box.textContent='Network saved.';await loadExternalAffiliateNetworks();}catch(e){box.textContent=e.message;}}
@@ -2576,22 +2593,44 @@ async function saveExternalAffiliateProduct(){
  try{
   await adminGuard();
   const value=id=>document.getElementById(id).value.trim();
+  const isHttpUrl=value=>{try{const parsed=new URL(value);return parsed.protocol==='http:'||parsed.protocol==='https:';}catch{return false;}};
   const title=value('extProductTitle'),raw=value('extProductAffiliateUrl');
   if(!title||!raw)throw Error('Product name and genuine affiliate tracking URL are required.');
-  const link=safeURL(raw);if(!link||!/^https?:\\/\\//i.test(link))throw Error('Enter a valid affiliate tracking URL beginning with http:// or https://.');
-  const cleanOptional=(rawValue,label)=>{if(!rawValue)return null;const clean=safeURL(rawValue);if(!clean||!/^https?:\\/\\//i.test(clean))throw Error('Enter a valid '+label+' URL or leave it blank.');return clean;};
+  const link=safeURL(raw);
+  if(!link||!isHttpUrl(link))throw Error('Enter a valid affiliate tracking URL beginning with http:// or https://.');
+  const cleanOptional=(rawValue,label)=>{
+   if(!rawValue)return null;
+   const clean=safeURL(rawValue);
+   if(!clean||!isHttpUrl(clean))throw Error('Enter a valid '+label+' URL or leave it blank.');
+   return clean;
+  };
   const price=value('extProductPrice'),commission=value('extProductCommission');
   if(price&&(!Number.isFinite(Number(price))||Number(price)<0))throw Error('Enter a valid non-negative product price.');
   if(commission&&(!Number.isFinite(Number(commission))||Number(commission)<0||Number(commission)>100))throw Error('Commission rate must be between 0 and 100.');
-  const row={title,category:value('extProductCategory')||'Other',description:value('extProductDescription')||null,price:price?Number(price):null,currency:document.getElementById('extProductCurrency').value,commission_rate:commission?Number(commission):null,network_id:document.getElementById('extProductNetwork').value||null,image_url:cleanOptional(value('extProductImage'),'product image'),product_url:cleanOptional(value('extProductUrl'),'original product page'),affiliate_url:link,is_featured:document.getElementById('extProductFeatured').checked,is_active:document.getElementById('extProductActive').checked};
+  const row={
+   title,
+   category:value('extProductCategory')||'Other',
+   description:value('extProductDescription')||null,
+   price:price?Number(price):null,
+   currency:document.getElementById('extProductCurrency').value,
+   commission_rate:commission?Number(commission):null,
+   network_id:document.getElementById('extProductNetwork').value||null,
+   image_url:cleanOptional(value('extProductImage'),'product image'),
+   product_url:cleanOptional(value('extProductUrl'),'original product page'),
+   affiliate_url:link,
+   is_featured:document.getElementById('extProductFeatured').checked,
+   is_active:document.getElementById('extProductActive').checked
+  };
   const editId=value('extProductEditId');
-  const result=editId?await db.from('external_affiliate_products').update(row).eq('id',editId):await db.from('external_affiliate_products').insert(row);
+  const result=editId
+   ?await db.from('external_affiliate_products').update(row).eq('id',editId)
+   :await db.from('external_affiliate_products').insert(row);
   if(result.error)throw result.error;
   box.textContent=editId?'External product updated successfully.':'External product saved successfully.';
   resetExternalAffiliateProductForm();
   await loadExternalAffiliateProductsAdmin();
   await refreshExternalAffiliateSelects();
- }catch(e){box.textContent='Could not save external product: '+e.message;}
+ }catch(e){box.textContent='Could not save external product: '+(e?.message||e);}
 }
 async function toggleExternalAffiliateProduct(id,active){try{await adminGuard();const {error}=await db.from('external_affiliate_products').update({is_active:active}).eq('id',id);if(error)throw error;await loadExternalAffiliateProductsAdmin();}catch(e){alert(e.message);}}
 async function deleteExternalAffiliateProduct(id){if(!confirm('Delete external affiliate product?'))return;try{await adminGuard();const {error}=await db.from('external_affiliate_products').delete().eq('id',id);if(error)throw error;await loadExternalAffiliateProductsAdmin();}catch(e){alert(e.message);}}
