@@ -5715,7 +5715,7 @@ async function staffReviewFulfilment(id,action){
    products.forEach(p=>{
     const card=make("article","product");
     const imageUrl=String(p.image_url||"");
-    if(/^https?:\\/\\//i.test(imageUrl)){const img=make("img");img.src=imageUrl;img.alt=String(p.name||"Product");img.loading="lazy";img.onerror=()=>img.remove();card.appendChild(img);}
+    if(imageUrl.startsWith("https://")||imageUrl.startsWith("http://")){const img=make("img");img.src=imageUrl;img.alt=String(p.name||"Product");img.loading="lazy";img.onerror=()=>img.remove();card.appendChild(img);}
     card.appendChild(make("h3","",p.name||"Product"));
     card.appendChild(make("p","product-desc",p.description||"Explore this product for more information."));
     card.appendChild(make("p","price",(p.currency||"USD")+" "+Number(p.price||0).toLocaleString()));
