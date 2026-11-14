@@ -1445,6 +1445,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
           <div class="account-divider"><span>or continue with</span></div>
           <button class="google-account-button" type="button" onclick="signInWithGoogle()"><strong>G</strong> Continue with Google</button>
           <p id="message" class="account-message" aria-live="polite">You are browsing as a guest. Sign in or create an account to continue.</p>
+          <button id="resendConfirmationButton" type="button" class="secondary" style="display:none;margin-top:8px" onclick="resendSignupConfirmation()">Resend confirmation email</button>
         </div>
         <div id="accountSignedIn" style="display:none">
           <div class="account-avatar" id="accountAvatar">R</div>
@@ -3333,46 +3334,82 @@ async function loadReferralDashboard(user){
     if(el)el.innerHTML='<h3>🎁 Invite friends & earn</h3><p>Your account is available, but invitation details could not be loaded. Please try Refresh Dashboard.</p>';
   }
 }
-async function signUp() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-
-  if (!email || !password) {
-    document.getElementById("message").textContent = "Enter your email and password.";
-    return;
-  }
-
-  if (!document.getElementById("acceptTerms")?.checked) {
-    document.getElementById("message").textContent = "Please read and agree to the Terms and Conditions before creating your account.";
-    return;
-  }
-
-  const {error} = await db.auth.signUp({
-    email,password,
-    options:{emailRedirectTo:window.location.origin + window.location.pathname}
-  });
-
-  document.getElementById("message").textContent =
-    error ? error.message : "Account created. Check your email to confirm your account.";
-  if(!error)document.getElementById("message").classList.add("success");
+let rianderAuthBusy = false;
+function setAuthMessage(message, success=false){
+  const box=document.getElementById('message');
+  if(!box)return;
+  box.textContent=message;
+  box.classList.toggle('success',!!success);
 }
-
-async function signIn() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-
-  const {error} = await db.auth.signInWithPassword({email,password});
-
-  document.getElementById("message").textContent =
-    error ? error.message : "You are signed in successfully!";
-
-  if(!error){
-    const {data:{user}}=await db.auth.getUser();
-    updateAccountExperience(user);
-    await claimPendingReferral();
-    showSection("dashboard");
-  }
-  await showDashboard();
+function showResendConfirmation(show=true){
+  const button=document.getElementById('resendConfirmationButton');
+  if(button)button.style.display=show?'inline-block':'none';
+}
+async function signUp(){
+  if(rianderAuthBusy)return;
+  const email=document.getElementById('email')?.value.trim()||'';
+  const password=document.getElementById('password')?.value||'';
+  if(!email||!password){setAuthMessage('Enter your email and password.');return;}
+  if(!document.getElementById('acceptTerms')?.checked){setAuthMessage('Please read and agree to the Terms and Conditions before creating your account.');return;}
+  rianderAuthBusy=true;showResendConfirmation(false);
+  const button=document.getElementById('accountSubmitButton');if(button){button.disabled=true;button.textContent='Creating account…';}
+  try{
+    const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
+    if(error){
+      if(error.code==='over_email_send_rate_limit'||/rate limit|only request this after/i.test(error.message||'')){
+        setAuthMessage('Supabase temporarily limited confirmation emails because too many were requested. Stop retrying, wait at least 60 seconds, then use “Resend confirmation email” below.');
+        showResendConfirmation(true);
+      }else setAuthMessage(error.message||'Account creation failed.');
+      return;
+    }
+    if(data.session){
+      setAuthMessage('Your account is ready and you are signed in.',true);
+      updateAccountExperience(data.user);showSection('dashboard');await showDashboard();
+    }else{
+      setAuthMessage('Account created. Open the confirmation email sent to '+email+'. After confirming, return here and sign in.');
+      showResendConfirmation(true);
+    }
+  }catch(error){setAuthMessage('Account creation error: '+(error?.message||String(error)));}
+  finally{rianderAuthBusy=false;if(button){button.disabled=false;button.textContent=document.getElementById('accountSignUpTab')?.classList.contains('active')?'Create my free account':'Sign in securely';}}
+}
+async function signIn(){
+  if(rianderAuthBusy)return;
+  const email=document.getElementById('email')?.value.trim()||'';
+  const password=document.getElementById('password')?.value||'';
+  if(!email||!password){setAuthMessage('Enter your email and password.');return;}
+  rianderAuthBusy=true;
+  const button=document.getElementById('accountSubmitButton');if(button){button.disabled=true;button.textContent='Signing in…';}
+  try{
+    const {data,error}=await db.auth.signInWithPassword({email,password});
+    if(error){
+      if(error.code==='email_not_confirmed'){
+        setAuthMessage('Your email address is not confirmed yet. Open the confirmation email, or tap “Resend confirmation email” below.');showResendConfirmation(true);
+      }else if(error.code==='invalid_credentials'){
+        setAuthMessage('Email or password is incorrect. Check both and try again.');
+      }else setAuthMessage(error.message||'Sign-in failed.');
+      return;
+    }
+    showResendConfirmation(false);setAuthMessage('You are signed in successfully!',true);
+    const user=data.user||(await db.auth.getUser()).data?.user;
+    if(user){updateAccountExperience(user);await claimPendingReferral();showSection('dashboard');}
+    await showDashboard();
+  }catch(error){setAuthMessage('Sign-in error: '+(error?.message||String(error)));}
+  finally{rianderAuthBusy=false;if(button){button.disabled=false;button.textContent=document.getElementById('accountSignUpTab')?.classList.contains('active')?'Create my free account':'Sign in securely';}}
+}
+async function resendSignupConfirmation(){
+  if(rianderAuthBusy)return;
+  const email=document.getElementById('email')?.value.trim()||'';
+  if(!email){setAuthMessage('Enter your email address first.');return;}
+  rianderAuthBusy=true;const button=document.getElementById('resendConfirmationButton');
+  if(button){button.disabled=true;button.textContent='Sending…';}
+  try{
+    const {error}=await db.auth.resend({type:'signup',email,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
+    if(error){
+      if(error.code==='over_email_send_rate_limit'||/rate limit|only request this after/i.test(error.message||''))setAuthMessage('Email sending is temporarily rate-limited. Wait at least 60 seconds before requesting another confirmation email.');
+      else setAuthMessage('Could not resend confirmation: '+error.message);
+    }else setAuthMessage('Confirmation email requested. Check your inbox and spam folder.',true);
+  }catch(error){setAuthMessage('Resend error: '+(error?.message||String(error)));}
+  finally{rianderAuthBusy=false;if(button){button.disabled=false;button.textContent='Resend confirmation email';}}
 }
 
 async function signInWithGoogle() {
