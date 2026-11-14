@@ -1045,6 +1045,15 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 #adminTab-suppliers .supplier-management-section{display:none}
 #adminTab-products .admin-product-section{margin-top:12px}
 </style>
+
+<style id="staff-task-command-bar">
+#staffTaskCommandBar .task-status-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;margin:12px 0}
+#staffTaskCommandBar .task-status-count{padding:9px 10px;border:1px solid #e5eaf1;border-radius:9px;background:#f8fafc;font-size:11px;color:#53647a}
+#staffTaskCommandBar .task-status-count strong{display:block;font-size:19px;color:#172d49}
+#staffTaskCommandBar .task-lock{padding:12px;border:1px solid #edc6c6;background:#fff4f4;border-radius:9px;color:#8a3030;margin-top:12px}
+#staffTaskCommandBar .task-hub-link{display:inline-block;margin-top:10px;padding:10px 14px;background:#172d49;color:#fff;border-radius:8px;text-decoration:none;font-weight:750}
+#staffTaskCommandBar .task-due-list{margin:10px 0 0;padding-left:18px;font-size:12px;color:#526176}
+</style>
 </head>
 <body>
 <div class="topbar">A WORLD OF DISCOVERY • SHOP PRODUCTS FROM INTERNATIONAL SELLERS</div>
@@ -1503,6 +1512,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <h3>My Staff</h3><p class="small-note">All invited General and Delivery &amp; Assembly staff appear in this table.</p><div id="staffMembersList" aria-live="polite">Loading staff…</div>
 </div>
 </div>
+<div id="staffTaskCommandBar" style="display:none;margin:14px 0 18px;padding:16px;border:1px solid #dce4ee;border-left:5px solid #c9a34e;border-radius:12px;background:#fff;box-shadow:0 5px 18px #172d4909" aria-live="polite"></div>
 <div id="staffTaskWorkspace" style="display:none">
 <div id="staffProductAction" style="display:none;margin:16px 0"><button type="button" class="primary" onclick="toggleStaffProductForm()">＋ Add Product</button><p class="small-note">Tap the button whenever you need to add a marketplace product.</p></div>
 <div id="staffProductCreatePanel" class="admin-tools" style="display:none;margin:16px 0;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
@@ -3499,7 +3509,7 @@ async function loadNotifications(){
   if(!list)return;
   const {data:{user}}=await db.auth.getUser();
   if(!user){list.innerHTML='<p class="notification-empty">Sign in to see your notifications.</p>';return;}
-  const {data,error}=await db.from('notifications').select('id,title,body,notification_type,target_section,is_read,created_at,related_order_id').order('created_at',{ascending:false}).limit(30);
+  const {data,error}=await db.from('notifications').select('id,title,body,notification_type,target_section,is_read,created_at,related_order_id,task_status').order('created_at',{ascending:false}).limit(30);
   if(error){list.innerHTML='<p class="notification-empty">Could not load notifications. Please refresh.</p>';console.error('Notification load:',error);return;}
   const rows=data||[];
   const unreadRows=rows.filter(n=>!n.is_read);
@@ -4956,6 +4966,7 @@ async function loadStaffPanel(){
   }
   const permissions=owner?{}:(member?.permissions||{});
   await withTimeout(loadStaffTasks(permissions),'Staff workspace loading');
+  await withTimeout(loadStaffTaskCommandBar(user,member),'Staff task summary loading');
   box.textContent=owner?'Owner verified. You decide what work is assigned and when.':'Staff account verified. Your category work appears automatically; extra tasks appear when the owner assigns them.';
  }catch(error){
   console.error('RIANDERBLOG Staff Panel:',error);
@@ -5188,6 +5199,56 @@ async function loadStaffTeamOrders(userId){
  if(!rows.length){box.innerHTML='<p class="small-note">No RIANDERBLOG team-owned products are in your assigned orders. Supplier-direct products are intentionally hidden.</p>';return;}
  box.innerHTML='<div style="overflow-x:auto"><table class="admin-orders-table" style="min-width:1250px"><thead><tr><th>Order</th><th>Customer name</th><th>Phone</th><th>Team product</th><th>Quantity</th><th>Item amount</th><th>Team products total</th><th>Delivery destination</th><th>Delivery / placement / assembly update</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
 }
+async function loadStaffTaskCommandBar(user, member){
+ const bar=document.getElementById('staffTaskCommandBar'),workspace=document.getElementById('staffTaskWorkspace');
+ if(!bar||!workspace)return;
+ if(!user||user.id===ADMIN_USER_ID){bar.style.display='none';workspace.style.display='block';return;}
+ const deliveryOnly=member?.permissions?.staff_type==='delivery_assembly';
+ const now=new Date(),soon=new Date(now.getTime()+24*60*60*1000);
+ const taskResult=await db.from('staff_tasks').select('id,title,task_type,status,due_at,seen_at,created_at').eq('staff_user_id',user.id).in('status',['pending','in_progress','completed']).order('created_at',{ascending:false}).limit(250);
+ if(taskResult.error)throw taskResult.error;
+ const tasks=taskResult.data||[];
+ let campaigns=[];
+ if(!deliveryOnly&&member?.permissions?.social_media){
+  const promo=await db.from('promotion_staff_tasks').select('id,product_id,product_name,platform,status,confirmed_posted,posted_url,scheduled_at').eq('staff_user_id',user.id).limit(500);
+  if(promo.error)throw promo.error;
+  const grouped=new Map();
+  for(const row of (promo.data||[])){
+   const key=String(row.product_id||'none')+'|'+String(row.scheduled_at||'unscheduled');
+   if(!grouped.has(key))grouped.set(key,{name:row.product_name,scheduled_at:row.scheduled_at,rows:[]});
+   grouped.get(key).rows.push(row);
+  }
+  campaigns=[...grouped.values()].map(g=>{
+   const verified=new Set(g.rows.filter(x=>x.status==='completed'&&x.confirmed_posted&&/^https:\/\//i.test(x.posted_url||'')).map(x=>x.platform)).size;
+   return {title:'Promotion: '+g.name,verified,scheduled_at:g.scheduled_at,completed:verified>=3};
+  });
+ }
+ const activeTasks=tasks.filter(t=>t.status!=='completed');
+ const dueStatus=(due,seen)=>{if(!due)return seen?'pending':'new';const d=new Date(due);if(d<now)return 'overdue';if(d<=soon)return 'dueSoon';return seen?'pending':'new';};
+ const statuses={new:0,pending:0,dueSoon:0,overdue:0,completed:tasks.filter(t=>t.status==='completed').length};
+ const overdueItems=[];
+ for(const t of activeTasks){
+  const s=dueStatus(t.due_at,t.seen_at);
+  statuses[s]++;
+  if(s==='overdue')overdueItems.push({title:t.title,due:t.due_at,kind:'task'});
+ }
+ for(const g of campaigns){
+  if(g.completed){statuses.completed++;continue;}
+  const s=dueStatus(g.scheduled_at,true);
+  statuses[s]++;
+  if(s==='overdue')overdueItems.push({title:g.title+' ('+g.verified+'/3 platforms verified)',due:g.scheduled_at,kind:'promotion'});
+ }
+ const locked=overdueItems.length>0;
+ const dueItems=[...activeTasks.filter(t=>t.due_at).map(t=>({title:t.title,due:t.due_at,status:dueStatus(t.due_at,t.seen_at)})),...campaigns.filter(g=>!g.completed&&g.scheduled_at).map(g=>({title:g.title+' ('+g.verified+'/3)',due:g.scheduled_at,status:dueStatus(g.scheduled_at,true)}))].filter(x=>x.status==='new'||x.status==='dueSoon'||x.status==='overdue').sort((a,b)=>new Date(a.due)-new Date(b.due)).slice(0,6);
+ const labels=[['new','New'],['pending','Pending'],['dueSoon','Due Soon'],['overdue','Overdue'],['completed','Completed']];
+ bar.style.display='block';
+ bar.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><strong style="font-size:15px;color:#172d49">Your assigned work</strong><div style="font-size:12px;color:#718096">Check each task and its deadline. Status updates automatically as work is completed.</div></div><button type="button" class="secondary" onclick="loadStaffPanel()">↻ Refresh tasks</button></div>'+
+ '<div class="task-status-counts">'+labels.map(([k,label])=>'<div class="task-status-count">'+label+'<strong>'+statuses[k]+'</strong></div>').join('')+'</div>'+
+ (dueItems.length?'<strong style="font-size:12px;color:#344760">Upcoming and overdue deadlines</strong><ul class="task-due-list">'+dueItems.map(x=>'<li><b>'+escapeHTML(x.title)+'</b> — '+escapeHTML(x.status==='dueSoon'?'Due soon':x.status==='overdue'?'OVERDUE':x.status==='new'?'New':'Pending')+' · '+escapeHTML(new Date(x.due).toLocaleString())+'</li>').join('')+'</ul>':'<p style="font-size:12px;color:#64748b;margin:8px 0 0">No upcoming deadlines are currently recorded.</p>')+
+ (locked?'<div class="task-lock"><strong>Staff workspace locked — overdue work needs attention.</strong><p style="margin:5px 0 0;font-size:12px">Complete the overdue assignment(s) to restore normal Staff Panel access. The Promotion Hub remains available so you can finish overdue promotion campaigns.</p>'+(deliveryOnly?'':'<a class="task-hub-link" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/">Open Promotion Hub</a>')+'</div>':'<p style="font-size:12px;color:#17835d;margin:10px 0 0;font-weight:700">No overdue tasks. Your Staff Panel is unlocked.</p>');
+ workspace.style.display=locked?'none':'block';
+}
+
 async function loadStaffTasks(p){
  const boxes={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks'};
  Object.values(boxes).forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
