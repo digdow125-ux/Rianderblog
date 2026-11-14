@@ -1199,7 +1199,16 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   #productList.products { grid-template-columns:repeat(4,minmax(0,1fr)); gap:15px; }
   #productList .product-card-open img, #productList .product-image-placeholder { height:170px; }
 }
-/* Keep the desktop storefront at four aligned products per row, including wide screens. */
+/* Wide laptop layouts show more products; normal desktop stays at four. */
+@media (min-width:1500px) {
+  #productList.products { grid-template-columns:repeat(6,minmax(0,1fr)); }
+}
+@media (min-width:1800px) {
+  #productList.products { grid-template-columns:repeat(7,minmax(0,1fr)); }
+}
+@media (min-width:2100px) {
+  #productList.products { grid-template-columns:repeat(8,minmax(0,1fr)); }
+}
 </style>
 
 </head>
