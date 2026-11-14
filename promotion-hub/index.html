@@ -296,6 +296,65 @@ body.hub-staff-ready #staffPromotionTasks{display:block!important}
 /* Compact staff execution cards so proof entry and sharing fit on phones */
 .promotion-task-card{padding:10px!important;margin:8px 0!important;border-radius:10px!important}.promotion-task-card .promotion-task-meta{font-size:10px!important;margin-top:3px!important}.promotion-task-platform{padding:8px!important;margin-top:6px!important;border-radius:8px!important}.promotion-task-actions{gap:5px!important;margin-top:5px!important}.promotion-task-actions input[type=url]{min-width:0;width:100%;padding:8px!important;font-size:11px!important}.promotion-task-actions button{padding:7px 9px!important;font-size:10px!important}.promotion-task-platform .promotion-task-top strong{font-size:11px!important}
 </style>
+
+<style id="rb-promotion-hub-professional-finish">
+:root{--hub-ink:#1b2d45;--hub-muted:#6d7c90;--hub-border:#e1e8f0;--hub-gold:#d9b45b}
+body{background:linear-gradient(180deg,#f3f6fa 0,#f7f9fc 260px);color:var(--hub-ink)}
+.rb-hub-header{box-shadow:0 5px 22px rgba(9,25,45,.12)}
+.rb-hub-brand{padding-top:19px;padding-bottom:19px}
+.rb-hub-brand .brand strong{letter-spacing:.07em}
+.rb-hub-menu{box-shadow:inset 0 1px rgba(255,255,255,.08)}
+.rb-hub-nav-inner{min-height:52px}
+.rb-hub-menu a{padding:16px 12px;border-radius:8px;font-size:13px;transition:background .16s ease,color .16s ease}
+.rb-hub-menu a:hover,.rb-hub-menu a.active{background:rgba(255,255,255,.08);color:#f2d58f}
+main{max-width:1240px;padding-top:25px}
+.hero{position:relative;overflow:hidden;padding:30px 32px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:linear-gradient(118deg,#102640 0%,#19466d 68%,#245b7d 100%);box-shadow:0 14px 34px rgba(18,48,78,.13)}
+.hero:after{content:"";position:absolute;width:240px;height:240px;right:8%;top:-135px;border:1px solid rgba(238,205,133,.22);border-radius:50%;box-shadow:0 0 0 22px rgba(238,205,133,.035),0 0 0 48px rgba(238,205,133,.025);pointer-events:none}
+.hero h1{font-size:clamp(25px,3.4vw,36px);letter-spacing:-.035em}
+.hero p{font-size:14px;line-height:1.7}
+.hero .pill{background:rgba(255,255,255,.07);border-color:rgba(245,216,153,.35)}
+.auth{border-radius:14px;border-color:var(--hub-border);box-shadow:0 5px 18px rgba(20,43,68,.045)}
+.auth strong{color:#173b63;font-size:15px}
+.auth button{border-radius:9px;background:#173b63}
+.notice{border-radius:11px;line-height:1.6}
+.rb-main-workspace{gap:18px!important;margin-top:20px!important}
+.rb-main-workspace>#products,.rb-main-workspace>#tutorial-maker{padding:21px!important;border:1px solid var(--hub-border)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 7px 22px rgba(20,43,68,.045)!important}
+#products>h2,#tutorial-maker>h2,.panel h2{color:#173b63;font-size:19px;letter-spacing:-.02em}
+#products>.sub,#tutorial-maker>.sub,.panel>.sub{line-height:1.6}
+#productList{margin-top:13px}
+#productList .rb-product-table-scroll{border:1px solid #e3e9f0;border-radius:11px;background:#fff}
+#productList .rb-product-table{border-collapse:separate;border-spacing:0}
+#productList .rb-product-table th{background:#f4f7fa!important;color:#5b6b80!important}
+#productList .rb-product-table td{background:#fff}
+#productList .rb-product-table tr:hover td{background:#fbfcfe}
+#tutorial-maker .field{margin:16px 0}
+#tutorial-maker select,#tutorial-maker input{min-height:42px;border:1px solid #dce4ed;border-radius:9px;background:#fff}
+#tutorial-maker button,#schedule button{border-radius:9px}
+#tutorial-maker .primary,#schedule .primary{background:#173b63}
+#tutorial-maker .secondary,#schedule .secondary{background:#edf2f7;color:#263b56}
+#tutorialCanvas{border:1px solid #dce4ed!important;box-shadow:0 8px 20px rgba(18,43,70,.12)}
+.rb-activity-area{border:1px solid var(--hub-border);border-radius:16px;background:#fff;box-shadow:0 7px 22px rgba(20,43,68,.04)}
+.rb-activity-heading h2{font-size:20px;color:#173b63}
+.rb-activity-nav a{border-radius:9px;transition:background .15s ease,border-color .15s ease}
+.rb-activity-nav a:hover{border-color:#d5b56e;background:#fffaf0}
+#otherActivities .panel,#schedule,#tutorial-plan,#queue{border:1px solid var(--hub-border);border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(20,43,68,.04)}
+#schedule .field{padding:12px 0;border-bottom:1px solid #edf1f5}
+#schedule .field:last-of-type{border-bottom:0}
+#schedule .channels-table{border-collapse:separate;border-spacing:0;width:100%;overflow:hidden;border:1px solid #e4eaf1;border-radius:10px}
+#schedule .channels-table th{background:#f4f7fa;color:#53657a;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+#schedule .channels-table th,#schedule .channels-table td{padding:10px 9px;border-bottom:1px solid #edf1f5;text-align:left}
+#schedule .channels-table tr:last-child td{border-bottom:0}
+#schedule .channels-table a{color:#1e527e;font-weight:700;text-decoration:none}
+#schedule .times span{border:1px solid #e3e9f0;background:#f6f8fb;color:#344b66}
+.queue-item,.promotion-task-card{border-color:#e2e8f0;border-radius:12px;background:#fff;box-shadow:0 3px 12px rgba(20,43,68,.035)}
+.statusline{padding:8px 10px;border-radius:8px;background:#f5f7fa;line-height:1.5}
+.empty{background:#fafbfd}
+footer{color:#8190a2}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(217,180,91,.45);outline-offset:2px}
+@media(max-width:800px){main{padding-left:14px;padding-right:14px}.rb-main-workspace{gap:13px!important}.rb-main-workspace>#products,.rb-main-workspace>#tutorial-maker{padding:15px!important}.rb-activity-area{padding:14px}}
+@media(max-width:650px){.rb-hub-brand{padding:14px}.rb-hub-nav-inner{padding:8px 0}.rb-hub-menu a{padding:12px 10px}.hero{padding:22px}.hero:after{right:-150px}.auth{padding:16px}.auth button{width:100%}#schedule .channels-table th,#schedule .channels-table td{padding:8px 6px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.rb-hub-menu a,.rb-activity-nav a{transition:none}}
+</style>
 </head>
 <body data-hub-page="product">
 <header class="rb-hub-header"><div class="rb-hub-brand"><a class="brand" href="https://digdow125-ux.github.io/Rianderblog/"><div class="mark">R</div><div><strong>RIANDERBLOG</strong><small>Global marketplace · Promotion Hub</small></div></a></div><nav class="rb-hub-menu" aria-label="RIANDERBLOG navigation"><div class="rb-hub-nav-inner"><button class="rb-hub-menu-toggle" id="hubMenuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleHubMenu()">☰</button><div class="rb-hub-links" id="hubNavLinks"><a href="index.html">🛍️ Promote a Product</a><a href="tutorial-maker.html">🎬 Tutorial Maker</a><a href="social-accounts.html">📱 Social Accounts</a><a href="tutorial-plan.html">📅 Tutorial Plan</a><a href="promotion-queue.html">📣 Promotion Queue</a><a href="https://digdow125-ux.github.io/Rianderblog/">← Back to marketplace</a></div></div></nav></header>
