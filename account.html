@@ -87,9 +87,16 @@ async function submitAuth(){
  busy=true;const button=document.getElementById("submitButton");button.disabled=true;button.textContent=mode==="signup"?"Creating account…":"Signing in…";
  try{
   if(mode==="signup"){
-   localStorage.setItem("rianderblog_onboarding_pending","1");
    const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl}});
    if(error)throw error;
+   // Supabase may return an empty identities array when this email already has an account.
+   if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
+    say("This email already has an account. Please choose Sign in instead, or use the password reset option if you cannot remember your password.");
+    localStorage.removeItem("rianderblog_onboarding_pending");
+    setMode("signin");
+    return;
+   }
+   localStorage.setItem("rianderblog_onboarding_pending","1");
    if(data.session){say("Your account is ready. Taking you to the welcome steps…",true);location.replace("./welcome.html");return;}
    say("Account created! Check your Inbox for the confirmation email. If you don't see it, check Spam/Junk and Promotions. Open the confirmation link to continue.",true);
    document.getElementById("resendButton").style.display="block";
