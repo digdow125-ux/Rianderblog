@@ -1099,6 +1099,33 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 #adminTab-products .admin-product-section{margin-top:12px}
 </style>
 
+<style id="staff-task-table-responsive">
+#ownerStaffTasksList{min-width:0;max-width:100%}
+#ownerStaffTasksList .staff-task-table-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 2px;color:#718096;font-size:11px}
+#ownerStaffTasksList .staff-task-table-meta strong{color:#172d49;font-size:15px}
+#ownerStaffTasksList .staff-task-table-scroll{width:100%;overflow-x:auto;border:1px solid #e5eaf1;border-radius:10px;background:#fff;overscroll-behavior-x:contain}
+#ownerStaffTasksList table.staff-task-table{width:100%;min-width:790px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:12px}
+#ownerStaffTasksList .staff-task-table th{position:sticky;top:0;z-index:1;background:#f4f7fb;color:#526176;font-size:10px;text-transform:uppercase;letter-spacing:.045em;font-weight:800;padding:10px 9px;text-align:left;border-bottom:1px solid #e3e9f0}
+#ownerStaffTasksList .staff-task-table td{padding:10px 9px;vertical-align:middle;border-bottom:1px solid #edf0f4;overflow-wrap:anywhere}
+#ownerStaffTasksList .staff-task-table tr:last-child td{border-bottom:0}
+#ownerStaffTasksList .staff-task-table tbody tr:hover{background:#fafbfd}
+#ownerStaffTasksList .staff-col-person{width:19%}#ownerStaffTasksList .staff-col-task{width:29%}#ownerStaffTasksList .staff-col-type{width:16%}#ownerStaffTasksList .staff-col-status{width:13%}#ownerStaffTasksList .staff-col-due{width:15%}#ownerStaffTasksList .staff-col-action{width:8%}
+#ownerStaffTasksList .staff-task-person{font-weight:700;color:#233650}
+#ownerStaffTasksList .staff-task-title strong{display:block;color:#172d49;line-height:1.35}
+#ownerStaffTasksList .staff-task-record{display:block;margin-top:4px;color:#8490a0;font-size:10px;overflow-wrap:anywhere}
+#ownerStaffTasksList .staff-task-due{color:#59677a;font-size:11px}
+#ownerStaffTasksList .staff-task-instructions{margin-top:5px;color:#6d7b8e;font-size:10px}
+#ownerStaffTasksList .staff-task-instructions summary{cursor:pointer;color:#8a6825;font-weight:700;list-style-position:inside}
+#ownerStaffTasksList .staff-task-instructions p{margin:6px 0 0;line-height:1.45;white-space:pre-wrap}
+#ownerStaffTasksList .staff-task-status{display:inline-block;padding:4px 7px;border-radius:20px;background:#eef2f7;color:#53647a;font-size:10px;font-weight:800;text-transform:capitalize;white-space:nowrap}
+#ownerStaffTasksList .staff-task-status.progress{background:#fff3d9;color:#8a6418}
+#ownerStaffTasksList .staff-task-status.complete{background:#e8f6ee;color:#267348}
+#ownerStaffTasksList .staff-task-status.cancelled{background:#f0f1f3;color:#707987}
+#ownerStaffTasksList .staff-task-status.pending{background:#eaf1fb;color:#315d91}
+#ownerStaffTasksList .staff-task-action button{padding:6px 9px;font-size:10px;white-space:nowrap}
+#ownerStaffTasksList .staff-task-empty{padding:18px;border:1px dashed #dce3ec;border-radius:10px;color:#718096;text-align:center;font-size:12px}
+@media(max-width:650px){#ownerStaffTasksList .staff-task-table-meta{font-size:10px}#ownerStaffTasksList table.staff-task-table{min-width:760px}#ownerStaffTasksList .staff-task-table th,#ownerStaffTasksList .staff-task-table td{padding:9px 7px}}
+</style>
 <style id="staff-task-command-bar">
 #staffTaskCommandBar .task-status-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;margin:12px 0}
 #staffTaskCommandBar .task-status-count{padding:9px 10px;border:1px solid #e5eaf1;border-radius:9px;background:#f8fafc;font-size:11px;color:#53647a}
@@ -5921,11 +5948,22 @@ async function assignStaffTask(){
 }
 async function loadOwnerStaffTasks(){
  const box=document.getElementById('ownerStaffTasksList');if(!box)return;
+ box.innerHTML='<p class="small-note">Loading assigned tasks…</p>';
  const [tasks,staff]=await Promise.all([db.from('staff_tasks').select('*').order('created_at',{ascending:false}).limit(100),db.from('staff_members').select('user_id,email')]);
  if(tasks.error){box.textContent='Could not load assigned tasks: '+tasks.error.message;return;}
+ const rows=tasks.data||[];
  const names=new Map((staff.data||[]).map(x=>[x.user_id,x.email]));
- if(!tasks.data?.length){box.textContent='No tasks have been assigned yet.';return;}
- box.innerHTML='<div class="admin-tools"><table class="catalogue-table"><thead><tr><th>Staff member</th><th>Task</th><th>Type / record</th><th>Status</th><th>Due</th><th>Action</th></tr></thead><tbody>'+tasks.data.map(t=>'<tr><td>'+escapeHTML(names.get(t.staff_user_id)||'Staff')+'</td><td><strong>'+escapeHTML(t.title)+'</strong><small>'+escapeHTML(t.instructions||'')+'</small></td><td>'+escapeHTML(t.task_type)+'<small>'+escapeHTML(t.related_record_id||'—')+'</small></td><td>'+escapeHTML(t.status)+'</td><td>'+escapeHTML(t.due_at?new Date(t.due_at).toLocaleString():'—')+'</td><td>'+(t.status==='pending'||t.status==='in_progress'?'<button class="secondary" onclick="cancelStaffTask(\''+t.id+'\')">Cancel</button>':'—')+'</td></tr>').join('')+'</tbody></table></div>';
+ if(!rows.length){box.innerHTML='<div class="staff-task-empty">No tasks have been assigned yet.</div>';return;}
+ const statusClass={pending:'pending',in_progress:'progress',completed:'complete',cancelled:'cancelled'};
+ box.innerHTML='<div class="staff-task-table-meta"><span><strong>'+rows.length+'</strong> recent tasks</span><span>Newest first · Up to 100 records</span></div><div class="staff-task-table-scroll"><table class="catalogue-table staff-task-table"><thead><tr><th class="staff-col-person">Staff member</th><th class="staff-col-task">Task</th><th class="staff-col-type">Type / record</th><th class="staff-col-status">Status</th><th class="staff-col-due">Due</th><th class="staff-col-action">Action</th></tr></thead><tbody>'+rows.map(t=>{
+ const status=String(t.status||'unknown').toLowerCase();
+ const taskDetails=t.instructions?'<details class="staff-task-instructions"><summary>View instructions</summary><p>'+escapeHTML(t.instructions)+'</p></details>':'';
+ const record=t.related_record_id?'<small class="staff-task-record">'+escapeHTML(t.related_record_id)+'</small>':'';
+ const due=t.due_at?new Date(t.due_at).toLocaleString():'—';
+ const cancelButton=status==='pending'||status==='in_progress'?'<button type="button" class="secondary" data-cancel-task="'+escapeHTML(t.id)+'">Cancel</button>':'—';
+ return '<tr><td class="staff-task-person">'+escapeHTML(names.get(t.staff_user_id)||'Staff')+'</td><td class="staff-task-title"><strong>'+escapeHTML(t.title||'Untitled task')+'</strong>'+taskDetails+'</td><td><span>'+escapeHTML(t.task_type||'—')+'</span>'+record+'</td><td><span class="staff-task-status '+(statusClass[status]||'other')+'">'+escapeHTML(String(t.status||'Unknown').replace(/_/g,' '))+'</span></td><td class="staff-task-due">'+escapeHTML(due)+'</td><td class="staff-task-action">'+cancelButton+'</td></tr>';
+ }).join('')+'</tbody></table></div>';
+ box.querySelectorAll('[data-cancel-task]').forEach(button=>button.addEventListener('click',()=>cancelStaffTask(button.dataset.cancelTask)));
 }
 async function cancelStaffTask(id){
  if(!staffOwner())return;
