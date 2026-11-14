@@ -1892,9 +1892,12 @@ function toggleMenu(){const links=document.getElementById("navLinks");const btn=
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(links){links.classList.remove("open");links.style.display="none";}if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰";}}
 function showSection(id){
   if(id==="account"){
-    const mode=sessionStorage.getItem("rianderblog_account_mode")||"signin";
-    const next=(document.getElementById("cart")?.style.display==="block"||window.location.hash==="#cart")?"&next=checkout":"";
-    window.location.href="./account.html?mode="+encodeURIComponent(mode)+next;
+    try{sessionStorage.setItem("rianderblog_account_mode","signin");}catch(e){}
+    setTimeout(()=>{
+      const mode=sessionStorage.getItem("rianderblog_account_mode")||"signin";
+      const next=(document.getElementById("cart")?.style.display==="block"||window.location.hash==="#cart")?"&next=checkout":"";
+      window.location.href="./account.html?mode="+encodeURIComponent(mode)+next;
+    },0);
     return false;
   }
   const target=document.getElementById(id);
