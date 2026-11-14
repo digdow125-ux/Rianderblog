@@ -2010,7 +2010,7 @@ main{max-width:1440px}
   <div class="admin-products-workspace">
     <section class="admin-products-panel admin-products-editor">
       <div class="admin-products-section-title">
-        <div><span class="admin-products-step">01</span><div><h3>Product details</h3><p>Create a new listing or update an existing one.</p></div></div>
+        <div><span class="admin-products-step">01</span><div><h3 id="adminProductEditorTitle">Product details</h3><p>Create a new listing or update an existing one.</p></div></div>
         <span class="admin-products-tag">ADMIN LISTING</span>
       </div>
       <input id="adminProductId" type="hidden">
@@ -2049,7 +2049,8 @@ main{max-width:1440px}
         </div>
         <div class="admin-products-field admin-products-field-wide">
           <label for="adminProductImageUrl">Or use an image URL</label>
-          <input id="adminProductImageUrl" type="url" placeholder="https://example.com/product-image.jpg">
+          <textarea id="adminProductImageUrl" rows="3" placeholder="Paste 1–5 public image URLs, one per line"></textarea>
+          <span class="admin-products-hint">When editing, the current gallery is shown here. Keep the URLs you want to retain, remove any you want to replace, or upload new pictures.</span>
         </div>
         <div class="admin-products-field admin-products-field-wide">
           <label for="adminProductLink">Supplier product link (optional)</label>
@@ -2062,8 +2063,9 @@ main{max-width:1440px}
         <label class="admin-products-toggle"><input id="adminProductActive" type="checkbox" checked><span>Active and visible</span></label>
       </div>
       <div class="admin-products-form-actions">
-        <button class="primary" type="button" onclick="saveAdminProduct()">Save product</button>
+        <button id="adminProductSaveButton" class="primary" type="button" onclick="saveAdminProduct()">Save product</button>
         <button class="secondary" type="button" onclick="clearAdminProductForm()">Clear form</button>
+        <button id="adminProductCancelButton" class="secondary" type="button" onclick="cancelAdminProductEdit()" style="display:none">Cancel editing</button>
       </div>
       <p id="adminProductMessage" class="small-note" role="status" aria-live="polite"></p>
     </section>
@@ -3034,7 +3036,9 @@ async function resolveProductImages(fileId,urlId,existingImages,existingUrl,user
     if(!valid)throw new Error('One of the image URLs is invalid.');
     return valid;
   });
-  const result=[...new Set([...existing,...uploaded,...validUrls])].slice(0,5);
+  const result=(files.length||validUrls.length)
+    ? [...new Set([...uploaded,...validUrls])].slice(0,5)
+    : [...new Set(existing)].slice(0,5);
   if(result.length<1)throw new Error('Please add at least 1 product picture.');
   return result;
 }
@@ -3070,12 +3074,21 @@ function clearAdminProductForm(){
   document.getElementById('adminProductActive').checked=true;
   [...document.getElementById('adminProductColours').options].forEach(o=>o.selected=false);
 
+  const title=document.getElementById('adminProductEditorTitle');if(title)title.textContent='Product details';
+  const save=document.getElementById('adminProductSaveButton');if(save)save.textContent='Save product';
+  const cancel=document.getElementById('adminProductCancelButton');if(cancel)cancel.style.display='none';
   adminMessage('adminProductMessage','');
+}
+
+function cancelAdminProductEdit(){
+  clearAdminProductForm();
+  adminShowProductSection('catalogue',document.querySelector('#adminTab-products .admin-subnav button'));
+  adminMessage('adminProductMessage','Editing cancelled. No product details were changed.');
 }
 
 function editAdminProduct(id){
   const p=(adminProductsCache||[]).find(x=>String(x.id)===String(id))||allProducts.find(x=>String(x.id)===String(id));
-  if(!p)return;
+  if(!p){adminMessage('adminProductMessage','This product could not be found. Refresh the Marketplace products list and try again.');return;}
 
   document.getElementById('adminProductId').value=p.id;
   document.getElementById('adminProductName').value=p.name||'';
@@ -3087,16 +3100,18 @@ function editAdminProduct(id){
   [...document.getElementById('adminProductColours').options].forEach(o=>o.selected=(p.available_colours||[]).includes(o.value));
 
   document.getElementById('adminProductImage').value='';
-  document.getElementById('adminProductImageUrl').value=p.image_url||'';
+  const gallery=Array.isArray(p.product_image_urls)&&p.product_image_urls.length?p.product_image_urls:(p.image_url?[p.image_url]:[]);
+  document.getElementById('adminProductImageUrl').value=gallery.join('\n');
 
   document.getElementById('adminProductLink').value=p.affiliate_url||'';
   document.getElementById('adminProductDescription').value=p.description||'';
   document.getElementById('adminProductActive').checked=!!p.is_active;
-
-  document.getElementById('adminProductName').scrollIntoView({
-    behavior:'smooth',
-    block:'center'
-  });
+  const title=document.getElementById('adminProductEditorTitle');if(title)title.textContent='Edit marketplace product';
+  const save=document.getElementById('adminProductSaveButton');if(save)save.textContent='Update product';
+  const cancel=document.getElementById('adminProductCancelButton');if(cancel)cancel.style.display='inline-block';
+  adminShowProductSection('editor',document.querySelectorAll('#adminTab-products .admin-subnav button')[1]);
+  adminMessage('adminProductMessage','Editing: '+(p.name||'Marketplace product')+'. Make your changes and tap Update product.');
+  document.getElementById('adminProductName').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
 async function saveAdminProduct(){
@@ -3147,10 +3162,11 @@ async function saveAdminProduct(){
     };
 
     const result=id
-      ? await db.from('products').update(row).eq('id',id)
-      : await db.from('products').insert(row);
+      ? await db.from('products').update(row).eq('id',id).select('id').maybeSingle()
+      : await db.from('products').insert(row).select('id').maybeSingle();
 
     if(result.error) throw result.error;
+    if(!result.data?.id)throw new Error('No product row was updated. Refresh the list and check your admin access.');
 
     adminMessage('adminProductMessage',
       id?'Product updated successfully.':'Product added successfully.'
