@@ -5223,9 +5223,24 @@ async function loadStaffTaskCommandBar(user, member){
    return {title:'Promotion: '+g.name,verified,scheduled_at:g.scheduled_at,completed:verified>=3};
   });
  }
+ let autoPendingCount=0;
+ if(deliveryOnly){
+  const q=await db.from('orders').select('id',{count:'exact',head:true}).eq('delivery_assigned_to',user.id).in('order_status',['approved','processing','shipped']);
+  if(q.error)throw q.error;autoPendingCount=q.count||0;
+ }else{
+  const queueChecks=await Promise.all([
+   db.from('supplier_applications').select('id',{count:'exact',head:true}).eq('status','pending'),
+   db.from('products').select('id',{count:'exact',head:true}).eq('review_status','pending'),
+   db.from('orders').select('id',{count:'exact',head:true}).eq('order_status','awaiting_admin_approval'),
+   db.from('affiliate_applications').select('id',{count:'exact',head:true}).eq('status','pending'),
+   db.from('supplier_item_fulfilments').select('id',{count:'exact',head:true}).in('status',['shipped_submitted','delivered_submitted'])
+  ]);
+  const failed=queueChecks.find(x=>x.error);if(failed)throw failed.error;
+  autoPendingCount=queueChecks.reduce((sum,x)=>sum+(x.count||0),0);
+ }
  const activeTasks=tasks.filter(t=>t.status!=='completed');
  const dueStatus=(due,seen)=>{if(!due)return seen?'pending':'new';const d=new Date(due);if(d<now)return 'overdue';if(d<=soon)return 'dueSoon';return seen?'pending':'new';};
- const statuses={new:0,pending:0,dueSoon:0,overdue:0,completed:tasks.filter(t=>t.status==='completed').length};
+ const statuses={new:0,pending:autoPendingCount,dueSoon:0,overdue:0,completed:tasks.filter(t=>t.status==='completed').length};
  const overdueItems=[];
  for(const t of activeTasks){
   const s=dueStatus(t.due_at,t.seen_at);
