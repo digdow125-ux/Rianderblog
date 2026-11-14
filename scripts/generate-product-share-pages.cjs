@@ -1,26 +1,29 @@
-const fs=require("node:fs"),path=require("node:path");
+const fs=require("node:fs"),path=require("node:path"),{execFileSync}=require("node:child_process");
 const API="https://yymdyxlbdgbrgrykdspx.supabase.co/rest/v1/products?select=id,name,description,price,currency,image_url,product_image_urls,is_active&is_active=eq.true&order=id.desc";
 const KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
 const BASE="https://digdow125-ux.github.io/Rianderblog";
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const extFor=type=>({"image/jpeg":"jpg","image/jpg":"jpg","image/png":"png","image/gif":"gif","image/webp":"webp","image/avif":"avif"}[String(type||"").split(";")[0].trim().toLowerCase()]||"");
 async function saveLocalImage(p,dir){
  const gal=Array.isArray(p.product_image_urls)?p.product_image_urls:[];
  const source=gal.find(x=>typeof x==="string"&&/^https:\/\//i.test(x))||p.image_url||"";
  if(!/^https:\/\//i.test(source))return "";
+ const temp=path.join(dir,"product-source");
+ const output=path.join(dir,"product-preview.jpg");
  try{
   const response=await fetch(source,{redirect:"follow"});
   if(!response.ok)throw new Error("Image request returned "+response.status);
   const type=response.headers.get("content-type")||"";
-  const ext=extFor(type);
-  if(!ext)throw new Error("Unsupported image content type: "+type);
+  if(!/^image\/(jpeg|jpg|png|webp|gif|avif)/i.test(type))throw new Error("Unsupported image content type: "+type);
   const bytes=Buffer.from(await response.arrayBuffer());
   if(!bytes.length)throw new Error("Empty product image");
-  for(const old of ["jpg","png","gif","webp","avif"])try{fs.unlinkSync(path.join(dir,"product."+old));}catch{}
-  fs.writeFileSync(path.join(dir,"product."+ext),bytes);
-  return BASE+"/share/"+encodeURIComponent(String(p.id))+"/product."+ext+"?v="+encodeURIComponent(String(p.id));
+  fs.writeFileSync(temp,bytes);
+  execFileSync("convert",[temp+"[0]","-auto-orient","-thumbnail","1080x550>","-background","#ffffff","-gravity","center","-extent","1200x630","-strip","-quality","88",output]);
+  fs.unlinkSync(temp);
+  for(const old of ["product.jpg","product.png","product.gif","product.webp","product.avif"])try{fs.unlinkSync(path.join(dir,old));}catch{}
+  return BASE+"/share/"+encodeURIComponent(String(p.id))+"/product-preview.jpg?v="+encodeURIComponent(String(p.id));
  }catch(error){
-  console.warn("Could not copy image for product "+p.id+": "+error.message);
+  try{fs.unlinkSync(temp);}catch{}
+  console.warn("Could not create social thumbnail for product "+p.id+": "+error.message);
   return source;
  }
 }
@@ -30,7 +33,7 @@ function render(p,img){
  const canonical=BASE+"/share/"+p.id+"/";
  const dest=BASE+"/?product="+encodeURIComponent(p.id);
  const imageTags=img?'<meta property="og:image" content="'+esc(img)+'"><meta property="og:image:secure_url" content="'+esc(img)+'"><meta property="og:image:type" content="image/'+(img.match(/\.([a-z0-9]+)(?:\?|$)/i)?.[1]||"jpeg").replace("jpg","jpeg")+'"><meta property="og:image:alt" content="'+esc(p.name)+'"><meta name="twitter:image" content="'+esc(img)+'">':"";
- return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(p.name)+' | RIANDERBLOG</title><meta name="description" content="'+esc(desc)+'"><link rel="canonical" href="'+canonical+'"><meta property="og:type" content="product"><meta property="og:site_name" content="RIANDERBLOG"><meta property="og:title" content="'+esc(p.name)+' | RIANDERBLOG"><meta property="og:description" content="'+esc(desc)+'"><meta property="og:url" content="'+canonical+'"><meta property="product:price:amount" content="'+esc(p.price)+'"><meta property="product:price:currency" content="'+esc(p.currency||"MWK")+'"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="'+esc(p.name)+' | RIANDERBLOG"><meta name="twitter:description" content="'+esc(desc)+'">'+imageTags+'<script>window.location.replace('+JSON.stringify(dest)+');</script></head><body><h1>'+esc(p.name)+'</h1><p><strong>'+esc(price)+'</strong></p>'+(img?'<img src="'+esc(img)+'" alt="'+esc(p.name)+'" style="max-width:100%;height:auto">':"")+'<p>'+esc(desc)+'</p><p><a href="'+dest+'">View this product on RIANDERBLOG</a></p></body></html>';
+ return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(p.name)+' | RIANDERBLOG</title><meta name="description" content="'+esc(desc)+'"><link rel="canonical" href="'+canonical+'"><meta property="og:type" content="product"><meta property="og:site_name" content="RIANDERBLOG"><meta property="og:title" content="'+esc(p.name)+' | RIANDERBLOG"><meta property="og:description" content="'+esc(desc)+'"><meta property="og:url" content="'+canonical+'"><meta property="product:price:amount" content="'+esc(p.price)+'"><meta property="product:price:currency" content="'+esc(p.currency||"MWK")+'"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="'+esc(p.name)+' | RIANDERBLOG"><meta name="twitter:description" content="'+esc(desc)+'">'+imageTags+'<script>window.location.replace('+JSON.stringify(dest)+');</script></head><body><h1>'+esc(p.name)+'</h1><p><strong>'+esc(price)+'</strong></p>'+(img?'<img src="'+esc(img)+'" alt="'+esc(p.name)+'" style="display:block;width:100%;max-width:720px;max-height:360px;object-fit:contain;margin:16px auto;background:#fff">':"")+'<p>'+esc(desc)+'</p><p><a href="'+dest+'">View this product on RIANDERBLOG</a></p></body></html>';
 }
 (async()=>{
  const res=await fetch(API,{headers:{apikey:KEY,Authorization:"Bearer "+KEY}});
