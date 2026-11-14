@@ -504,13 +504,17 @@ async function loadPromotionTasks(){
   if(error){msg("ownerPromotionTaskStatus","Could not load staff progress: "+error.message);return}
   const rows=data||[],groups={};
   rows.forEach(x=>{const k=promotionCampaignKey(x)+"|"+x.staff_user_id;(groups[k]??=[]).push(x)});
-  const cards=Object.values(groups).map(items=>{
-   const first=items[0],done=promotionVerifiedPlatformCount(items);
-   const completed=done>=3;
-   return '<div class="promotion-task-card"><div class="promotion-task-top"><div><strong>'+esc(first.product_name)+'</strong><div class="promotion-task-meta">'+esc(first.staff_email||"Staff member")+' · '+done+' / 3 minimum platforms posted</div></div><span class="promotion-task-status '+(completed?"done":"")+'">'+(completed?"COMPLETED":"PENDING")+'</span></div><div class="promotion-task-meta">Scheduled: '+(first.scheduled_at?new Date(first.scheduled_at).toLocaleString():"Not specified")+'</div>'+items.map(x=>'<div class="promotion-task-meta">'+esc(promotionPlatformNames[x.platform]||x.platform)+' — '+(x.status==="completed"&&x.posted_url?'<a class="promotion-task-link" href="'+esc(x.posted_url)+'" target="_blank" rel="noopener">View proof</a>':'Not yet confirmed')+'</div>').join("")+'</div>';
-  });
+  const tableRows=Object.values(groups).map(items=>{
+   const first=items[0],posted=items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url);
+   const done=promotionVerifiedPlatformCount(items),completed=done>=3;
+   const platformSummary=items.map(x=>{
+    const ok=x.status==="completed"&&x.confirmed_posted&&x.posted_url;
+    return '<div style="margin:3px 0">'+esc(promotionPlatformNames[x.platform]||x.platform)+' — '+(ok?'<a class="promotion-task-link" href="'+esc(x.posted_url)+'" target="_blank" rel="noopener">Proof</a>':'<span style="color:#b7791f">Pending</span>')+'</div>';
+   }).join("");
+   return '<tr><td>'+esc(first.staff_email||"Staff member")+'</td><td>'+esc(first.product_name)+'</td><td>'+(first.scheduled_at?new Date(first.scheduled_at).toLocaleString():"Not scheduled")+'</td><td>'+platformSummary+'</td><td><strong>'+done+' / 3</strong></td><td><span class="promotion-task-status '+(completed?"done":"")+'">'+(completed?"COMPLETED":"PENDING")+'</span></td></tr>';
+  }).join("");
   const root=document.getElementById("ownerPromotionTaskList");
-  root.innerHTML=cards.join("")||'<div class="empty">No staff posting tasks yet. New scheduled campaigns will appear here.</div>';
+  root.innerHTML=tableRows?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:760px;text-align:left"><thead><tr><th style="padding:12px;border-bottom:2px solid #d7deea">Staff member</th><th style="padding:12px;border-bottom:2px solid #d7deea">Product</th><th style="padding:12px;border-bottom:2px solid #d7deea">Scheduled time</th><th style="padding:12px;border-bottom:2px solid #d7deea">Platform posting proof</th><th style="padding:12px;border-bottom:2px solid #d7deea">Progress</th><th style="padding:12px;border-bottom:2px solid #d7deea">Task status</th></tr></thead><tbody>'+tableRows+'</tbody></table></div>':'<div class="empty">No staff posting tasks yet. New scheduled campaigns will appear here.</div>';
   const doneGroups=Object.values(groups).filter(items=>items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url).length>=3).length;
   msg("ownerPromotionTaskStatus",doneGroups+" staff campaign tasks completed out of "+Object.keys(groups).length+". Completion requires 3 different platform links.");
  }else if(currentStaffMember){
