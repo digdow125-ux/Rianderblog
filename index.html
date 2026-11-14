@@ -1526,7 +1526,7 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <label style="grid-column:1/-1">Upload product pictures (1–5)<input id="staffNewProductImages" type="file" accept="image/*" multiple style="display:block;width:100%;padding:8px"></label>
 <label style="grid-column:1/-1">Or paste image URL(s), one per line<input id="staffNewProductImageUrls" type="text" placeholder="https://example.com/image.jpg" style="display:block;width:100%;padding:10px"></label>
 <label style="grid-column:1/-1">Supplier / affiliate link (optional)<input id="staffNewProductAffiliate" type="url" placeholder="https://supplier.com/product" style="display:block;width:100%;padding:10px"></label>
-</div><button class="primary" onclick="staffAddMarketplaceProduct()">Add product</button><p id="staffNewProductStatus" class="small-note"></p></div>
+</div><button class="primary" onclick="staffAddMarketplaceProduct()">Add product</button><p id="staffNewProductStatus" class="small-note"></p><div class="admin-tools" style="margin-top:14px"><h4>My uploaded marketplace products</h4><button type="button" class="secondary" onclick="loadStaffAddedProducts()">↻ Refresh my products</button><div id="staffMyUploadedProducts">Your submitted products will appear here.</div></div></div>
 <div class="staff-task-grid">
 <section class="admin-tools"><h3>Supplier &amp; affiliate applications</h3><div id="staffSupplierTasks"></div></section>
 <section class="admin-tools"><h3>Product approvals</h3><div id="staffProductTasks"></div></section>
@@ -5015,6 +5015,7 @@ async function loadStaffPanel(){
   const permissions=owner?{}:(member?.permissions||{});
   await withTimeout(loadStaffTaskCommandBar(user,member),'Staff task summary loading');
   await withTimeout(loadStaffTasks(permissions),'Staff workspace loading');
+  if(owner||permissions.add_products)await withTimeout(loadStaffAddedProducts(),'Your product list loading');
   box.textContent=owner?'Owner verified. You decide what work is assigned and when.':'Staff account verified. Your category work appears automatically; extra tasks appear when the owner assigns them.';
  }catch(error){
   console.error('RIANDERBLOG Staff Panel:',error);
@@ -5205,6 +5206,17 @@ function toggleStaffProductForm(){
  if(button)button.textContent=opening?'Close Add Product':'＋ Add Product';
  if(opening)panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
+async function loadStaffAddedProducts(){
+ const box=document.getElementById('staffMyUploadedProducts');if(!box)return;
+ box.textContent='Loading your uploaded products…';
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
+  const {data,error}=await db.from('products').select('id,name,price,currency,category,stock_quantity,available_colours,is_active,review_status,created_at').eq('created_by',user.id).is('supplier_id',null).order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  if(!data?.length){box.textContent='You have not uploaded any marketplace products yet.';return;}
+  box.innerHTML='<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:620px"><thead><tr><th>Product</th><th>Stock / Colours</th><th>Visibility</th><th>Review</th></tr></thead><tbody>'+data.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Other')+' · '+escapeHTML(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2)+'</small></td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.is_active?'Visible on marketplace':'Hidden from marketplace')+'</td><td>'+escapeHTML(p.review_status||'pending')+'</td></tr>').join('')+'</tbody></table></div>';
+ }catch(e){box.textContent='Could not load your products: '+e.message;}
+}
 async function staffAddMarketplaceProduct(){
  const status=document.getElementById('staffNewProductStatus');status.textContent='Saving product…';
  try{
@@ -5222,6 +5234,7 @@ async function staffAddMarketplaceProduct(){
   [...document.getElementById('staffNewProductColours').options].forEach(o=>o.selected=false);
   status.textContent='Product added successfully and is now listed on RIANDERBLOG.';
   if(typeof loadProducts==='function')await loadProducts();
+  await loadStaffAddedProducts();
   const assigned=await db.from('staff_tasks').select('id').eq('staff_user_id',user.id).eq('task_type','add_product').in('status',['pending','in_progress']).order('created_at',{ascending:true}).limit(1).maybeSingle();
   if(assigned.data?.id)await db.from('staff_tasks').update({status:'completed',completed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',assigned.data.id);
   status.textContent='Product added successfully to the RIANDERBLOG marketplace.';
