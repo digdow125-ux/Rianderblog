@@ -3510,8 +3510,7 @@ async function loadProducts() {
 
     allProducts = data || [];
     displayProducts();
-    // Prepare the first catalogue images in advance so sharing opens with the actual photo.
-    allProducts.slice(0,20).forEach(product=>prepareMarketplaceShareImage(product));
+    // Product images are loaded directly from their saved public image URLs.
     updateCart();
     renderAdminProducts();
 
