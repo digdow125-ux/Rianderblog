@@ -1904,7 +1904,8 @@ async function updateAdminVisibility(user) {
   hasHubTask=!!staff&&staff.permissions?.staff_type!=='delivery_assembly';
  }
  window.rianderStaffMembership=staff;
- document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=owner&&(el.id==='adminNavLink'||el.id==='navPromotionHub'||el.id==='navVisitorAnalytics')?'block':'none';});
+ const canViewVisitorAnalytics=owner||String(user?.email||'').trim().toLowerCase()==='giftchonde1@gmail.com';
+ document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=(owner&&(el.id==='adminNavLink'||el.id==='navPromotionHub')||(el.id==='navVisitorAnalytics'&&canViewVisitorAnalytics))?'block':'none';});
  const hub=document.getElementById('navPromotionHub');if(hub)hub.style.display=owner||hasHubTask?'block':'none';
  const link=document.getElementById('navStaffPanel');if(link)link.style.display=owner||!!staff?'block':'none';
  const status=document.getElementById('adminStatus');if(status)status.textContent=owner?'Administrator verified. Open Admin Panel from the navigation to manage your marketplace.':'Administrator access is restricted.';
@@ -2018,7 +2019,11 @@ async function loadVisitorAnalytics(){
  const status=document.getElementById('visitorAnalyticsStatus');
  if(status)status.textContent='Loading visitor statistics…';
  try{
-  await adminGuard();
+  const {data:sessionData,error:sessionError}=await db.auth.getSession();
+  if(sessionError)throw sessionError;
+  const viewer=sessionData.session?.user;
+  const allowed=!!viewer&&(viewer.id===ADMIN_USER_ID||String(viewer.email||'').trim().toLowerCase()==='giftchonde1@gmail.com');
+  if(!allowed)throw new Error('You are not authorised to view visitor analytics.');
   const {data,error}=await db.rpc('get_visitor_analytics');
   if(error)throw error;
   const stats=data||{};
