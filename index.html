@@ -4081,7 +4081,7 @@ async function applySupplier(){
   if(button){button.disabled=false;button.textContent='Send application';}
  }
 }
-  async async function startSupplierConversation(productId){
+  async function startSupplierConversation(productId){
   const {data:{user}}=await db.auth.getUser();
 
   if(!user){
