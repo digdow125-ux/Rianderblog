@@ -1202,6 +1202,36 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 @media (min-width:1200px) {
   #productList.products { grid-template-columns:repeat(5,minmax(0,1fr)); }
 }
+
+/* RIANDERBLOG: always-visible Alibaba-style navigation on desktop and mobile */
+nav[aria-label="Main navigation"]{
+  display:flex!important;align-items:center;justify-content:flex-start;flex-wrap:wrap;
+  gap:8px 12px;min-height:0;height:auto;padding:12px max(18px,calc((100% - 1320px)/2));
+  position:relative;overflow:visible;
+}
+#menuToggle{display:none!important}
+#navLinks{
+  display:flex!important;position:static!important;inset:auto!important;
+  flex:1 1 100%;width:100%;max-width:none!important;min-width:0;
+  flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;
+  justify-content:flex-start;gap:5px 7px;padding:0!important;margin:0;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:transparent!important;overflow:visible!important;max-height:none!important;
+}
+#navLinks>a{
+  display:inline-flex!important;align-items:center;justify-content:center;
+  white-space:nowrap;padding:9px 11px!important;margin:0;
+  border:1px solid rgba(255,255,255,.14)!important;border-radius:7px;
+  font-size:12px;line-height:1.25;color:#fff;background:rgba(255,255,255,.045);
+}
+#navLinks>a:hover{background:rgba(214,173,85,.16);border-color:rgba(214,173,85,.55)!important;color:#f2d58e}
+#navStaffPanel{display:inline-flex!important}
+@media(max-width:650px){
+  nav[aria-label="Main navigation"]{padding:9px 10px;gap:0}
+  #navLinks{gap:5px;justify-content:flex-start}
+  #navLinks>a{white-space:normal;text-align:center;padding:8px 9px!important;font-size:11px;flex:0 0 auto}
+}
+
 </style>
 
 </head>
@@ -2075,7 +2105,7 @@ async function updateAdminVisibility(user) {
  const canViewVisitorAnalytics=owner||String(user?.email||'').trim().toLowerCase()==='giftchonde1@gmail.com';
  document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=(owner&&(el.id==='adminNavLink'||el.id==='navPromotionHub')||(el.id==='navVisitorAnalytics'&&canViewVisitorAnalytics))?'block':'none';});
  const hub=document.getElementById('navPromotionHub');if(hub)hub.style.display=owner||hasHubTask?'block':'none';
- const link=document.getElementById('navStaffPanel');if(link)link.style.display=owner||!!staff?'block':'none';
+ const link=document.getElementById('navStaffPanel');if(link)link.style.display='inline-flex';
  const status=document.getElementById('adminStatus');if(status)status.textContent=owner?'Administrator verified. Open Admin Panel from the navigation to manage your marketplace.':'Administrator access is restricted.';
  if(owner){loadAdminDashboard();loadAdminSupportInbox();loadAdminOrdersTable();}
 }
