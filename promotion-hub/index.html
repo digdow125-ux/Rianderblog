@@ -481,36 +481,54 @@ async function openPromotionTaskShare(id){
 async function completePromotionTask(id){
  const confirmBox=document.getElementById("postedConfirm-"+id);
  const urlInput=document.getElementById("postedUrl-"+id);
- if(!confirmBox?.checked){msg("staffPromotionTaskStatus","Please tick the confirmation only after the product is actually published.");return}
+ if(!confirmBox?.checked){msg("staffPromotionTaskStatus","Confirm only after you have actually published this post.");return}
  const task=promotionTaskItems.find(x=>String(x.id)===String(id));if(!task)return;
  const postedUrl=(urlInput?.value||"").trim();
- if(postedUrl&&!/^https:\/\//i.test(postedUrl)){msg("staffPromotionTaskStatus","Please enter a valid https:// post link, or leave it blank.");return}
- const {error}=await db.from("promotion_staff_tasks").update({status:"completed",confirmed_posted:true,posted_url:postedUrl||null,completed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id).eq("staff_user_id",currentUser.id);
+ if(!/^https:\/\//i.test(postedUrl)){msg("staffPromotionTaskStatus","A valid https:// link to the published post is required as proof.");return}
+ const {error}=await db.from("promotion_staff_tasks").update({status:"completed",confirmed_posted:true,posted_url:postedUrl,completed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id).eq("staff_user_id",currentUser.id).eq("status","pending");
  if(error){msg("staffPromotionTaskStatus","Could not save completion: "+error.message);return}
- msg("staffPromotionTaskStatus","Posted task marked complete.");
+ msg("staffPromotionTaskStatus","Post proof saved. Your campaign completes automatically when 3 different platforms are confirmed.");
  await loadPromotionTasks();
+}
+function promotionCampaignKey(x){
+ return String(x.product_id||"")+"|"+String(x.scheduled_at||x.created_at||"").slice(0,19);
 }
 async function loadPromotionTasks(){
  const ownerBox=document.getElementById("ownerPromotionOverview"),staffBox=document.getElementById("staffPromotionTasks");
  if(isHubOwner){
   ownerBox.style.display="block";
-  const {data,error}=await db.from("promotion_staff_tasks").select("id,product_name,platform,status,confirmed_posted,posted_url,staff_note,staff_email,created_at,completed_at").eq("owner_user_id",ADMIN_USER_ID).order("created_at",{ascending:false}).limit(120);
+  const {data,error}=await db.from("promotion_staff_tasks").select("id,product_id,product_name,platform,status,confirmed_posted,posted_url,staff_note,staff_email,created_at,completed_at,scheduled_at,staff_user_id").eq("owner_user_id",ADMIN_USER_ID).order("created_at",{ascending:false}).limit(500);
   if(error){msg("ownerPromotionTaskStatus","Could not load staff progress: "+error.message);return}
-  const rows=data||[],done=rows.filter(x=>x.status==="completed").length;
+  const rows=data||[],groups={};
+  rows.forEach(x=>{const k=promotionCampaignKey(x)+"|"+x.staff_user_id;(groups[k]??=[]).push(x)});
+  const cards=Object.values(groups).map(items=>{
+   const first=items[0],done=items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url).length;
+   const completed=done>=3;
+   return '<div class="promotion-task-card"><div class="promotion-task-top"><div><strong>'+esc(first.product_name)+'</strong><div class="promotion-task-meta">'+esc(first.staff_email||"Staff member")+' · '+done+' / 3 minimum platforms posted</div></div><span class="promotion-task-status '+(completed?"done":"")+'">'+(completed?"COMPLETED":"PENDING")+'</span></div><div class="promotion-task-meta">Scheduled: '+(first.scheduled_at?new Date(first.scheduled_at).toLocaleString():"Not specified")+'</div>'+items.map(x=>'<div class="promotion-task-meta">'+esc(promotionPlatformNames[x.platform]||x.platform)+' — '+(x.status==="completed"&&x.posted_url?'<a class="promotion-task-link" href="'+esc(x.posted_url)+'" target="_blank" rel="noopener">View proof</a>':'Not yet confirmed')+'</div>').join("")+'</div>';
+  });
   const root=document.getElementById("ownerPromotionTaskList");
-  if(!rows.length){root.innerHTML='<div class="empty">No staff posting tasks yet. When a scheduled product campaign creates its platform drafts, a checklist will be assigned to every active General staff member with social-media permission.</div>'}
-  else root.innerHTML=rows.map(x=>'<div class="promotion-task-card"><div class="promotion-task-top"><div><strong>'+esc(x.product_name)+'</strong><div class="promotion-task-meta">'+esc(promotionPlatformNames[x.platform]||x.platform)+' · '+esc(x.staff_email||"Staff member")+'</div></div><span class="promotion-task-status '+(x.status==="completed"?"done":"")+'">'+(x.status==="completed"?"POSTED":"PENDING")+'</span></div>'+(x.posted_url&&/^https:\/\//i.test(x.posted_url)?'<a class="promotion-task-link" href="'+esc(x.posted_url)+'" target="_blank" rel="noopener">View published post</a>':"")+'</div>').join("");
-  msg("ownerPromotionTaskStatus",done+" of "+rows.length+" platform tasks completed.");
+  root.innerHTML=cards.join("")||'<div class="empty">No staff posting tasks yet. New scheduled campaigns will appear here.</div>';
+  const doneGroups=Object.values(groups).filter(items=>items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url).length>=3).length;
+  msg("ownerPromotionTaskStatus",doneGroups+" staff campaign tasks completed out of "+Object.keys(groups).length+". Completion requires 3 different platform links.");
  }else if(currentStaffMember){
   staffBox.style.display="block";
-  const {data,error}=await db.from("promotion_staff_tasks").select("id,product_id,product_name,platform,caption,status,confirmed_posted,posted_url,created_at").eq("staff_user_id",currentUser.id).order("created_at",{ascending:false}).limit(80);
+  const {data,error}=await db.from("promotion_staff_tasks").select("id,product_id,product_name,platform,caption,status,confirmed_posted,posted_url,created_at,scheduled_at").eq("staff_user_id",currentUser.id).order("created_at",{ascending:false}).limit(500);
   if(error){msg("staffPromotionTaskStatus","Could not load your tasks: "+error.message);return}
   promotionTaskItems=data||[];
+  const groups={};promotionTaskItems.forEach(x=>{const k=promotionCampaignKey(x);(groups[k]??=[]).push(x)});
   const root=document.getElementById("staffPromotionTaskList");
-  if(!promotionTaskItems.length){root.innerHTML='<div class="empty">No product-sharing tasks assigned yet. New scheduled product campaigns will appear here.</div>'}
-  else root.innerHTML=promotionTaskItems.map(x=>'<div class="promotion-task-card"><div class="promotion-task-top"><div><strong>'+esc(x.product_name)+'</strong><div class="promotion-task-meta">'+esc(promotionPlatformNames[x.platform]||x.platform)+' · '+new Date(x.created_at).toLocaleString()+'</div></div><span class="promotion-task-status '+(x.status==="completed"?"done":"")+'">'+(x.status==="completed"?"POSTED":"TO DO")+'</span></div>'+(x.status==="completed"?(x.posted_url&&/^https:\/\//i.test(x.posted_url)?'<a class="promotion-task-link" href="'+esc(x.posted_url)+'" target="_blank" rel="noopener">View your published post</a>':'<div class="promotion-task-meta">You confirmed that this product was published.</div>'):'<div class="promotion-task-actions"><button type="button" onclick="openPromotionTaskShare(\''+esc(x.id)+'\')">Open '+esc(promotionPlatformNames[x.platform]||x.platform)+'</button></div><div class="promotion-task-actions"><input type="url" id="postedUrl-'+esc(x.id)+'" placeholder="Optional link to your published post"><label><input type="checkbox" id="postedConfirm-'+esc(x.id)+'"> I confirm I actually published it</label><button type="button" onclick="completePromotionTask(\''+esc(x.id)+'\')">Mark posted</button></div>')+'</div>').join("");
-  const done=promotionTaskItems.filter(x=>x.status==="completed").length;
-  msg("staffPromotionTaskStatus",done+" of "+promotionTaskItems.length+" assigned tasks completed. Only confirm after publishing.");
+  const cards=Object.values(groups).map(items=>{
+   const first=items[0],done=items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url).length;
+   const completed=done>=3;
+   const platforms=items.map(x=>{
+    const posted=x.status==="completed"&&x.confirmed_posted&&x.posted_url;
+    return '<div class="promotion-task-platform"><div class="promotion-task-top"><strong>'+esc(promotionPlatformNames[x.platform]||x.platform)+'</strong><span class="promotion-task-status '+(posted?"done":"")+'">'+(posted?"POSTED":"TO DO")+'</span></div>'+(posted?'<a class="promotion-task-link" href="'+esc(x.posted_url)+'" target="_blank" rel="noopener">View your published post</a>':'<div class="promotion-task-actions"><button type="button" onclick="openPromotionTaskShare(\''+esc(x.id)+'\')">Open '+esc(promotionPlatformNames[x.platform]||x.platform)+'</button></div><div class="promotion-task-actions"><input type="url" id="postedUrl-'+esc(x.id)+'" placeholder="Paste published post link (required)"><label><input type="checkbox" id="postedConfirm-'+esc(x.id)+'"> I confirm this post is live</label><button type="button" onclick="completePromotionTask(\''+esc(x.id)+'\')">Submit proof</button></div>')+'</div>';
+   }).join("");
+   return '<div class="promotion-task-card"><div class="promotion-task-top"><div><strong>'+esc(first.product_name)+'</strong><div class="promotion-task-meta">'+done+' of 3 required platforms completed · '+items.length+' platforms assigned</div></div><span class="promotion-task-status '+(completed?"done":"")+'">'+(completed?"COMPLETED":"PENDING")+'</span></div><div class="promotion-task-meta">Scheduled: '+(first.scheduled_at?new Date(first.scheduled_at).toLocaleString():"Not specified")+'</div><div class="promotion-task-meta">'+(completed?"Minimum reached. Your task notification is complete.":(3-done)+" more different platform(s) required. You may post on every assigned platform.")+'</div>'+platforms+'</div>';
+  });
+  root.innerHTML=cards.join("")||'<div class="empty">No product-sharing tasks assigned yet. New scheduled product campaigns will appear here.</div>';
+  const doneGroups=Object.values(groups).filter(items=>items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url).length>=3).length;
+  msg("staffPromotionTaskStatus",doneGroups+" campaign task(s) completed. Each needs 3 different platform posts with proof links.");
  }
 }
 async function loadQueue(){const {data,error}=await db.from("promotion_posts").select("id,product_id,platform,caption,status,scheduled_at,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(30);if(error){msg("queueStatus","Could not load queue: "+error.message);return}queueItems=data||[];const root=document.getElementById("queueList");if(!queueItems.length){root.innerHTML='<div class="empty">Your promotion queue is empty. Choose a product and prepare your first post.</div>';return}root.innerHTML=queueItems.map(function(x){const when=x.scheduled_at?"Planned: "+new Date(x.scheduled_at).toLocaleString():"Created: "+new Date(x.created_at).toLocaleString();return '<div class="queue-item"><div><strong>'+esc(platformNames[x.platform]||x.platform)+'</strong><small>'+esc(x.caption.slice(0,150))+'</small><small>'+esc(when)+'</small><button class="secondary" style="margin-top:7px;padding:6px 9px;border-radius:7px;border:0" onclick="copyQueueCaption(\''+esc(x.id)+'\')">Copy caption</button> <button class="secondary" style="margin-top:7px;padding:6px 9px;border-radius:7px;border:0" onclick="shareQueueCaption(\''+esc(x.id)+'\')">Share draft</button></div><span class="tag '+(x.status==="published"?"published":"draft")+'">'+esc(x.status)+'</span></div>'}).join("");msg("queueStatus","Showing latest "+queueItems.length+" item(s). Scheduled drafts still need you to publish them in each social app.")}
