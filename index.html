@@ -1126,6 +1126,14 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 #ownerStaffTasksList .staff-task-empty{padding:18px;border:1px dashed #dce3ec;border-radius:10px;color:#718096;text-align:center;font-size:12px}
 @media(max-width:650px){#ownerStaffTasksList .staff-task-table-meta{font-size:10px}#ownerStaffTasksList table.staff-task-table{min-width:760px}#ownerStaffTasksList .staff-task-table th,#ownerStaffTasksList .staff-task-table td{padding:9px 7px}}
 </style>
+<style id="supplier-admin-dual-lists">
+#adminPanel #adminTab-suppliers .supplier-admin-sublist{margin:14px 0 20px;padding:0 14px 14px}
+#adminPanel #adminTab-suppliers .supplier-admin-sublist-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 2px}
+#adminPanel #adminTab-suppliers .supplier-admin-sublist-heading h4{margin:0;color:#173452;font-size:14px}
+#adminPanel #adminTab-suppliers .supplier-admin-sublist-heading span{font-size:11px;color:#718096;background:#f1f4f8;border-radius:20px;padding:5px 9px}
+#adminPanel #adminTab-suppliers .admin-table-scroll{max-width:100%;overflow-x:auto;border:1px solid #e5eaf1;border-radius:9px}
+#adminPanel #adminTab-suppliers .admin-table-scroll table{width:100%;border-collapse:collapse}
+</style>
 <style id="staff-task-command-bar">
 #staffTaskCommandBar .task-status-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;margin:12px 0}
 #staffTaskCommandBar .task-status-count{padding:9px 10px;border:1px solid #e5eaf1;border-radius:9px;background:#f8fafc;font-size:11px;color:#53647a}
@@ -2400,15 +2408,26 @@ async function loadAdminSupplierLedger(){
 }
 
 async function loadAdminSupplierApplications(){
- const box=document.getElementById('adminSupplierList');if(!box)return;box.textContent='Loading supplier applications...';
+ const box=document.getElementById('adminSupplierList');if(!box)return;
+ box.textContent='Loading supplier applications and profiles…';
  try{
   await adminGuard();
-  const {data,error}=await db.from('supplier_applications').select('id,business_name,contact_name,country,email,planned_product_count,status,created_at').order('created_at',{ascending:false}).limit(100);
-  if(error)throw error;if(!data?.length){box.textContent='No supplier applications found.';return;}
-  box.innerHTML='<table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Business</th><th>Contact person</th><th>Country</th><th>Email</th><th>Planned products</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody>'+data.map(x=>'<tr><td><strong>'+escapeHTML(x.business_name||'—')+'</strong></td><td>'+escapeHTML(x.contact_name||'—')+'</td><td>'+escapeHTML(x.country||'—')+'</td><td>'+escapeHTML(x.email||'—')+'</td><td><strong>'+Number(x.planned_product_count||1).toLocaleString()+'</strong></td><td>'+escapeHTML(x.created_at?new Date(x.created_at).toLocaleDateString():'—')+'</td><td><span class="admin-order-pill">'+escapeHTML(x.status||'pending')+'</span></td><td>'+(x.status==='pending'?'<button class="primary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'approved\')">Approve</button> <button class="secondary" onclick="adminSetStatus(\'supplier_application\',\''+escapeHTML(x.id)+'\',\'rejected\')">Reject</button>':'—')+'</td></tr>').join('')+'</tbody></table>';
- }catch(e){box.textContent='Could not load supplier applications: '+e.message;}
+  const [applications,profiles]=await Promise.all([
+   db.from('supplier_applications').select('id,business_name,contact_name,country,email,phone,planned_product_count,status,created_at').order('created_at',{ascending:false}).limit(100),
+   db.from('suppliers').select('id,user_id,application_id,business_name,company_name,country,email,status,created_at').order('created_at',{ascending:false}).limit(100)
+  ]);
+  if(applications.error)throw new Error('Applications: '+applications.error.message);
+  if(profiles.error)throw new Error('Supplier profiles: '+profiles.error.message);
+  const apps=applications.data||[],suppliers=profiles.data||[];
+  const appRows=apps.length?apps.map(x=>{
+   const actions=x.status==='pending'?'<button type="button" class="primary" data-app-action="approve" data-id="'+escapeHTML(x.id)+'">Approve</button> <button type="button" class="secondary" data-app-action="reject" data-id="'+escapeHTML(x.id)+'">Reject</button>':'—';
+   return '<tr><td><strong>'+escapeHTML(x.business_name||'—')+'</strong></td><td>'+escapeHTML(x.contact_name||'—')+'</td><td>'+escapeHTML(x.country||'—')+'</td><td>'+escapeHTML(x.email||'—')+'<small>'+escapeHTML(x.phone||'')+'</small></td><td>'+Number(x.planned_product_count||1).toLocaleString()+'</td><td>'+escapeHTML(x.created_at?new Date(x.created_at).toLocaleDateString():'—')+'</td><td><span class="admin-order-pill">'+escapeHTML(x.status||'pending')+'</span></td><td>'+actions+'</td></tr>';
+  }).join(''):'<tr><td colspan="8">No supplier applications found.</td></tr>';
+  const profileRows=suppliers.length?suppliers.map(x=>'<tr><td><strong>'+escapeHTML(x.business_name||x.company_name||'—')+'</strong></td><td>'+escapeHTML(x.email||'—')+'</td><td>'+escapeHTML(x.country||'—')+'</td><td><span class="admin-order-pill">'+escapeHTML(x.status||'—')+'</span></td><td>'+escapeHTML(x.created_at?new Date(x.created_at).toLocaleDateString():'—')+'</td><td>'+escapeHTML(x.application_id?'Application linked':'Direct / legacy profile')+'</td></tr>').join(''):'<tr><td colspan="6">No supplier profiles found.</td></tr>';
+  box.innerHTML='<section class="supplier-admin-sublist"><div class="supplier-admin-sublist-heading"><h4>Pending & reviewed applications</h4><span>'+apps.length+' records</span></div><div class="admin-table-scroll"><table class="admin-orders-table" style="min-width:850px"><thead><tr><th>Business</th><th>Contact person</th><th>Country</th><th>Email / phone</th><th>Planned products</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody>'+appRows+'</tbody></table></div></section><section class="supplier-admin-sublist"><div class="supplier-admin-sublist-heading"><h4>Registered supplier profiles</h4><span>'+suppliers.length+' accounts</span></div><div class="admin-table-scroll"><table class="admin-orders-table" style="min-width:720px"><thead><tr><th>Business</th><th>Email</th><th>Country</th><th>Account status</th><th>Created</th><th>Record</th></tr></thead><tbody>'+profileRows+'</tbody></table></div></section>';
+  box.querySelectorAll('[data-app-action]').forEach(button=>button.addEventListener('click',()=>adminSetStatus('supplier_application',button.dataset.id,button.dataset.appAction==='approve'?'approved':'rejected')));
+ }catch(e){box.textContent='Could not load supplier applications and profiles: '+(e?.message||String(e));}
 }
-
 // Show only the selected supplier-management page.
 async function loadAdminItemDisputes(){
  const box=document.getElementById('adminItemDisputes');if(!box)return;
