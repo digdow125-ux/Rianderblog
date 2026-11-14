@@ -2432,7 +2432,7 @@ function adminShowTab(tab) {
 
 
 async function loadExternalAffiliateDeals(){const box=document.getElementById('externalAffiliateDeals');if(!box)return;const {data,error}=await db.from('external_affiliate_products').select('title,description,image_url,affiliate_url,price,currency,is_featured').eq('is_active',true).order('is_featured',{ascending:false}).order('created_at',{ascending:false}).limit(60);if(error){box.textContent='Partner offers temporarily unavailable.';return;}if(!data?.length){box.textContent='New partner offers coming soon.';return;}box.innerHTML=data.map(p=>{const im=safeURL(p.image_url||''),url=safeURL(p.affiliate_url||'');return '<article class="product-card">'+(im?'<img loading="lazy" src="'+escapeHTML(im)+'" alt="'+escapeHTML(p.title)+'">':'')+'<div class="product-card-body"><h3>'+escapeHTML(p.title)+'</h3><p>'+escapeHTML(p.description||'Partner offer')+'</p><strong>'+(p.price!==null?escapeHTML(p.currency||'USD')+' '+Number(p.price).toFixed(2):'View offer')+'</strong><a class="primary" href="'+escapeHTML(url)+'" target="_blank" rel="sponsored nofollow noopener">Visit partner website ↗</a></div></article>';}).join('');}
-async async function openExternalAffiliateManagement(){
+async function openExternalAffiliateManagement(){
   try{
     await adminGuard();
     showSection('adminPanel');
