@@ -3569,66 +3569,24 @@ function displayProducts() {
 }
 
 function getShareProductUrl(productId){
-  const canonical=document.querySelector('link[rel="canonical"]')?.href;
-  const url=new URL(canonical || window.location.href);
-  url.search='';
-  url.hash='';
-  url.searchParams.set('product',String(productId));
-  return url.toString();
-}
-const marketplaceShareImageCache=new Map();
-async function prepareMarketplaceShareImage(p){
-  const id=String(p?.id||'');
-  if(!id)return null;
-  if(marketplaceShareImageCache.has(id))return marketplaceShareImageCache.get(id);
-  try{
-    const response=await fetch('https://yymdyxlbdgbrgrykdspx.supabase.co/functions/v1/product-share-image?id='+encodeURIComponent(id),{cache:'no-store'});
-    if(!response.ok)throw new Error('Image service returned '+response.status);
-    const blob=await response.blob();
-    if(!blob.type||!blob.type.toLowerCase().startsWith('image/'))throw new Error('The product image could not be read.');
-    const safeName=String(p.name||'RIANDERBLOG-product').replace(/[^a-z0-9_-]+/gi,'-').slice(0,60)||'RIANDERBLOG-product';
-    const ext=(blob.type.split('/')[1]||'jpeg').split(';')[0].replace('jpeg','jpg').replace(/[^a-z0-9]/gi,'')||'jpg';
-    const file=new File([blob],safeName+'.'+ext,{type:blob.type});
-    marketplaceShareImageCache.set(id,file);
-    return file;
-  }catch(error){
-    console.warn('Could not prepare Marketplace product image:',error);
-    return null;
-  }
+  return 'https://yymdyxlbdgbrgrykdspx.supabase.co/functions/v1/product-share?id='+encodeURIComponent(String(productId));
 }
 async function shareProduct(productId){
   const p=allProducts.find(x=>String(x.id)===String(productId));
   if(!p)return;
   const url=getShareProductUrl(p.id);
   const description=String(p.description||'').replace(/\s+/g,' ').slice(0,180);
-  const text=p.name+' — '+(description?description+' ':'')+'Price: '+formatPrice(p.price,p.currency||'MWK')+'. Explore and shop on RIANDERBLOG: '+url+' #RIANDERBLOG #OnlineShopping';
-  if(!navigator.share){
-    alert('Your browser does not support sharing product photos. Please use the latest Chrome on Android.');
-    return;
-  }
-  let file=marketplaceShareImageCache.get(String(p.id));
-  if(!file){
-    alert('Preparing the product photo. When it is ready, tap Share Product again.');
-    file=await prepareMarketplaceShareImage(p);
-    if(!file){
-      alert('The product photo could not be prepared. Please check that the product image is available, then try again.');
-      return;
-    }
-    alert('Product photo is ready. Tap Share Product again to send the image with its name, description, price and link.');
-    return;
-  }
-  const shareData={files:[file],title:p.name||'RIANDERBLOG product',text:text};
+  const text='Check out '+p.name+' on RIANDERBLOG. '+(description?description+' ':'')+'Price: '+formatPrice(p.price,p.currency||'MWK')+'. '+url;
   try{
-    if(navigator.canShare&&!navigator.canShare({files:[file]})){
-      alert('This browser cannot attach image files. Please use the latest Chrome on Android.');
+    if(navigator.share){
+      await navigator.share({title:p.name,text,url});
       return;
     }
-    await navigator.share(shareData);
   }catch(error){
     if(error&&error.name==='AbortError')return;
-    console.error('Marketplace product image sharing failed:',error);
-    alert('The product photo could not be shared. Please try again in Chrome on Android.');
   }
+  const whatsapp='https://wa.me/?text='+encodeURIComponent(text);
+  window.open(whatsapp,'_blank','noopener,noreferrer');
 }
 function filterCategory(category,button) {
   currentCategory = category;
