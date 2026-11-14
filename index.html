@@ -5066,6 +5066,7 @@ async function applyAffiliate(){
  const {error}=await db.from('affiliate_applications').insert(row);document.getElementById('affiliateApplyMessage').textContent=error?'Could not apply: '+error.message:'Application submitted. The company must approve you before tracking links are issued.';
 }
 
+if(window.location.hash==='#cart')showSection('cart');
 trackWebsiteVisit();
 loadProducts();
 showDashboard();
