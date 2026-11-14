@@ -470,7 +470,7 @@ async function loadProducts(){
    nextProduct=activeProducts.find(product=>!usedIds.has(String(product.id)))||activeProducts[0];
   }
  }
- products=[nextProduct];selectedProductIndex=0;renderProducts();
+ products=[nextProduct];selectedProductIndex=0;renderProducts();prepareShareImageFile(nextProduct);
 }
 function renderProducts(){
  const root=document.getElementById('productList');
@@ -507,6 +507,22 @@ async function prepareShareImageFile(p){
   shareImageFileCache.set(id,file);return file;
  }catch(error){console.warn("Could not prepare product image:",error);return null}
 }
+function platformShareUrl(platform,p,caption,link){
+ const encodedLink=encodeURIComponent(link),encodedCaption=encodeURIComponent(caption);
+ const urls={
+  facebook:"https://www.facebook.com/sharer/sharer.php?u="+encodedLink+"&quote="+encodedCaption,
+  whatsapp_business:"https://wa.me/?text="+encodeURIComponent(caption+" "+link),
+  messenger:"https://www.facebook.com/dialog/send?link="+encodedLink,
+  telegram:"https://t.me/share/url?url="+encodedLink+"&text="+encodedCaption,
+  x:"https://twitter.com/intent/tweet?text="+encodedCaption+"&url="+encodedLink,
+  linkedin:"https://www.linkedin.com/sharing/share-offsite/?url="+encodedLink,
+  pinterest:"https://www.pinterest.com/pin/create/button/?url="+encodedLink+"&description="+encodedCaption,
+  instagram:"https://www.instagram.com/",
+  tiktok:"https://www.tiktok.com/upload",
+  youtube:"https://studio.youtube.com/"
+ };
+ return urls[platform]||"";
+}
 async function shareSelected(platform){
  const p=products[selectedProductIndex];
  if(!p){msg("shareStatus","Select a product first.");return}
@@ -515,26 +531,34 @@ async function shareSelected(platform){
  }
  const link=PRODUCT_SHARE_URL(p.id);
  const caption=makeCaption(p,selectedProductIndex);
- // Share the product URL and caption, not an image-file attachment.
- // Social apps can then generate their own rich preview from the product page metadata.
- const shareData={title:p.name||"RIANDERBLOG product",text:caption};
+ const targetName=platformNames[platform]||"social media";
+ // First try to share the actual marketplace product photo as an image file.
+ // Android will show compatible apps (Facebook, WhatsApp, Telegram, etc.) in its share sheet.
  try{
-  if(navigator.share){
-   await navigator.share(shareData);
-   msg("shareStatus","Share menu opened with the product name, price and marketplace link. Choose WhatsApp, Facebook or another app. The social app will load the product photo preview from the link when supported.");
+  let file=shareImageFileCache.get(String(p.id));
+  if(!file)file=await prepareShareImageFile(p);
+  if(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+   await navigator.share({files:[file],title:p.name||"RIANDERBLOG product",text:caption+" "+link});
+   msg("shareStatus","Product photo, name, price and marketplace link are ready in Android's share menu. Choose "+targetName+" if it appears, or another social app.");
    return;
   }
-  if(navigator.clipboard?.writeText){
-   await navigator.clipboard.writeText(caption);
-   msg("shareStatus","Product caption, price and link copied. Paste them into your social-media post; the app can generate the product photo preview from the link.");
-   return;
-  }
-  window.prompt("Copy this product caption and link:",caption);
-  msg("shareStatus","Copy the caption and link into your social-media post.");
  }catch(error){
   if(error?.name==="AbortError")return;
-  console.error("Product link sharing failed:",error);
-  msg("shareStatus","Sharing was not available. Copy the product caption and link, then paste them into your social post.");
+  console.warn("Image share unavailable; opening platform link instead:",error);
+ }
+ // If the selected platform cannot accept an image through Android's share sheet,
+ // open its own share/composer page and copy the full caption for pasting.
+ try{
+  if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(caption+" "+link);
+ }catch(_){}
+ const target=platformShareUrl(platform,p,caption,link);
+ if(target){
+  window.open(target,"_blank","noopener,noreferrer");
+  msg("shareStatus","Opened "+targetName+". The product caption, price and link have been copied where clipboard access is allowed. If the platform does not display the photo preview, add the product image from your device.");
+ }else{
+  if(navigator.share){await navigator.share({title:p.name||"RIANDERBLOG product",text:caption+" "+link});}
+  else{window.prompt("Copy this product caption and link:",caption+" "+link);}
+  msg("shareStatus","Share the product caption, price and link with your chosen social app.");
  }
 }
 function makeCaption(p,index,language){const messages={
