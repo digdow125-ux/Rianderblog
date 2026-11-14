@@ -3533,7 +3533,7 @@ async function loadNotifications(){
   if(!rows.length){list.innerHTML='<p class="notification-empty">You are all caught up. New updates will appear here.</p>';return;}
   list.innerHTML=rows.map(n=>{
     const date=new Date(n.created_at).toLocaleString();
-    return '<button type="button" class="notification-item '+(n.is_read?'':'unread')+'" data-notification-id="'+escapeHTML(n.id)+'" data-target-section="'+escapeHTML(n.target_section||'dashboard')+'" data-notification-type="'+escapeHTML(n.notification_type||'')+'"><strong>'+escapeHTML(n.title)+'</strong><span>'+escapeHTML(n.body||'')+'</span><small>'+escapeHTML(date)+(n.is_read?'':' · New')+'</small></button>';
+    return '<button type="button" class="notification-item '+(n.is_read?'':'unread')+'" data-notification-id="'+escapeHTML(n.id)+'" data-target-section="'+escapeHTML(n.target_section||'dashboard')+'" data-notification-type="'+escapeHTML(n.notification_type||'')+'"><strong>'+escapeHTML(n.title)+'</strong><span>'+escapeHTML(n.body||'')+'</span><small>'+escapeHTML(date)+(n.task_status?' · TASK '+escapeHTML(n.task_status.toUpperCase()):'')+(n.is_read?'':' · New')+'</small></button>';
   }).join('');
   list.querySelectorAll('[data-notification-id]').forEach(button=>button.addEventListener('click',async()=>{
     const id=button.dataset.notificationId;
