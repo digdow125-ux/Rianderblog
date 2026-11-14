@@ -5837,8 +5837,10 @@ async function loadStaffMembers(){
    const next=x.status==='active'?'suspended':'active';
    const action=next==='active'?'Activate':'Suspend';
    const statusClass=x.status==='active'?'staff-status-active':'staff-status-other';
+   const isWorkspaceUnlocked=x.permissions?.workspace_manual_unlock===true;
+   const workspaceButton=x.status==='active'?'<button class="secondary" type="button" onclick="setStaffWorkspaceUnlock(\''+x.id+'\','+(!isWorkspaceUnlocked)+')">'+(isWorkspaceUnlocked?'Lock workspace':'Unlock workspace')+'</button>':'';
    const editor='<div id="staffPermissionEditor-'+x.id+'" data-staff-type="'+escapeHTML(x.permissions?.staff_type||'general')+'" style="display:none;padding:12px;background:#f7f9fc;border-radius:10px"><strong>Staff permissions</strong><div class="staff-permission-grid">'+Object.entries(STAFF_LABELS).map(([k,label])=>'<label><input type="checkbox" data-staff-permission="'+k+'" '+(x.permissions?.[k]?'checked':'')+'> '+escapeHTML(label)+'</label>').join('')+'</div><button class="primary" type="button" onclick="saveStaffPermissions(\''+x.id+'\')">Save changes</button> <span id="staffPermissionStatus-'+x.id+'" class="small-note"></span></div>';
-   return '<tr><td data-label="Email"><strong>'+escapeHTML(x.email)+'</strong></td><td data-label="Staff type">'+role+'</td><td data-label="Permissions"><span title="'+escapeHTML(labels)+'">'+escapeHTML(labels)+'</span></td><td data-label="Status"><span class="'+statusClass+'">'+escapeHTML(x.status)+'</span></td><td data-label="Actions"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\''+x.id+'\')">Edit permissions</button><button class="secondary" type="button" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+action+'</button><button type="button" style="background:#fee2e2;color:#991b1b" onclick="deleteStaffMember(\''+x.id+'\')">Delete</button></div></td></tr><tr><td colspan="5">'+editor+'</td></tr>';
+   return '<tr><td data-label="Email"><strong>'+escapeHTML(x.email)+'</strong></td><td data-label="Staff type">'+role+'</td><td data-label="Permissions"><span title="'+escapeHTML(labels)+'">'+escapeHTML(labels)+'</span></td><td data-label="Status"><span class="'+statusClass+'">'+escapeHTML(x.status)+'</span></td><td data-label="Actions"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" type="button" onclick="staffTogglePermissionEditor(\''+x.id+'\')">Edit permissions</button>'+workspaceButton+'<button class="secondary" type="button" onclick="setStaffStatus(\''+x.id+'\',\''+next+'\')">'+action+'</button><button type="button" style="background:#fee2e2;color:#991b1b" onclick="deleteStaffMember(\''+x.id+'\')">Delete</button></div></td></tr><tr><td colspan="5">'+editor+'</td></tr>';
   }).join('');
   box.innerHTML='<div style="width:100%;overflow-x:auto"><table class="staff-members-table" style="width:100%;border-collapse:collapse;min-width:760px"><thead><tr><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Staff email</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Staff type</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Permissions</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Status</th><th style="text-align:left;padding:12px;border-bottom:1px solid #dce2ea">Actions</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
  }catch(error){
@@ -5940,6 +5942,19 @@ async function saveStaffPermissions(id){
  const r=await db.from('staff_members').update({permissions,updated_at:new Date().toISOString()}).eq('id',id);
  if(r.error){status.textContent='Could not save: '+r.error.message;return;}
  status.textContent='Permissions updated.';await loadStaffMembers();
+}
+async function setStaffWorkspaceUnlock(id,unlocked){
+ if(!staffOwner()){alert('Only the RIANDERBLOG owner can change staff workspace access.');return;}
+ try{
+  const current=await db.from('staff_members').select('id,email,permissions').eq('id',id).maybeSingle();
+  if(current.error)throw current.error;
+  if(!current.data)throw new Error('Staff member not found.');
+  const permissions={...(current.data.permissions||{}),workspace_manual_unlock:!!unlocked};
+  const saved=await db.from('staff_members').update({permissions,updated_at:new Date().toISOString()}).eq('id',id);
+  if(saved.error)throw saved.error;
+  alert((current.data.email||'Staff member')+' workspace '+(unlocked?'unlocked':'locked')+'.');
+  await loadStaffMembers();
+ }catch(error){alert('Could not change workspace access: '+(error?.message||'Unknown error'));}
 }
 async function setStaffStatus(id,status){
  if(!staffOwner())return;
@@ -6124,7 +6139,8 @@ async function loadStaffTaskCommandBar(user, member){
  }
  const lockExemptEmails=['giftchonde1@gmail.com','enockackson7@gmail.com'];
  const lockExempt=lockExemptEmails.includes(String(user.email||'').trim().toLowerCase());
- const locked=overdueItems.length>0&&!lockExempt;
+ const manuallyUnlocked=member?.permissions?.workspace_manual_unlock===true;
+ const locked=overdueItems.length>0&&!lockExempt&&!manuallyUnlocked;
  const dueItems=[...activeTasks.filter(t=>t.due_at).map(t=>({title:t.title,due:t.due_at,status:dueStatus(t.due_at,t.seen_at)})),...campaigns.filter(g=>!g.completed&&g.scheduled_at).map(g=>({title:g.title+' ('+g.verified+'/3)',due:g.scheduled_at,status:dueStatus(g.scheduled_at,true)}))].filter(x=>x.status==='new'||x.status==='dueSoon'||x.status==='overdue').sort((a,b)=>new Date(a.due)-new Date(b.due)).slice(0,6);
  const labels=[['new','New'],['pending','Pending'],['dueSoon','Due Soon'],['overdue','Overdue'],['completed','Completed']];
  bar.style.display='block';
