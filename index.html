@@ -26,7 +26,6 @@
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
 <meta property="og:image:alt" content="RIANDERBLOG gold R logo on a navy background">
-<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://digdow125-ux.github.io/Rianderblog/app-icon.svg">
 <meta name="twitter:image:alt" content="RIANDERBLOG gold R logo on a navy background">
 <meta name="twitter:card" content="summary">
@@ -93,10 +92,26 @@ header{background:var(--navy);color:white;padding:20px max(18px,calc((100% - 115
 .header-note{font-size:13px;color:#d5dce7}
 nav{background:var(--navy2);padding:0 max(18px,calc((100% - 1150px)/2));display:flex;gap:23px;align-items:center;flex-wrap:wrap}
 .menu-toggle{display:none;background:var(--gold);color:#172238;font-size:23px;padding:7px 13px;border-radius:7px}
-.nav-links{display:flex;gap:23px;align-items:center;flex-wrap:wrap}
+.nav-links{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.nav-more{position:relative}
+.nav-more summary{list-style:none;cursor:pointer;color:#fff;font-size:13px;font-weight:bold;padding:15px 0}
+.nav-more summary::-webkit-details-marker{display:none}
+.nav-more summary::after{content:" ▾";color:var(--gold)}
+.nav-more[open] summary{color:var(--gold)}
+.nav-more-menu{position:absolute;z-index:1000;top:100%;right:0;min-width:220px;max-height:min(70vh,520px);overflow:auto;padding:7px;background:var(--navy2);border:1px solid rgba(255,255,255,.14);border-radius:9px;box-shadow:0 12px 28px rgba(0,0,0,.22);display:flex;flex-direction:column;gap:0}
+.nav-more-menu a{padding:10px 12px;border-radius:6px;white-space:normal}
+.nav-more-menu a:hover{background:rgba(255,255,255,.08)}
 .admin-only{display:none}
 .admin-box{border:2px solid var(--gold);background:#fffaf0}
-@media(max-width:650px){nav{display:block;padding:10px 18px}.menu-toggle{display:block}.nav-links{display:none;flex-direction:column;align-items:stretch;gap:0;padding-top:8px}.nav-links.open{display:flex}.nav-links a{padding:12px 5px;border-top:1px solid rgba(255,255,255,.12)} }
+@media(max-width:650px){
+ nav{display:block;padding:10px 14px}
+ .menu-toggle{display:block}
+ .nav-links{display:none;flex-direction:column;align-items:stretch;gap:0;padding-top:8px}
+ .nav-links.open{display:flex}
+ .nav-links>a,.nav-more summary{padding:12px 5px;border-top:1px solid rgba(255,255,255,.12)}
+ .nav-more-menu{position:static;max-height:none;min-width:0;margin:0 0 8px 8px;border:0;border-left:2px solid var(--gold);border-radius:0;box-shadow:none;background:rgba(0,0,0,.12)}
+ .nav-more-menu a{padding:10px 12px}
+}
 nav a{color:white;text-decoration:none;font-size:13px;font-weight:bold;padding:15px 0}
 nav a:hover{color:var(--gold)}
 main{max-width:1150px;margin:auto;padding:24px 18px}
@@ -1109,25 +1124,30 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   </div>
 </header>
 <nav aria-label="Main navigation">
-  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰</button>
+  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰ Menu</button>
   <div class="nav-links" id="navLinks">
-    <a href="#products" onclick="showSection('products');closeMenu();return false">🏠 Home – Shop products</a>
-    <a href="#cart" onclick="showSection('cart');closeMenu();return false">🛒 My cart (<span id="cartCount">0</span>)</a>
-    <a href="#account" id="navMyAccount" style="display:none" onclick="showSection('account');closeMenu();return false">👤 My Account</a>
-    <a href="#account" id="navCreateAccount" onclick="showSection('account');setAccountMode('signup');closeMenu();return false">📝 Create Account</a>
-    <a href="#account" id="navSignIn" onclick="showSection('account');setAccountMode('signin');closeMenu();return false">🔐 Sign In</a>
-    <a href="#messages" onclick="showSection('messages');closeMenu();return false">💬 My messages</a>
-    <a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();closeMenu();return false">📦 Track my orders</a>
-    <a href="#dashboard" onclick="showSection('dashboard');showDashboard();closeMenu();return false">📊 My dashboard</a>
-    <a href="#dashboard" class="nav-invite-link" onclick="showSection('dashboard');showDashboard();closeMenu();return false"><span class="nav-invite-icon">🎁</span><span class="nav-invite-copy"><strong>Invite &amp; Earn</strong><small>Earn MK1,000 shopping credit</small></span><span class="nav-invite-arrow">›</span></a>
-    <a href="#suppliers" data-notify-highlight="suppliers" onclick="showSection('suppliers');supplierShowMainPage('centre');closeMenu();return false">🏭 Suppliers & supplier centre</a>
-    <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">🤝 Affiliate centre</a>
-    <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">🌍 Change currency</a>
-    <a href="#payments" onclick="showSection('payments');closeMenu();return false">💳 Payment help</a>
-    <a href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/index.html" id="navPromotionHub" class="admin-only" title="Open Promotion Hub">📣 Promotion Hub</a>
-    <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">🔐 Admin panel</a>
-    <a href="#visitorAnalyticsPanel" id="navVisitorAnalytics" class="admin-only" onclick="showSection('visitorAnalyticsPanel');loadVisitorAnalytics();closeMenu();return false">👀 Website visitors</a>
-    <a href="#staffPanel" id="navStaffPanel" style="display:none" onclick="showSection('staffPanel');closeMenu();return false">👥 Staff panel</a>
+    <a href="#products" onclick="showSection('products');closeMenu();return false">Home</a>
+    <a href="#cart" onclick="showSection('cart');closeMenu();return false">Cart (<span id="cartCount">0</span>)</a>
+    <a href="#account" id="navMyAccount" style="display:none" onclick="showSection('account');closeMenu();return false">My Account</a>
+    <a href="#account" id="navCreateAccount" onclick="showSection('account');setAccountMode('signup');closeMenu();return false">Create account</a>
+    <a href="#account" id="navSignIn" onclick="showSection('account');setAccountMode('signin');closeMenu();return false">Sign in</a>
+    <details class="nav-more">
+      <summary>More</summary>
+      <div class="nav-more-menu">
+        <a href="#messages" onclick="showSection('messages');closeMenu();return false">My messages</a>
+        <a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();closeMenu();return false">Track my orders</a>
+        <a href="#dashboard" onclick="showSection('dashboard');showDashboard();closeMenu();return false">My dashboard</a>
+        <a href="#dashboard" class="nav-invite-link" onclick="showSection('dashboard');showDashboard();closeMenu();return false"><span class="nav-invite-icon">🎁</span><span class="nav-invite-copy"><strong>Invite &amp; Earn</strong><small>Earn MK1,000 shopping credit</small></span><span class="nav-invite-arrow">›</span></a>
+        <a href="#suppliers" data-notify-highlight="suppliers" onclick="showSection('suppliers');supplierShowMainPage('centre');closeMenu();return false">Suppliers &amp; supplier centre</a>
+        <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">Affiliate centre</a>
+        <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">Change currency</a>
+        <a href="#payments" onclick="showSection('payments');closeMenu();return false">Payment help</a>
+        <a href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/index.html" id="navPromotionHub" class="admin-only" title="Open Promotion Hub">Promotion Hub</a>
+        <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">Admin panel</a>
+        <a href="#visitorAnalyticsPanel" id="navVisitorAnalytics" class="admin-only" onclick="showSection('visitorAnalyticsPanel');loadVisitorAnalytics();closeMenu();return false">Website visitors</a>
+        <a href="#staffPanel" id="navStaffPanel" style="display:none" onclick="showSection('staffPanel');closeMenu();return false">Staff panel</a>
+      </div>
+    </details>
   </div>
 </nav>
 <main>
@@ -1888,8 +1908,8 @@ async function sendAdminMessage(){const input=document.getElementById('adminSupp
 async function loadAdminSupportInbox(){const box=document.getElementById('adminSupportInbox');const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_USER_ID){box.textContent='Administrator sign-in required.';return;}const {data:convos,error}=await db.from('support_conversations').select('id,customer_id,status,created_at').order('created_at',{ascending:false});if(error){box.textContent='Could not load inbox: '+error.message;return;}box.innerHTML='';if(!convos?.length){box.textContent='No customer conversations yet.';return;}for(const c of convos){const wrap=document.createElement('div');wrap.className='listing';const title=document.createElement('strong');title.textContent='Customer '+c.customer_id;const status=document.createElement('p');status.textContent='Status: '+c.status;const log=document.createElement('div');log.id='adminThread_'+c.id;const input=document.createElement('input');input.placeholder='Reply to this customer';const btn=document.createElement('button');btn.className='primary';btn.textContent='Send reply';btn.onclick=async()=>{const msg=input.value.trim();if(!msg)return;const result=await db.from('support_messages').insert({conversation_id:c.id,sender_id:user.id,message:msg});if(result.error){alert(result.error.message);return;}input.value='';await renderAdminThread(c.id,log);};wrap.append(title,status,log,input,btn);box.appendChild(wrap);await renderAdminThread(c.id,log);}}
 async function renderAdminThread(id,log){const {data,error}=await db.from('support_messages').select('sender_id,message,created_at').eq('conversation_id',id).order('created_at');if(error){log.textContent=error.message;return;}log.innerHTML='';(data||[]).forEach(m=>{const p=document.createElement('p');p.textContent=(m.sender_id===ADMIN_USER_ID?'ADMIN: ':'CUSTOMER: ')+m.message;log.appendChild(p);});}
 
-function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕":"☰";}
-function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(links){links.classList.remove("open");links.style.display="none";}if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰";}}
+function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕ Close":"☰ Menu";}
+function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const more=document.querySelector(".nav-more");if(links){links.classList.remove("open");if(window.matchMedia("(max-width:650px)").matches){links.style.display="none";}else{links.style.removeProperty("display");}}if(more)more.open=false;if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰ Menu";}}
 function showSection(id){
   if(id==="account"){
     (async()=>{
