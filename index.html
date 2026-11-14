@@ -2009,7 +2009,7 @@ function adminOpenSupplierSection(sectionId) {
 }
 
 // ADMIN PANEL TABS
-async async function trackWebsiteVisit(){
+async function trackWebsiteVisit(){
  try{
   const pagePath=(location.pathname||'/').slice(0,200);
   const referrerHost=(()=>{try{return document.referrer?new URL(document.referrer).hostname.slice(0,255):null;}catch(_){return null;}})();
