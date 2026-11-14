@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Install image processing tools
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
       - name: Generate product-specific social preview pages
         run: node scripts/generate-product-share-pages.cjs
       - name: Commit generated pages
