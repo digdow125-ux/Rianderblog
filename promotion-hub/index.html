@@ -495,14 +495,36 @@ function updateSelectedProduct(){
 async function shareSelected(platform){
  const p=products[selectedProductIndex];if(!p){msg("shareStatus","Select a product first.");return}
  if(!currentUser||(!isHubOwner&&!currentStaffMember?.permissions?.social_media)){msg("shareStatus","Your account does not have social-media sharing permission.");return}
- const productPage=SITE_URL+"?product="+encodeURIComponent(String(p.id));
  const link=PRODUCT_SHARE_URL(p.id);
- const caption=makeCaption(p,selectedProductIndex).replace(SITE_URL,productPage);
- const text=caption;
- const urls={facebook:"https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link)+"&quote="+encodeURIComponent(text),instagram:"https://www.instagram.com/",tiktok:"https://www.tiktok.com/upload",youtube:"https://studio.youtube.com/",x:"https://twitter.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(link),whatsapp_business:"https://wa.me/?text="+encodeURIComponent(text+" "+link),messenger:"https://www.facebook.com/dialog/send?link="+encodeURIComponent(link),telegram:"https://t.me/share/url?url="+encodeURIComponent(link)+"&text="+encodeURIComponent(text),pinterest:"https://www.pinterest.com/pin/create/button/?url="+encodeURIComponent(link)+"&description="+encodeURIComponent(text),linkedin:"https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(link)};
- try{await navigator.clipboard.writeText(text)}catch(e){}
- if(["facebook","x","whatsapp_business","messenger","telegram","pinterest","linkedin"].includes(platform)){window.open(urls[platform],"_blank","noopener,noreferrer");msg("shareStatus","Caption copied where supported. "+platformNames[platform]+" opened; finish and publish your post there.");}
- else{window.open(urls[platform],"_blank","noopener,noreferrer");msg("shareStatus","Caption copied where supported. "+platformNames[platform]+" opened. Add the product picture and paste your caption before publishing.");}
+ const caption=makeCaption(p,selectedProductIndex);
+ const imageUrl=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";
+ // On supported Android browsers, attach the real product photo to the native
+ // share sheet so WhatsApp, Facebook and other installed apps receive the image.
+ if(imageUrl&&navigator.share&&navigator.canShare){
+  try{
+   const response=await fetch(imageUrl,{mode:"cors"});
+   if(response.ok){
+    const blob=await response.blob();
+    if(blob.type&&blob.type.startsWith("image/")){
+     const safeName=String(p.name||"RIANDERBLOG-product").replace(/[^a-z0-9_-]+/gi,"-").slice(0,60)||"RIANDERBLOG-product";
+     const extension=blob.type.split("/")[1].replace("jpeg","jpg").replace(/[^a-z0-9]/gi,"")||"jpg";
+     const file=new File([blob],safeName+"."+extension,{type:blob.type});
+     const shareData={files:[file],title:p.name||"RIANDERBLOG product",text:caption};
+     if(navigator.canShare({files:[file]})){
+      await navigator.share(shareData);
+      msg("shareStatus","Product photo, price and RIANDERBLOG link sent to your phone's sharing menu. Choose WhatsApp, Facebook or another app.");
+      return;
+     }
+    }
+   }
+  }catch(error){if(error&&error.name==="AbortError")return;console.warn("Image share fallback:",error)}
+ }
+ // Fallback: link previews are generated from the product-share page's
+ // Open Graph metadata. The caption itself always includes the product price.
+ try{await navigator.clipboard.writeText(caption)}catch(e){}
+ const urls={facebook:"https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link)+"&quote="+encodeURIComponent(caption),instagram:"https://www.instagram.com/",tiktok:"https://www.tiktok.com/upload",youtube:"https://studio.youtube.com/",x:"https://twitter.com/intent/tweet?text="+encodeURIComponent(caption)+"&url="+encodeURIComponent(link),whatsapp_business:"https://wa.me/?text="+encodeURIComponent(caption),messenger:"https://www.facebook.com/dialog/send?link="+encodeURIComponent(link),telegram:"https://t.me/share/url?url="+encodeURIComponent(link)+"&text="+encodeURIComponent(caption),pinterest:"https://www.pinterest.com/pin/create/button/?url="+encodeURIComponent(link)+"&description="+encodeURIComponent(caption),linkedin:"https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(link)};
+ window.open(urls[platform]||link,"_blank","noopener,noreferrer");
+ msg("shareStatus","Your product caption and price are ready. "+(platformNames[platform]||"Social app")+" opened. If the app does not show the product photo automatically, attach the product picture before publishing.");
 }
 function makeCaption(p,index,language){const messages={
  en:["Discover your next favourite find!","A great pick worth checking out.","Find it on RIANDERBLOG today!"],
