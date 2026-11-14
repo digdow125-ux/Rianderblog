@@ -1553,10 +1553,10 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   <div class="market-grid admin-stat-grid" style="margin-top:18px">
     <div class="market-card"><h3 id="visitorTotalVisits">—</h3><p>Unique visitors (IP-based)</p></div>
     <div class="market-card"><h3 id="visitorTodayVisits">—</h3><p>Unique visitors today</p></div>
-    <div class="market-card"><h3 id="visitorTodayUnique">—</h3><p>Same-IP repeat visits merged</p></div>
+    <div class="market-card"><h3 id="visitorTodayUnique">—</h3><p>Unique visitors this week</p></div>
   </div>
   <div class="admin-overview-intro"><div><span class="admin-kicker">TRAFFIC ACTIVITY</span><h3>Last 7 days</h3><p>Daily unique IP-based visitors. Repeat visits from the same IP are merged.</p></div></div>
-  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Unique visitors</th><th>Unique IPs</th></tr></thead><tbody id="visitorDailyRows"><tr><td colspan="3">Loading visitor statistics…</td></tr></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Unique IP visitors</th></tr></thead><tbody id="visitorDailyRows"><tr><td colspan="3">Loading visitor statistics…</td></tr></tbody></table></div>
   <div class="admin-overview-intro"><div><span class="admin-kicker">POPULAR CONTENT</span><h3>Most visited pages</h3><p>Latest page recorded for unique visitors active in the last 30 days.</p></div></div>
   <div class="table-wrap"><table><thead><tr><th>Page</th><th>Visits</th></tr></thead><tbody id="visitorTopPages"><tr><td colspan="2">Loading…</td></tr></tbody></table></div>
   <div class="admin-overview-intro"><div><span class="admin-kicker">UNIQUE VISITOR RECORDS</span><h3>Visitors detected by IP</h3><p>Each IP-based visitor is listed once, with first and latest visit times.</p></div></div>
@@ -2038,16 +2038,16 @@ async function loadVisitorAnalytics(){
   const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=String(value??0);};
   set('visitorTotalVisits',Number(stats.total_visits||0).toLocaleString());
   set('visitorTodayVisits',Number(stats.today_visits||0).toLocaleString());
-  set('visitorTodayUnique',Number(stats.today_visitors||0).toLocaleString());
+  set('visitorTodayUnique',Number(stats.week_visitors||0).toLocaleString());
   const daily=document.getElementById('visitorDailyRows');
   if(daily){
    daily.replaceChildren();
    (stats.last_7_days||[]).forEach(day=>{
     const tr=document.createElement('tr');
-    [new Date(day.day+'T00:00:00').toLocaleDateString(),Number(day.visits||0).toLocaleString(),Number(day.visitors||0).toLocaleString()].forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});
+    [new Date(day.day+'T00:00:00').toLocaleDateString(),Number(day.visitors||0).toLocaleString()].forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});
     daily.appendChild(tr);
    });
-   if(!daily.children.length){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=3;td.textContent='No visits recorded yet.';tr.appendChild(td);daily.appendChild(tr);}
+   if(!daily.children.length){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=2;td.textContent='No IP-based visitors recorded yet.';tr.appendChild(td);daily.appendChild(tr);}
   }
   const pages=document.getElementById('visitorTopPages');
   if(pages){
