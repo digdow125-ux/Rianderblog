@@ -493,6 +493,9 @@ async function completePromotionTask(id){
 function promotionCampaignKey(x){
  return String(x.product_id||"")+"|"+String(x.scheduled_at||x.created_at||"").slice(0,19);
 }
+function promotionVerifiedPlatformCount(items){
+ return new Set(items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url).map(x=>x.platform)).size;
+}
 async function loadPromotionTasks(){
  const ownerBox=document.getElementById("ownerPromotionOverview"),staffBox=document.getElementById("staffPromotionTasks");
  if(isHubOwner){
@@ -502,7 +505,7 @@ async function loadPromotionTasks(){
   const rows=data||[],groups={};
   rows.forEach(x=>{const k=promotionCampaignKey(x)+"|"+x.staff_user_id;(groups[k]??=[]).push(x)});
   const cards=Object.values(groups).map(items=>{
-   const first=items[0],done=items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url).length;
+   const first=items[0],done=promotionVerifiedPlatformCount(items);
    const completed=done>=3;
    return '<div class="promotion-task-card"><div class="promotion-task-top"><div><strong>'+esc(first.product_name)+'</strong><div class="promotion-task-meta">'+esc(first.staff_email||"Staff member")+' · '+done+' / 3 minimum platforms posted</div></div><span class="promotion-task-status '+(completed?"done":"")+'">'+(completed?"COMPLETED":"PENDING")+'</span></div><div class="promotion-task-meta">Scheduled: '+(first.scheduled_at?new Date(first.scheduled_at).toLocaleString():"Not specified")+'</div>'+items.map(x=>'<div class="promotion-task-meta">'+esc(promotionPlatformNames[x.platform]||x.platform)+' — '+(x.status==="completed"&&x.posted_url?'<a class="promotion-task-link" href="'+esc(x.posted_url)+'" target="_blank" rel="noopener">View proof</a>':'Not yet confirmed')+'</div>').join("")+'</div>';
   });
