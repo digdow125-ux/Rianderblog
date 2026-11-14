@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10213e">
+<title>Welcome to RIANDERBLOG</title><link rel="icon" href="./app-icon.svg" type="image/svg+xml">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:22px;display:grid;place-items:center;background:#f4f6fa;font-family:Arial,Helvetica,sans-serif;color:#263244}
+.card{width:min(850px,100%);background:white;border:1px solid #e2e7ef;border-radius:22px;overflow:hidden;box-shadow:0 22px 65px rgba(16,33,62,.12)}
+.hero{padding:32px;background:linear-gradient(115deg,#0c1a31,#203d64);color:white}.mark{width:54px;height:54px;display:grid;place-items:center;border:2px solid #d6ad55;border-radius:14px;color:#d6ad55;font-size:29px;font-weight:900}.kicker{margin-top:18px;color:#e5c77e;font-size:11px;letter-spacing:2px;font-weight:800}.hero h1{margin:8px 0;font-size:clamp(25px,5vw,36px)}.hero p{margin:0;color:#d5deea;line-height:1.6}
+.content{padding:30px}.content h2{margin:0 0 8px;color:#10213e}.intro{color:#718095;margin:0 0 22px;line-height:1.5}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.step{padding:20px;border:1px solid #e3e8ef;border-radius:14px;background:#fbfcfe}.num{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#f5eddd;color:#9a712a;font-weight:900;font-size:17px}.step h3{margin:15px 0 7px;color:#10213e}.step p{margin:0;color:#718095;font-size:13px;line-height:1.55}
+.actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:25px}.primary{border:0;border-radius:9px;padding:14px 20px;background:#10213e;color:white;font-weight:800;font-size:14px;cursor:pointer}.note{font-size:12px;color:#718095}
+@media(max-width:650px){.steps{grid-template-columns:1fr}.content{padding:22px}.hero{padding:25px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<main class="card">
+ <header class="hero"><div class="mark">R</div><div class="kicker">WELCOME TO RIANDERBLOG</div><h1 id="welcomeTitle">You're ready to start shopping.</h1><p>Your account is set up. Here are three simple steps to use the marketplace.</p></header>
+ <section class="content"><h2>Shopping is simple. Just follow 3 steps.</h2><p class="intro">You can return to these steps any time. Product links shared with you will also open directly.</p>
+  <div class="steps">
+   <article class="step"><div class="num">1</div><h3>Find a product</h3><p>Browse the marketplace, search by name or category, or open a product link shared with you.</p></article>
+   <article class="step"><div class="num">2</div><h3>Add it to your cart</h3><p>Open product details, choose an available colour if needed, and add the item to your shopping cart.</p></article>
+   <article class="step"><div class="num">3</div><h3>Checkout and pay</h3><p>Confirm your delivery details, review your order and pay securely through PayChangu.</p></article>
+  </div>
+  <div class="actions"><button class="primary" id="continueButton" type="button" onclick="continueToShop()">Enter the marketplace →</button><span class="note">Keep your account signed in to manage orders and delivery updates.</span></div>
+ </section>
+</main>
+<script>
+const db=window.supabase.createClient("https://yymdyxlbdgbrgrykdspx.supabase.co","sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
+async function continueToShop(){const b=document.getElementById("continueButton");b.disabled=true;b.textContent="Opening marketplace…";localStorage.removeItem("rianderblog_onboarding_pending");location.href="./index.html";}
+(async()=>{try{const {data,error}=await db.auth.getSession();if(error)throw error;if(!data.session){location.replace("./account.html?mode=signin");return;}const name=data.session.user.user_metadata?.full_name||data.session.user.user_metadata?.name||data.session.user.email?.split("@")[0]||"shopper";document.getElementById("welcomeTitle").textContent="Welcome, "+name+"!";}catch(e){console.warn("Welcome page session check:",e);location.replace("./account.html?mode=signin");}})();
+</script>
+</body>
+</html>
