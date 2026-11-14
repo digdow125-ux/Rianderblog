@@ -47,6 +47,33 @@ window.STAFF_LABELS = Object.freeze({
 var STAFF_LABELS = window.STAFF_LABELS;
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Entry routing: direct visits start at account creation; shared product links stay directly accessible. */
+(function(){
+ const params=new URLSearchParams(window.location.search);
+ const client=window.supabase.createClient("https://yymdyxlbdgbrgrykdspx.supabase.co","sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
+ if(params.has("auth_callback")){
+  client.auth.getSession().then(({data,error})=>{
+   if(error)throw error;
+   const pending=localStorage.getItem("rianderblog_onboarding_pending")==="1";
+   const next=localStorage.getItem("rianderblog_auth_next");
+   if(data?.session){
+    if(pending){window.location.replace("./welcome.html");return;}
+    if(next==="checkout"){localStorage.removeItem("rianderblog_auth_next");window.location.replace("./index.html#cart");return;}
+    window.location.replace("./index.html");return;
+   }
+   window.location.replace("./account.html?mode=signin&confirmed=1");
+  }).catch(error=>{console.error("RIANDERBLOG authentication callback:",error);window.location.replace("./account.html?mode=signin");});
+  return;
+ }
+ if(params.has("product"))return;
+ client.auth.getSession().then(({data,error})=>{
+  if(error)throw error;
+  if(localStorage.getItem("rianderblog_onboarding_pending")==="1"&&data?.session){window.location.replace("./welcome.html");return;}
+  if(!data?.session)window.location.replace("./account.html?mode=signup");
+ }).catch(error=>{console.warn("RIANDERBLOG entry session check:",error);window.location.replace("./account.html?mode=signup");});
+})();
+</script>
   <style>
 :root{
   --navy:#10213e;--navy2:#1a3154;--gold:#d6ad55;--gold-dark:#ad812e;
@@ -1120,20 +1147,6 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
   </section>
 
   <section id="products">
-    <div class="guest-welcome" id="guestSignupBanner">
-      <div><span class="guest-kicker">WELCOME TO RIANDERBLOG</span><h3>Discover products from global sellers.</h3><p>Browse freely as a guest. Create your free account to contact suppliers, manage your orders and check out securely.</p></div>
-      <button type="button" onclick="showSection('account');setAccountMode('signup')">Create free account <span>→</span></button>
-    </div>
-    <div class="signed-in-welcome" id="signedInWelcome" style="display:none"><span>✓</span><div><strong id="storeWelcomeText">Welcome back</strong><small>Your account is ready. Explore the latest products below.</small></div></div>
-    <div class="new-shop-guide" id="newShopGuide">
-      <div class="new-shop-guide-heading"><span class="guest-kicker">NEW TO RIANDERBLOG?</span><h3>Shopping is simple. Just follow 3 steps.</h3></div>
-      <div class="new-shop-steps">
-        <div class="new-shop-step"><span>1</span><div><strong>Find a product</strong><small>Browse or search for something you like.</small></div></div>
-        <div class="new-shop-step"><span>2</span><div><strong>Add it to your cart</strong><small>Choose your product and check your cart.</small></div></div>
-        <div class="new-shop-step"><span>3</span><div><strong>Create an account and pay</strong><small>Sign up for free, enter delivery details and pay securely through PayChangu.</small></div></div>
-      </div>
-      <p class="new-shop-help">Need help before ordering? Sign in and use <strong>My messages</strong> to contact a supplier.</p>
-    </div>
     <div class="section-head"><div><h2>Explore our products</h2><p>Choose a product to view its full details.</p></div></div>
     <div class="market-intro"><strong>Find what you love</strong><span class="market-promise">Great finds • Global sellers • New discoveries</span></div>
     <input class="search" id="search" placeholder="Search products, brands and categories..." aria-label="Search products">
@@ -1878,6 +1891,12 @@ async function renderAdminThread(id,log){const {data,error}=await db.from('suppo
 function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕":"☰";}
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(links){links.classList.remove("open");links.style.display="none";}if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰";}}
 function showSection(id){
+  if(id==="account"){
+    const mode=sessionStorage.getItem("rianderblog_account_mode")||"signin";
+    const next=(document.getElementById("cart")?.style.display==="block"||window.location.hash==="#cart")?"&next=checkout":"";
+    window.location.href="./account.html?mode="+encodeURIComponent(mode)+next;
+    return false;
+  }
   const target=document.getElementById(id);
   if(!target){console.warn("RIANDERBLOG: section not found:",id);return false;}
   const home=(id==="products");
@@ -3149,8 +3168,7 @@ async function startPayChanguCheckout() {
     }
     if(!user) {
         message.textContent="Please create a free RIANDERBLOG account or sign in before checkout.";
-        showSection("account");
-        setAccountMode("signup");
+        window.location.href="./account.html?mode=signup&next=checkout";
         return;
     }
 
@@ -3539,6 +3557,7 @@ async function showCustomerOrderTracking(){
 }
 
 function setAccountMode(mode){
+  try{sessionStorage.setItem('rianderblog_account_mode',mode==='signup'?'signup':'signin');}catch(e){}
   const signup=mode==='signup';
   document.getElementById('accountSignInTab')?.classList.toggle('active',!signup);
   document.getElementById('accountSignUpTab')?.classList.toggle('active',signup);
