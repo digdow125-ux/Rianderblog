@@ -3635,6 +3635,28 @@ db.auth.onAuthStateChange((event,session) => {
   showDashboard();
 });
 
+// Restore the saved Supabase session explicitly on every page load.
+// This keeps the account menu and signed-in panels correct even if the
+// initial auth-state event is delayed by a slow connection or cached page.
+(async function restoreRianderblogSession(){
+  try{
+    const {data,error}=await db.auth.getSession();
+    if(error)throw error;
+    const user=data?.session?.user||null;
+    updateAccountExperience(user);
+    updateAdminVisibility(user);
+    if(user){
+      claimPendingReferral();
+      loadProfilePhoto(user);
+      startNotifications(user);
+    }
+  }catch(error){
+    console.warn('RIANDERBLOG session restore:',error);
+    const message=document.getElementById('message');
+    if(message)message.textContent='Could not restore your saved sign-in. Please refresh or sign in again.';
+  }
+})();
+
 
 function toggleNotifications(){
   const panel=document.getElementById('notificationPanel');
