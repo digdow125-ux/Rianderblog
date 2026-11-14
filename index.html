@@ -3537,7 +3537,7 @@ async function loadNotifications(){
   }).join('');
   list.querySelectorAll('[data-notification-id]').forEach(button=>button.addEventListener('click',async()=>{
     const id=button.dataset.notificationId;
-    const allowed=['dashboard','adminPanel','adminOrders','adminSuppliers','adminApplications','adminSupport','messages','suppliers','affiliates','orderTracking','cart','products'];
+    const allowed=['dashboard','adminPanel','adminOrders','adminSuppliers','adminApplications','adminSupport','messages','suppliers','affiliates','orderTracking','cart','products','staffPanel'];
     const target=allowed.includes(button.dataset.targetSection)?button.dataset.targetSection:'dashboard';
     await db.from('notifications').update({is_read:true}).eq('id',id);
     await loadNotifications();
