@@ -5679,5 +5679,46 @@ async function staffReviewFulfilment(id,action){
 })();
 </script>
 
+
+<script>
+/* Independent public catalogue recovery: keeps products visible if the main app script fails. */
+(function(){
+ const url="https://yymdyxlbdgbrgrykdspx.supabase.co";
+ const key="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+ function make(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=String(text);return el;}
+ async function recoverCatalogue(){
+  const box=document.getElementById('productList');
+  if(!box)return;
+  if(box.querySelector('.product'))return;
+  try{
+   if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Marketplace connection library did not load. Reload the page with internet access.');
+   const client=window.supabase.createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'rianderblog-public-catalogue-recovery'}});
+   const result=await client.from('products').select('id,name,description,price,currency,category,image_url,is_active').eq('is_active',true).order('created_at',{ascending:false});
+   if(result.error)throw result.error;
+   const products=result.data||[];
+   if(!products.length){box.textContent='No active products are published at the moment.';return;}
+   if(box.querySelector('.product'))return;
+   const grid=document.createDocumentFragment();
+   products.forEach(p=>{
+    const card=make('article','product');
+    const imageUrl=String(p.image_url||'');
+    if(/^https?:\/\//i.test(imageUrl)){const img=make('img');img.src=imageUrl;img.alt=String(p.name||'Product');img.loading='lazy';img.onerror=()=>img.remove();card.appendChild(img);}
+    card.appendChild(make('h3','',p.name||'Product'));
+    card.appendChild(make('p','product-desc',p.description||'Explore this product for more information.'));
+    card.appendChild(make('p','price',(p.currency||'USD')+' '+Number(p.price||0).toLocaleString()));
+    card.appendChild(make('p','small-note',p.category||'Marketplace product'));
+    grid.appendChild(card);
+   });
+   box.replaceChildren(grid);
+   console.warn('RIANDERBLOG: catalogue recovery renderer displayed '+products.length+' active products. Main catalogue renderer should still be diagnosed.');
+  }catch(error){
+   console.error('RIANDERBLOG independent catalogue recovery:',error);
+   if(!box.querySelector('.product'))box.textContent='Products could not load: '+(error&&error.message?error.message:'Please check your connection and refresh.');
+  }
+ }
+ window.addEventListener('load',()=>setTimeout(recoverCatalogue,5000));
+})();
+</script>
+
 </body>
 </html>
