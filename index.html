@@ -2190,6 +2190,7 @@ async function adminAskAI() {
   }
   }  
 let allProducts = [];
+let adminProductsCache = [];
 let currentCategory = "All";
 let cart = [];
 
@@ -2322,7 +2323,7 @@ function clearAdminProductForm(){
 }
 
 function editAdminProduct(id){
-  const p=allProducts.find(x=>String(x.id)===String(id));
+  const p=(adminProductsCache||[]).find(x=>String(x.id)===String(id))||allProducts.find(x=>String(x.id)===String(id));
   if(!p)return;
 
   document.getElementById('adminProductId').value=p.id;
@@ -2367,7 +2368,7 @@ async function saveAdminProduct(){
 
     const id=document.getElementById('adminProductId').value;
     const oldProduct=id
-      ? allProducts.find(x=>String(x.id)===String(id))
+      ? ((adminProductsCache||[]).find(x=>String(x.id)===String(id))||allProducts.find(x=>String(x.id)===String(id)))
       : null;
 
     const images=await resolveProductImages(
@@ -2673,10 +2674,17 @@ async function loadAdminDashboard() {
   }
       }
 function productReviewBadge(p){const status=p.review_status||'approved';const label=status==='approved'?'APPROVED':status==='rejected'?'REJECTED':'NOT APPROVED · PENDING';const cls=status==='approved'?'review-approved':status==='rejected'?'review-rejected':'review-pending';return '<span class="product-review-badge '+cls+'">'+label+'</span>';}
-function renderAdminProducts(){
+async function renderAdminProducts(){
  const box=document.getElementById('adminProductList');if(!box)return;
- const rows=allProducts||[];
- box.innerHTML=rows.length?'<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Product</th><th>Price</th><th>Review status</th><th>Visibility</th><th>Actions</th></tr></thead><tbody>'+rows.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Uncategorised')+'</small></td><td>'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+'</td><td>'+productReviewBadge(p)+'</td><td>'+(p.is_active?'Visible':'Hidden')+'</td><td><button class="secondary" onclick="editAdminProduct(\''+escapeHTML(p.id)+'\')">Edit</button> <button class="remove" onclick="deleteAdminProduct(\''+escapeHTML(p.id)+'\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No products available.';
+ box.textContent='Loading all marketplace products…';
+ try{
+  await adminGuard();
+  const {data,error}=await db.from('products').select('*').order('created_at',{ascending:false}).limit(500);
+  if(error)throw error;
+  adminProductsCache=data||[];
+  const rows=adminProductsCache;
+  box.innerHTML=rows.length?'<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Product</th><th>Price</th><th>Review status</th><th>Visibility</th><th>Stock / Colours</th><th>Added by</th><th>Actions</th></tr></thead><tbody>'+rows.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Uncategorised')+'</small></td><td>'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+'</td><td>'+productReviewBadge(p)+'</td><td>'+(p.is_active?'Visible':'Hidden')+'</td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.supplier_id?'Supplier':'RIANDERBLOG / Staff')+'</td><td><button class="secondary" onclick="editAdminProduct(\''+escapeHTML(p.id)+'\')">Edit</button> <button class="remove" onclick="deleteAdminProduct(\''+escapeHTML(p.id)+'\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No products available.';
+ }catch(e){box.textContent='Could not load products: '+e.message;}
 }
 function adminShowProductSection(section,button){
  document.querySelectorAll('#adminTab-products .admin-product-section').forEach(el=>el.style.display='none');
