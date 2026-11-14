@@ -470,7 +470,7 @@ async function loadProducts(){
    nextProduct=activeProducts.find(product=>!usedIds.has(String(product.id)))||activeProducts[0];
   }
  }
- products=[nextProduct];selectedProductIndex=0;renderProducts();prepareShareImageFile(nextProduct);
+ products=[nextProduct];selectedProductIndex=0;renderProducts();
 }
 function renderProducts(){
  const root=document.getElementById('productList');
@@ -508,30 +508,33 @@ async function prepareShareImageFile(p){
  }catch(error){console.warn("Could not prepare product image:",error);return null}
 }
 async function shareSelected(platform){
- const p=products[selectedProductIndex];if(!p){msg("shareStatus","Select a product first.");return}
- if(!currentUser||(!isHubOwner&&!currentStaffMember?.permissions?.social_media)){msg("shareStatus","Your account does not have social-media sharing permission.");return}
- const link=PRODUCT_SHARE_URL(p.id),caption=makeCaption(p,selectedProductIndex);
- if(!navigator.share){msg("shareStatus","Your browser does not support sharing an image directly. Open the product link and attach its photo manually.");return}
- let file=shareImageFileCache.get(String(p.id));
- if(!file){
-  msg("shareStatus","Preparing the product photo. Tap Share again when preparation finishes.");
-  file=await prepareShareImageFile(p);
-  if(!file){msg("shareStatus","The product photo could not be prepared. Check that its image opens in the marketplace, then try again.");return}
-  msg("shareStatus","Product photo is ready. Tap Share again to send the image with its name, price and link.");
-  return;
+ const p=products[selectedProductIndex];
+ if(!p){msg("shareStatus","Select a product first.");return}
+ if(!currentUser||(!isHubOwner&&!currentStaffMember?.permissions?.social_media)){
+  msg("shareStatus","Your account does not have social-media sharing permission.");return;
  }
- const shareData={files:[file],title:p.name||"RIANDERBLOG product",text:caption+" "+link};
+ const link=PRODUCT_SHARE_URL(p.id);
+ const caption=makeCaption(p,selectedProductIndex);
+ // Share the product URL and caption, not an image-file attachment.
+ // Social apps can then generate their own rich preview from the product page metadata.
+ const shareData={title:p.name||"RIANDERBLOG product",text:caption};
  try{
-  if(navigator.canShare&&!navigator.canShare({files:[file]})){
-   msg("shareStatus","This browser cannot attach image files to sharing. Please use the latest Chrome on Android.");
+  if(navigator.share){
+   await navigator.share(shareData);
+   msg("shareStatus","Share menu opened with the product name, price and marketplace link. Choose WhatsApp, Facebook or another app. The social app will load the product photo preview from the link when supported.");
    return;
   }
-  await navigator.share(shareData);
-  msg("shareStatus","The actual product photo, caption, price and product link were sent to Android's share menu. Select WhatsApp or Facebook.");
+  if(navigator.clipboard?.writeText){
+   await navigator.clipboard.writeText(caption);
+   msg("shareStatus","Product caption, price and link copied. Paste them into your social-media post; the app can generate the product photo preview from the link.");
+   return;
+  }
+  window.prompt("Copy this product caption and link:",caption);
+  msg("shareStatus","Copy the caption and link into your social-media post.");
  }catch(error){
-  if(error&&error.name==="AbortError")return;
-  console.error("Product image sharing failed:",error);
-  msg("shareStatus","The phone did not accept the image share. Please use Chrome on Android and try again.");
+  if(error?.name==="AbortError")return;
+  console.error("Product link sharing failed:",error);
+  msg("shareStatus","Sharing was not available. Copy the product caption and link, then paste them into your social post.");
  }
 }
 function makeCaption(p,index,language){const messages={
