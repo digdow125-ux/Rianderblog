@@ -1965,15 +1965,7 @@ main{max-width:1440px}
       <div id="adminProductList" class="admin-products-list admin-table-wrap">Products will appear here.</div>
     
 
-  <div id="externalAffiliateManagement" class="admin-tools affiliate-management-workspace admin-only">
-  <div class="admin-heading"><div><span class="admin-kicker">EXTERNAL PARTNER MARKETING</span><h2>Affiliate Management</h2><p>Manage RIANDERBLOG's promotions of products from other companies. This workspace is separate from the customer Affiliate Centre and the Admin Panel.</p></div></div>
-  <div class="affiliate-management-content">
-    <div class="admin-tools"><span class="admin-kicker">EXTERNAL PARTNER MARKETING</span><h2>External Affiliate Management</h2><p>Manage products and genuine tracking links from other companies. Separate from RIANDERBLOG customer affiliates.</p>
-    <h3>Add affiliate network</h3><div class="form-grid"><input id="extNetworkName" placeholder="Network / company name"><input id="extNetworkWebsite" type="url" placeholder="Network website"><input id="extNetworkSignup" type="url" placeholder="Affiliate signup URL"></div><button class="secondary" onclick="saveExternalAffiliateNetwork()">＋ Save network</button><p id="extNetworkStatus"></p>
-    <hr><h3>Add external product</h3><div class="form-grid"><input id="extProductTitle" placeholder="Product name"><input id="extProductCategory" placeholder="Category"><input id="extProductPrice" type="number" min="0" step="0.01" placeholder="Price (optional)"><select id="extProductCurrency"><option>USD</option><option>MWK</option><option>ZAR</option><option>MZN</option><option>TZS</option><option>UGX</option><option>GBP</option><option>EUR</option></select><input id="extProductCommission" type="number" min="0" max="100" step="0.001" placeholder="Commission %"><select id="extProductNetwork"><option value="">Choose network</option></select><input id="extProductImage" type="url" placeholder="Image URL"><input id="extProductUrl" type="url" placeholder="Original product URL"><input id="extProductAffiliateUrl" type="url" placeholder="Genuine affiliate tracking URL"><textarea id="extProductDescription" placeholder="Short description"></textarea></div><label><input id="extProductFeatured" type="checkbox"> Feature offer</label><label><input id="extProductActive" type="checkbox"> Publish on Recommended Deals</label><button class="primary" onclick="saveExternalAffiliateProduct()">Save external product</button><p id="extProductStatus"></p></div>
-    <div class="admin-tools"><h3>External products</h3><div id="externalAffiliateAdminList">Loading...</div></div><div class="admin-tools"><h3>Affiliate networks</h3><div id="externalAffiliateNetworkList">Loading...</div></div><p class="small-note">Sales and earnings are not counted until verified by the affiliate network.</p>
-  </div>
-</div>
+
 
 </section>
   </section>
@@ -2133,6 +2125,43 @@ main{max-width:1440px}
     <p class="small-note">Admin actions require matching Supabase Row Level Security (RLS) policies. The admin ID check in this page only controls visibility; it is not database security.</p>
     <a href="https://supabase.com/dashboard/project/yymdyxlbdgbrgrykdspx/editor" target="_blank" rel="noopener">Open Supabase database</a>
   </section>
+
+
+
+<section id="externalAffiliateManagement" class="panel secondary-page admin-only affiliate-management-workspace" style="display:none">
+  <div class="admin-heading">
+    <div><span class="admin-kicker">RIANDERBLOG PARTNER GROWTH</span><h2>External Affiliate Management</h2><p>Build RIANDERBLOG's own external affiliate business by joining partner programmes, selecting products from outside suppliers, publishing tracked offers and reconciling verified commissions.</p></div>
+  </div>
+  <div class="affiliate-management-content">
+    <div class="admin-overview-intro">
+      <div><span class="admin-kicker">EXTERNAL AFFILIATE OPERATIONS</span><h3>How RIANDERBLOG earns from external partners</h3><p>RIANDERBLOG promotes products sold by other companies. Customers visit the partner through our genuine tracking links. The partner network records eligible referrals and confirms commissions.</p></div>
+    </div>
+    <div class="admin-quick-grid">
+      <article class="admin-quick-card"><span>01</span><strong>Join partner networks</strong><small>Register RIANDERBLOG with affiliate networks and retailers, then save each programme's official website and signup page.</small></article>
+      <article class="admin-quick-card"><span>02</span><strong>Select external products</strong><small>Choose relevant products from partner stores and record their product pages, images, prices and categories.</small></article>
+      <article class="admin-quick-card"><span>03</span><strong>Create tracking links</strong><small>Generate links inside the approved partner account. Never publish an ordinary product URL as an affiliate link.</small></article>
+      <article class="admin-quick-card"><span>04</span><strong>Publish partner offers</strong><small>Review the offer and disclosure, then publish it to Recommended Deals for customers to explore.</small></article>
+      <article class="admin-quick-card"><span>05</span><strong>Verify commissions</strong><small>Check clicks, orders, cancellations and approved commission inside the partner network before recording earnings.</small></article>
+      <article class="admin-quick-card"><span>06</span><strong>Optimise promotions</strong><small>Refresh expired offers, compare partner terms and focus on products that are useful to customers.</small></article>
+    </div>
+    <div class="admin-tools">
+      <h3>Affiliate network directory</h3>
+      <p class="small-note">Keep each network's official website and application page here. Approval is controlled by the partner, not RIANDERBLOG.</p>
+      <div class="form-grid"><input id="extNetworkName" placeholder="Network / company name"><input id="extNetworkWebsite" type="url" placeholder="Official network website"><input id="extNetworkSignup" type="url" placeholder="Affiliate signup URL"></div>
+      <button class="secondary" onclick="saveExternalAffiliateNetwork()">＋ Save network</button><p id="extNetworkStatus" role="status"></p>
+      <div id="externalAffiliateNetworkList">Loading networks…</div>
+    </div>
+    <div class="admin-tools">
+      <h3>Add an external partner product</h3>
+      <p class="small-note">Add a product only after obtaining permission and a genuine affiliate tracking URL from the partner network.</p>
+      <div class="form-grid"><input id="extProductTitle" placeholder="Product name"><input id="extProductCategory" placeholder="Category"><input id="extProductPrice" type="number" min="0" step="0.01" placeholder="Price (optional)"><select id="extProductCurrency"><option>USD</option><option>MWK</option><option>ZAR</option><option>MZN</option><option>TZS</option><option>UGX</option><option>GBP</option><option>EUR</option></select><input id="extProductCommission" type="number" min="0" max="100" step="0.001" placeholder="Advertised commission rate (optional)"><select id="extProductNetwork"><option value="">Choose network</option></select><input id="extProductImage" type="url" placeholder="Product image URL"><input id="extProductUrl" type="url" placeholder="Original product page URL"><input id="extProductAffiliateUrl" type="url" placeholder="Genuine affiliate tracking URL"><textarea id="extProductDescription" placeholder="Product description and promotion notes"></textarea></div>
+      <label><input id="extProductFeatured" type="checkbox"> Feature this offer</label><label><input id="extProductActive" type="checkbox"> Publish on Recommended Deals</label>
+      <button class="primary" onclick="saveExternalAffiliateProduct()">Save external product</button><p id="extProductStatus" role="status"></p>
+    </div>
+    <div class="admin-tools"><h3>External offers and publication status</h3><p class="small-note">Review, publish or unpublish partner products. Remove offers whose tracking links expire or whose partner terms change.</p><div id="externalAffiliateAdminList">Loading external offers…</div></div>
+    <div class="admin-tools"><h3>Commission verification and reporting</h3><p class="small-note">Use the partner network's own reporting dashboard as the source of truth for clicks, conversions, reversals and approved commission. RIANDERBLOG must not count pending or estimated commission as withdrawable income.</p><ul><li>Record the partner network and reporting period.</li><li>Reconcile approved sales against cancelled or returned orders.</li><li>Only record commission after the network confirms it.</li><li>Keep payout references and currency for accounting.</li></ul><p class="small-note">Affiliate disclosure: RIANDERBLOG may earn a commission when a customer purchases through a qualifying partner link. The partner handles the sale, payment, shipping and returns.</p></div>
+  </div>
+</section>
 
 
 </main>
@@ -2435,10 +2464,8 @@ async function loadExternalAffiliateDeals(){const box=document.getElementById('e
 async function openExternalAffiliateManagement(){
   try{
     await adminGuard();
-    showSection('adminPanel');
+    showSection('externalAffiliateManagement');
     await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks()]);
-    const workspace=document.getElementById('externalAffiliateManagement');
-    if(workspace)workspace.scrollIntoView({behavior:'smooth',block:'start'});
   }catch(error){
     console.error('Affiliate Management access denied:',error);
     alert('Administrator access is required to open Affiliate Management.');
