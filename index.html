@@ -1907,6 +1907,8 @@ main{max-width:1440px}
   </div>
 
   <div class="market-grid admin-stat-grid" id="adminStats">
+    <div class="market-card"><h3 id="statAccounts">—</h3><p>Registered accounts</p></div>
+    <div class="market-card"><h3 id="statOnlineAccounts">—</h3><p>Currently signed in · last 2 min</p></div>
     <div class="market-card"><h3 id="statProducts">—</h3><p>Products</p></div>
     <div class="market-card"><h3 id="statSuppliers">—</h3><p>Supplier applications</p></div>
     <div class="market-card"><h3 id="statProgrammes">—</h3><p>Affiliate programmes</p></div>
@@ -3261,6 +3263,15 @@ async function loadAdminDashboard() {
   try {
     await adminGuard();
 
+    const accountCount = await db
+      .from("profiles")
+      .select("id", { count: "exact", head: true });
+
+    const onlineAccountCount = await db
+      .from("user_presence")
+      .select("user_id", { count: "exact", head: true })
+      .gte("last_seen_at", new Date(Date.now() - 120000).toISOString());
+
     const productCount = await db
       .from("products")
       .select("id", { count: "exact", head: true });
@@ -3282,6 +3293,8 @@ async function loadAdminDashboard() {
       .select("id", { count: "exact", head: true });
 
     const stats = [
+      ["statAccounts", accountCount],
+      ["statOnlineAccounts", onlineAccountCount],
       ["statProducts", productCount],
       ["statSuppliers", supplierCount],
       ["statProgrammes", programmeCount],
@@ -4299,9 +4312,26 @@ async function loadProfilePhoto(user){
   if(data?.avatar_url){avatar.textContent='';avatar.style.backgroundImage='url("'+String(data.avatar_url).replace(/["\\]/g,'')+'")';avatar.style.backgroundSize='cover';avatar.style.backgroundPosition='center';}
  }catch(e){console.warn('Could not load profile picture:',e.message);}
 }
+let rianderPresenceHeartbeat=null;
+async function trackRianderUserPresence(user){
+  if(!user?.id)return;
+  const updatePresence=async()=>{
+    try{
+      const {error}=await db.from('user_presence').upsert(
+        {user_id:user.id,last_seen_at:new Date().toISOString()},
+        {onConflict:'user_id'}
+      );
+      if(error)console.warn('RIANDERBLOG presence update:',error.message);
+    }catch(error){console.warn('RIANDERBLOG presence update:',error);}
+  };
+  await updatePresence();
+  if(rianderPresenceHeartbeat)clearInterval(rianderPresenceHeartbeat);
+  rianderPresenceHeartbeat=setInterval(updatePresence,45000);
+}
 let notificationChannel=null;
 db.auth.onAuthStateChange((event,session) => {
   const user=session?.user||null;
+  if(user)trackRianderUserPresence(user);
   updateAccountExperience(user);
   if(user)claimPendingReferral();
   if(user)loadProfilePhoto(user);
@@ -4317,6 +4347,7 @@ db.auth.onAuthStateChange((event,session) => {
     const {data,error}=await db.auth.getSession();
     if(error)throw error;
     const user=data?.session?.user||null;
+    if(user)trackRianderUserPresence(user);
     updateAccountExperience(user);
     updateAdminVisibility(user);
     if(user){
