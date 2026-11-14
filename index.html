@@ -5386,17 +5386,29 @@ function toggleStaffProductForm(){
  if(opening)panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function loadStaffAddedProducts(){
- const box=document.getElementById('staffMyUploadedProducts');if(!box)return;
- box.textContent='Loading your uploaded products…';
- try{
-  const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
-  const {data,error}=await db.from('products').select('id,name,price,currency,category,stock_quantity,available_colours,is_active,review_status,created_at').is('supplier_id',null).order('created_at',{ascending:false}).limit(100);
-  if(error)throw error;
-  if(!data?.length){box.textContent='You have not uploaded any marketplace products yet.';return;}
-  box.innerHTML='<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:620px"><thead><tr><th>Product</th><th>Stock / Colours</th><th>Visibility</th><th>Review</th><th>Action</th></tr></thead><tbody>'+data.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Other')+' · '+escapeHTML(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2)+'</small></td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.is_active?'Visible on marketplace':'Hidden from marketplace')+'</td><td>'+escapeHTML(p.review_status||'pending')+'</td><td><button class="primary" onclick="staffEditMarketplaceProduct(\\''+escapeHTML(p.id)+'\\')">Edit product</button></td></tr>').join('')+'</tbody></table></div>';
- }catch(e){box.textContent='Could not load your products: '+e.message;}
-}
-
+  const box=document.getElementById('staffMyUploadedProducts');if(!box)return;
+  box.textContent='Loading staff-added products…';
+  try{
+   const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
+   const {data,error}=await db.from('products').select('id,name,price,currency,category,stock_quantity,available_colours,is_active,review_status,created_at').is('supplier_id',null).order('created_at',{ascending:false}).limit(100);
+   if(error)throw error;
+   if(!data?.length){box.textContent='No staff-added marketplace products found.';return;}
+   const wrap=document.createElement('div');wrap.className='admin-table-wrap';
+   const table=document.createElement('table');table.className='admin-orders-table';table.style.minWidth='620px';
+   table.innerHTML='<thead><tr><th>Product</th><th>Stock / Colours</th><th>Visibility</th><th>Review</th><th>Action</th></tr></thead>';
+   const tbody=document.createElement('tbody');
+   data.forEach(p=>{
+    const tr=document.createElement('tr');
+    const details=document.createElement('td');const strong=document.createElement('strong');strong.textContent=p.name||'Unnamed product';const small=document.createElement('small');small.textContent=(p.category||'Other')+' · '+(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2);details.append(strong,small);
+    const stock=document.createElement('td');stock.textContent=Number(p.stock_quantity||0)+' · '+((p.available_colours||[]).join(', ')||'No colours saved');
+    const visibility=document.createElement('td');visibility.textContent=p.is_active?'Visible on marketplace':'Hidden from marketplace';
+    const review=document.createElement('td');review.textContent=p.review_status||'pending';
+    const action=document.createElement('td');const edit=document.createElement('button');edit.className='primary';edit.type='button';edit.textContent='Edit product';edit.addEventListener('click',()=>staffEditMarketplaceProduct(p.id));action.appendChild(edit);
+    tr.append(details,stock,visibility,review,action);tbody.appendChild(tr);
+   });
+   table.appendChild(tbody);wrap.appendChild(table);box.replaceChildren(wrap);
+  }catch(e){box.textContent='Could not load staff-added products: '+(e.message||String(e));}
+ }
 async function staffEditMarketplaceProduct(id){
  try{
   const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
@@ -5416,7 +5428,8 @@ async function staffEditMarketplaceProduct(id){
   await loadProducts();await loadStaffAddedProducts();
  }catch(e){alert('Could not edit product: '+(e.message||e));}
 }
-\nasync function staffAddMarketplaceProduct(){
+
+async function staffAddMarketplaceProduct(){
  const status=document.getElementById('staffNewProductStatus');status.textContent='Saving product…';
  try{
   const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
