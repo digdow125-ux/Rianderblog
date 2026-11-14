@@ -433,6 +433,7 @@ const HUB_URL=SITE_URL+"promotion-hub/";
 const PRODUCT_SHARE_URL=(id)=>SUPABASE_URL+"/functions/v1/product-share?id="+encodeURIComponent(String(id));
 const db=window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}}) : null;
 let currentUser=null, currentStaffMember=null, isHubOwner=false, products=[], connections=[], queueItems=[], promotionTaskItems=[], selectedProductIndex=-1;
+const shareImageFileCache=new Map();
 const platforms=["facebook","instagram","tiktok","youtube","x","whatsapp_business","messenger","telegram","pinterest","linkedin"];
 const platformNames={facebook:"Facebook Page",instagram:"Instagram",tiktok:"TikTok",youtube:"YouTube Shorts",x:"X",whatsapp_business:"WhatsApp Business",messenger:"Messenger",telegram:"Telegram",pinterest:"Pinterest",linkedin:"LinkedIn"};
 function msg(id,text){document.getElementById(id).textContent=text||""}
@@ -469,7 +470,7 @@ async function loadProducts(){
    nextProduct=activeProducts.find(product=>!usedIds.has(String(product.id)))||activeProducts[0];
   }
  }
- products=[nextProduct];selectedProductIndex=0;renderProducts();
+ products=[nextProduct];selectedProductIndex=0;renderProducts();prepareShareImageFile(nextProduct);
 }
 function renderProducts(){
  const root=document.getElementById('productList');
@@ -492,39 +493,46 @@ function updateSelectedProduct(){
  const image=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";
  el.innerHTML=(image?'<img src="'+esc(image)+'" alt="" style="width:100%;max-height:180px;object-fit:contain;border-radius:9px;margin-bottom:9px">':"")+'<strong>'+esc(p.name)+'</strong><p style="margin:7px 0">'+esc(p.description||"No description provided.")+'</p><b>Price: '+esc(p.currency||"")+' '+esc(p.price)+'</b>';
 }
+async function prepareShareImageFile(p){
+ const id=String(p?.id||"");if(!id)return null;
+ if(shareImageFileCache.has(id))return shareImageFileCache.get(id);
+ try{
+  const response=await fetch(SUPABASE_URL+"/functions/v1/product-share-image?id="+encodeURIComponent(id),{cache:"no-store"});
+  if(!response.ok)throw new Error("Image service returned "+response.status);
+  const blob=await response.blob();
+  if(!blob.type||!blob.type.toLowerCase().startsWith("image/"))throw new Error("The product image could not be read.");
+  const safeName=String(p.name||"RIANDERBLOG-product").replace(/[^a-z0-9_-]+/gi,"-").slice(0,60)||"RIANDERBLOG-product";
+  const ext=(blob.type.split("/")[1]||"jpeg").split(";")[0].replace("jpeg","jpg").replace(/[^a-z0-9]/gi,"")||"jpg";
+  const file=new File([blob],safeName+"."+ext,{type:blob.type});
+  shareImageFileCache.set(id,file);return file;
+ }catch(error){console.warn("Could not prepare product image:",error);return null}
+}
 async function shareSelected(platform){
  const p=products[selectedProductIndex];if(!p){msg("shareStatus","Select a product first.");return}
  if(!currentUser||(!isHubOwner&&!currentStaffMember?.permissions?.social_media)){msg("shareStatus","Your account does not have social-media sharing permission.");return}
- const link=PRODUCT_SHARE_URL(p.id);
- const caption=makeCaption(p,selectedProductIndex);
- const imageUrl=(Array.isArray(p.product_image_urls)&&p.product_image_urls[0])||p.image_url||"";
- // On supported Android browsers, attach the real product photo to the native
- // share sheet so WhatsApp, Facebook and other installed apps receive the image.
- if(imageUrl&&navigator.share&&navigator.canShare){
-  try{
-   const response=await fetch(imageUrl,{mode:"cors"});
-   if(response.ok){
-    const blob=await response.blob();
-    if(blob.type&&blob.type.startsWith("image/")){
-     const safeName=String(p.name||"RIANDERBLOG-product").replace(/[^a-z0-9_-]+/gi,"-").slice(0,60)||"RIANDERBLOG-product";
-     const extension=blob.type.split("/")[1].replace("jpeg","jpg").replace(/[^a-z0-9]/gi,"")||"jpg";
-     const file=new File([blob],safeName+"."+extension,{type:blob.type});
-     const shareData={files:[file],title:p.name||"RIANDERBLOG product",text:caption};
-     if(navigator.canShare({files:[file]})){
-      await navigator.share(shareData);
-      msg("shareStatus","Product photo, price and RIANDERBLOG link sent to your phone's sharing menu. Choose WhatsApp, Facebook or another app.");
-      return;
-     }
-    }
-   }
-  }catch(error){if(error&&error.name==="AbortError")return;console.warn("Image share fallback:",error)}
+ const link=PRODUCT_SHARE_URL(p.id),caption=makeCaption(p,selectedProductIndex);
+ if(!navigator.share){msg("shareStatus","Your browser does not support sharing an image directly. Open the product link and attach its photo manually.");return}
+ let file=shareImageFileCache.get(String(p.id));
+ if(!file){
+  msg("shareStatus","Preparing the product photo. Tap Share again when preparation finishes.");
+  file=await prepareShareImageFile(p);
+  if(!file){msg("shareStatus","The product photo could not be prepared. Check that its image opens in the marketplace, then try again.");return}
+  msg("shareStatus","Product photo is ready. Tap Share again to send the image with its name, price and link.");
+  return;
  }
- // Fallback: link previews are generated from the product-share page's
- // Open Graph metadata. The caption itself always includes the product price.
- try{await navigator.clipboard.writeText(caption)}catch(e){}
- const urls={facebook:"https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link)+"&quote="+encodeURIComponent(caption),instagram:"https://www.instagram.com/",tiktok:"https://www.tiktok.com/upload",youtube:"https://studio.youtube.com/",x:"https://twitter.com/intent/tweet?text="+encodeURIComponent(caption)+"&url="+encodeURIComponent(link),whatsapp_business:"https://wa.me/?text="+encodeURIComponent(caption),messenger:"https://www.facebook.com/dialog/send?link="+encodeURIComponent(link),telegram:"https://t.me/share/url?url="+encodeURIComponent(link)+"&text="+encodeURIComponent(caption),pinterest:"https://www.pinterest.com/pin/create/button/?url="+encodeURIComponent(link)+"&description="+encodeURIComponent(caption),linkedin:"https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(link)};
- window.open(urls[platform]||link,"_blank","noopener,noreferrer");
- msg("shareStatus","Your product caption and price are ready. "+(platformNames[platform]||"Social app")+" opened. If the app does not show the product photo automatically, attach the product picture before publishing.");
+ const shareData={files:[file],title:p.name||"RIANDERBLOG product",text:caption+" "+link};
+ try{
+  if(navigator.canShare&&!navigator.canShare({files:[file]})){
+   msg("shareStatus","This browser cannot attach image files to sharing. Please use the latest Chrome on Android.");
+   return;
+  }
+  await navigator.share(shareData);
+  msg("shareStatus","The actual product photo, caption, price and product link were sent to Android's share menu. Select WhatsApp or Facebook.");
+ }catch(error){
+  if(error&&error.name==="AbortError")return;
+  console.error("Product image sharing failed:",error);
+  msg("shareStatus","The phone did not accept the image share. Please use Chrome on Android and try again.");
+ }
 }
 function makeCaption(p,index,language){const messages={
  en:["Discover your next favourite find!","A great pick worth checking out.","Find it on RIANDERBLOG today!"],
