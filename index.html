@@ -106,6 +106,11 @@ input{width:100%;padding:12px;margin:7px 0;border:1px solid #d8dee8;border-radiu
 .notice{padding:10px;background:#f5f0e5;border-radius:7px;margin-top:10px;color:#59471f;font-size:13px}
 footer{text-align:center;background:var(--navy);color:#dce3ed;padding:25px 18px;margin-top:30px;font-size:13px}
 footer strong{color:var(--gold)}
+.cart-guest-auth{margin:14px 0 18px;padding:16px;border:1px solid #f0c98b;border-radius:11px;background:#fff9ef;color:#263244}
+.cart-guest-auth strong{display:block;color:#173b63;font-size:16px}
+.cart-guest-auth p{margin:7px 0 12px;color:#5c6878;font-size:13px;line-height:1.55}
+.cart-guest-auth-actions{display:flex;gap:9px;flex-wrap:wrap}
+.cart-guest-auth-actions button{min-width:120px}
 /* Product details overlay */
 .detail-backdrop{display:none;position:fixed;inset:0;background:rgba(4,12,25,.76);z-index:99999;padding:12px;align-items:flex-start;justify-content:center;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .detail-backdrop.open{display:flex}
@@ -1128,6 +1133,14 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 
   <section id="cart" class="panel secondary-page">
     <h2>🛒 My Shopping Cart</h2>
+    <div id="cartGuestAuthPrompt" class="cart-guest-auth" style="display:none" role="region" aria-live="polite">
+      <strong>Welcome to your RIANDERBLOG cart</strong>
+      <p>Sign in to your account or create a free account to continue with your order. Your cart items will remain here.</p>
+      <div class="cart-guest-auth-actions">
+        <button type="button" class="primary" onclick="showSection('account');setAccountMode('signin')">Sign in</button>
+        <button type="button" class="secondary" onclick="showSection('account');setAccountMode('signup')">Create account</button>
+      </div>
+    </div>
     <div id="cartItems">Your cart is empty.</div>
     <h3 id="cartTotal"></h3>
     <p id="inviteDiscountSummary" class="small-note" style="display:none"></p>
@@ -3374,6 +3387,8 @@ async function submitAccountForm(){
 }
 function updateAccountExperience(user){
   const signedIn=!!user;
+  const cartGuestAuthPrompt=document.getElementById("cartGuestAuthPrompt");
+  if(cartGuestAuthPrompt)cartGuestAuthPrompt.style.display=signedIn?"none":"block";
   const myAccountLink=document.getElementById('navMyAccount');
   const createAccountLink=document.getElementById('navCreateAccount');
   const signInLink=document.getElementById('navSignIn');
