@@ -1015,10 +1015,11 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 /* Restore the original responsive navigation menu and dropdown behaviour. */
 .notification-panel{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;max-height:none!important;box-shadow:none!important;margin:12px 0}
 .header-actions{position:static!important;flex-wrap:wrap}
-.detail-backdrop{position:static!important;inset:auto!important;background:transparent!important;z-index:auto!important;padding:0!important;display:none!important}
-.detail-backdrop.open{display:block!important}
-.detail-box{position:static!important;max-width:none!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;margin:14px 0}
-.detail-close{position:static!important;float:none!important;display:inline-block!important}
+/* Product details overlay: preserve popup positioning and touch scrolling on mobile/Facebook in-app browser. */
+.detail-backdrop{position:fixed!important;inset:0!important;background:rgba(4,12,25,.76)!important;z-index:99999!important;padding:12px!important;display:none!important;align-items:flex-start!important;justify-content:center!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important}
+.detail-backdrop.open{display:flex!important}
+.detail-box{position:relative!important;width:100%!important;max-width:780px!important;max-height:calc(100vh - 24px)!important;max-height:calc(100dvh - 24px)!important;overflow-y:auto!important;overflow-x:hidden!important;box-shadow:0 20px 65px rgba(0,0,0,.3)!important;margin:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important;min-height:0!important}
+.detail-close{position:sticky!important;top:0!important;float:right!important;z-index:5!important;display:inline-flex!important}
 .notification-count{position:static!important;display:inline-flex;align-items:center;justify-content:center;margin-left:5px;min-width:19px}
 #adminPanel .admin-heading:after{position:static!important;display:none!important}
 #adminPanel .admin-stat-grid .market-card:before{position:static!important;display:none!important}
