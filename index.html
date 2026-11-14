@@ -2233,7 +2233,7 @@ async function updateAdminVisibility(user) {
  }
  window.rianderStaffMembership=staff;
  const canViewVisitorAnalytics=owner||String(user?.email||'').trim().toLowerCase()==='giftchonde1@gmail.com';
- document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=(owner&&(el.id==='adminNavLink'||el.id==='navPromotionHub')||(el.id==='navVisitorAnalytics'&&canViewVisitorAnalytics))?'block':'none';});
+ document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=(owner&&(el.id==='adminNavLink'||el.id==='navAffiliateManagement'||el.id==='navPromotionHub')||(el.id==='navVisitorAnalytics'&&canViewVisitorAnalytics))?'block':'none';});
  const hub=document.getElementById('navPromotionHub');if(hub)hub.style.display=owner||hasHubTask?'block':'none';
  const link=document.getElementById('navStaffPanel');if(link)link.style.display='inline-flex';
  const status=document.getElementById('adminStatus');if(status)status.textContent=owner?'Administrator verified. Open Admin Panel from the navigation to manage your marketplace.':'Administrator access is restricted.';
