@@ -3585,7 +3585,7 @@ function displayProducts() {
 }
 
 function getShareProductUrl(productId){
-  return 'https://yymdyxlbdgbrgrykdspx.supabase.co/functions/v1/product-share?id='+encodeURIComponent(String(productId));
+  return 'https://yymdyxlbdgbrgrykdspx.supabase.co/functions/v1/product-share?id='+encodeURIComponent(String(productId))+'&v=19';
 }
 async function shareProduct(productId){
   const p=allProducts.find(x=>String(x.id)===String(productId));
