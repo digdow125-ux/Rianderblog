@@ -1551,15 +1551,17 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 <section id="visitorAnalyticsPanel" class="panel secondary-page admin-box admin-only" style="display:none">
   <div class="admin-heading"><div><span class="admin-kicker">RIANDERBLOG AUDIENCE</span><h2>Website Visitors</h2><p>See how many people visit your marketplace and which pages they open.</p></div><button class="primary" type="button" onclick="loadVisitorAnalytics()">↻ Refresh statistics</button></div>
   <div class="market-grid admin-stat-grid" style="margin-top:18px">
-    <div class="market-card"><h3 id="visitorTotalVisits">—</h3><p>Total recorded visits</p></div>
-    <div class="market-card"><h3 id="visitorTodayVisits">—</h3><p>Visits today</p></div>
-    <div class="market-card"><h3 id="visitorTodayUnique">—</h3><p>Different visitors today*</p></div>
+    <div class="market-card"><h3 id="visitorTotalVisits">—</h3><p>Unique visitors (IP-based)</p></div>
+    <div class="market-card"><h3 id="visitorTodayVisits">—</h3><p>Unique visitors today</p></div>
+    <div class="market-card"><h3 id="visitorTodayUnique">—</h3><p>Same-IP repeat visits merged</p></div>
   </div>
-  <div class="admin-overview-intro"><div><span class="admin-kicker">TRAFFIC ACTIVITY</span><h3>Last 7 days</h3><p>Daily visits and estimated unique browsers.</p></div></div>
-  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Visits</th><th>Visitors*</th></tr></thead><tbody id="visitorDailyRows"><tr><td colspan="3">Loading visitor statistics…</td></tr></tbody></table></div>
-  <div class="admin-overview-intro"><div><span class="admin-kicker">POPULAR CONTENT</span><h3>Most visited pages</h3><p>Based on recorded visits in the last 30 days.</p></div></div>
+  <div class="admin-overview-intro"><div><span class="admin-kicker">TRAFFIC ACTIVITY</span><h3>Last 7 days</h3><p>Daily unique IP-based visitors. Repeat visits from the same IP are merged.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Unique visitors</th><th>Unique IPs</th></tr></thead><tbody id="visitorDailyRows"><tr><td colspan="3">Loading visitor statistics…</td></tr></tbody></table></div>
+  <div class="admin-overview-intro"><div><span class="admin-kicker">POPULAR CONTENT</span><h3>Most visited pages</h3><p>Latest page recorded for unique visitors active in the last 30 days.</p></div></div>
   <div class="table-wrap"><table><thead><tr><th>Page</th><th>Visits</th></tr></thead><tbody id="visitorTopPages"><tr><td colspan="2">Loading…</td></tr></tbody></table></div>
-  <p class="small-note">*Visitors are estimated using an anonymous browser ID. RIANDERBLOG does not collect visitor names, email addresses or IP addresses for this dashboard. Repeat visits from another browser or a cleared browser may count as a new visitor.</p>
+  <div class="admin-overview-intro"><div><span class="admin-kicker">UNIQUE VISITOR RECORDS</span><h3>Visitors detected by IP</h3><p>Each IP-based visitor is listed once, with first and latest visit times.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Visitor ID (hashed)</th><th>First seen</th><th>Last seen</th><th>Latest page</th></tr></thead><tbody id="visitorRecords"><tr><td colspan="4">Loading…</td></tr></tbody></table></div>
+  <p class="small-note">Visitors are deduplicated using a one-way HMAC of the connecting IP address. The raw IP address is not stored or displayed. People sharing the same public Wi-Fi or network may appear as one visitor; changing networks may create a separate visitor record.</p>
   <p class="small-note" id="visitorAnalyticsStatus" role="status">Visitor tracking is being prepared…</p>
 </section>
 
@@ -2007,21 +2009,13 @@ function adminOpenSupplierSection(sectionId) {
 }
 
 // ADMIN PANEL TABS
-async function trackWebsiteVisit(){
+async async function trackWebsiteVisit(){
  try{
-  let visitorId=localStorage.getItem('rianderVisitorId');
-  if(!visitorId){
-   visitorId=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);});
-   localStorage.setItem('rianderVisitorId',visitorId);
-  }
   const pagePath=(location.pathname||'/').slice(0,200);
-  const cooldownKey='rianderVisitRecorded:'+pagePath;
-  const last=Number(localStorage.getItem(cooldownKey)||0);
-  if(Date.now()-last<30*60*1000)return;
   const referrerHost=(()=>{try{return document.referrer?new URL(document.referrer).hostname.slice(0,255):null;}catch(_){return null;}})();
-  const {error}=await db.from('site_visits').insert({visitor_id:visitorId,page_path:pagePath,referrer_host:referrerHost});
+  const {data,error}=await db.functions.invoke('visitor-track',{body:{page_path:pagePath,referrer_host:referrerHost}});
   if(error)throw error;
-  localStorage.setItem(cooldownKey,String(Date.now()));
+  if(data&&data.error)throw new Error(data.error);
  }catch(error){console.warn('RIANDERBLOG visitor tracking unavailable:',error&&error.message?error.message:error);}
 }
 async function loadVisitorAnalytics(){
@@ -2059,6 +2053,17 @@ async function loadVisitorAnalytics(){
     pages.appendChild(tr);
    });
    if(!pages.children.length){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=2;td.textContent='No page visits recorded yet.';tr.appendChild(td);pages.appendChild(tr);}
+  }
+  const records=document.getElementById('visitorRecords');
+  if(records){
+   records.replaceChildren();
+   (stats.visitor_records||[]).forEach(visitor=>{
+    const tr=document.createElement('tr');
+    const values=[String(visitor.visitor||'Visitor'),visitor.first_seen?new Date(visitor.first_seen).toLocaleString():'—',visitor.last_seen?new Date(visitor.last_seen).toLocaleString():'—',String(visitor.page||'/')];
+    values.forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});
+    records.appendChild(tr);
+   });
+   if(!records.children.length){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=4;td.textContent='No IP-based visitors recorded yet.';tr.appendChild(td);records.appendChild(tr);}
   }
   if(status)status.textContent=stats.last_visit?'Last recorded visit: '+new Date(stats.last_visit).toLocaleString():'No visits have been recorded yet. Open the website in another tab to record the first visit.';
  }catch(error){if(status)status.textContent='Could not load visitor statistics: '+(error&&error.message?error.message:'Unknown error');}
