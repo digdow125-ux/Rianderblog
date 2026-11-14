@@ -2161,6 +2161,62 @@ main{max-width:1440px}
     <div class="admin-tools"><h3>External offers and publication status</h3><p class="small-note">Review, publish or unpublish partner products. Remove offers whose tracking links expire or whose partner terms change.</p><div id="externalAffiliateAdminList">Loading external offers…</div></div>
     <div class="admin-tools"><h3>Commission verification and reporting</h3><p class="small-note">Use the partner network's own reporting dashboard as the source of truth for clicks, conversions, reversals and approved commission. RIANDERBLOG must not count pending or estimated commission as withdrawable income.</p><ul><li>Record the partner network and reporting period.</li><li>Reconcile approved sales against cancelled or returned orders.</li><li>Only record commission after the network confirms it.</li><li>Keep payout references and currency for accounting.</li></ul><p class="small-note">Affiliate disclosure: RIANDERBLOG may earn a commission when a customer purchases through a qualifying partner link. The partner handles the sale, payment, shipping and returns.</p></div>
   </div>
+
+    <div class="admin-tools">
+      <h3>Performance overview</h3>
+      <p class="small-note">Figures below come from saved partner-report records. Clicks and conversions are not automatically tracked unless a partner integration is added.</p>
+      <div class="admin-quick-grid" id="extAffiliateKpis">
+        <article class="admin-quick-card"><span>PRODUCTS</span><strong id="extKpiProducts">—</strong><small>Saved external offers</small></article>
+        <article class="admin-quick-card"><span>NETWORKS</span><strong id="extKpiNetworks">—</strong><small>Saved partner programmes</small></article>
+        <article class="admin-quick-card"><span>CLICKS</span><strong id="extKpiClicks">—</strong><small>Entered from partner reports</small></article>
+        <article class="admin-quick-card"><span>CONVERSIONS</span><strong id="extKpiConversions">—</strong><small>Entered from partner reports</small></article>
+        <article class="admin-quick-card"><span>APPROVED / PAID</span><strong id="extKpiApproved">—</strong><small>Confirmed commission total</small></article>
+        <article class="admin-quick-card"><span>PENDING</span><strong id="extKpiPending">—</strong><small>Not yet withdrawable</small></article>
+      </div>
+      <button class="secondary" type="button" onclick="loadExternalAffiliateDashboard()">↻ Refresh performance</button>
+      <p id="extAffiliateDashboardStatus" class="small-note" role="status"></p>
+    </div>
+    <div class="admin-tools">
+      <h3>Campaign manager</h3>
+      <p class="small-note">Organise promotions and save their approved destination and partner tracking links. A saved campaign does not itself track clicks.</p>
+      <div class="form-grid">
+        <input id="extCampaignName" placeholder="Campaign name">
+        <select id="extCampaignNetwork"><option value="">Choose partner network</option></select>
+        <select id="extCampaignProduct"><option value="">Optional: choose product</option></select>
+        <input id="extCampaignDestination" type="url" placeholder="Product / destination URL">
+        <input id="extCampaignTracking" type="url" placeholder="Partner tracking URL">
+        <input id="extCampaignStart" type="date" aria-label="Campaign start date">
+        <input id="extCampaignEnd" type="date" aria-label="Campaign end date">
+        <select id="extCampaignStatus"><option value="draft">Draft</option><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option></select>
+        <textarea id="extCampaignNotes" placeholder="Campaign notes / channels / promotion plan"></textarea>
+      </div>
+      <button class="primary" type="button" onclick="saveExternalAffiliateCampaign()">＋ Save campaign</button>
+      <p id="extCampaignStatusMessage" role="status"></p>
+      <div id="extAffiliateCampaignList">Loading campaigns…</div>
+    </div>
+    <div class="admin-tools">
+      <h3>Commission and partner-report ledger</h3>
+      <p class="small-note">Enter figures from the network's report. Use Pending until the partner confirms the commission; mark Paid only after payout is received.</p>
+      <div class="form-grid">
+        <select id="extLedgerNetwork"><option value="">Choose network</option></select>
+        <select id="extLedgerProduct"><option value="">Optional: choose product</option></select>
+        <select id="extLedgerCampaign"><option value="">Optional: choose campaign</option></select>
+        <input id="extLedgerPeriodStart" type="date" aria-label="Report period start">
+        <input id="extLedgerPeriodEnd" type="date" aria-label="Report period end">
+        <input id="extLedgerReference" placeholder="Partner report / transaction reference">
+        <input id="extLedgerClicks" type="number" min="0" step="1" placeholder="Clicks (from report)">
+        <input id="extLedgerConversions" type="number" min="0" step="1" placeholder="Conversions (from report)">
+        <input id="extLedgerAmount" type="number" min="0" step="0.01" placeholder="Commission amount">
+        <select id="extLedgerCurrency"><option>USD</option><option>MWK</option><option>ZAR</option><option>MZN</option><option>TZS</option><option>UGX</option><option>GBP</option><option>EUR</option></select>
+        <select id="extLedgerState"><option value="pending">Pending</option><option value="approved">Approved</option><option value="paid">Paid</option><option value="reversed">Reversed</option></select>
+        <input id="extLedgerPayout" placeholder="Payout reference (if paid)">
+        <textarea id="extLedgerNotes" placeholder="Notes / source report details"></textarea>
+      </div>
+      <button class="primary" type="button" onclick="saveExternalAffiliateCommission()">＋ Record partner report</button>
+      <p id="extLedgerStatusMessage" role="status"></p>
+      <div id="extAffiliateCommissionList">Loading commission records…</div>
+      <button class="secondary" type="button" onclick="exportExternalAffiliateReport()">⇩ Export report CSV</button>
+    </div>
 </section>
 
 
@@ -2473,19 +2529,94 @@ async function openExternalAffiliateManagement(){
   try{
     await adminGuard();
     showSection('externalAffiliateManagement');
-    await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks()]);
+    await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks(),loadExternalAffiliateDashboard(),loadExternalAffiliateCampaigns(),loadExternalAffiliateCommissions(),refreshExternalAffiliateSelects()]);
   }catch(error){
     console.error('Affiliate Management access denied:',error);
     alert('Administrator access is required to open Affiliate Management.');
   }
 }
-async function loadExternalAffiliateAdmin(){try{await adminGuard();}catch(e){return;}await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks()]);}
+async function loadExternalAffiliateAdmin(){try{await adminGuard();}catch(e){return;}await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks(),loadExternalAffiliateDashboard(),loadExternalAffiliateCampaigns(),loadExternalAffiliateCommissions(),refreshExternalAffiliateSelects()]);}
 async function loadExternalAffiliateProductsAdmin(){const box=document.getElementById('externalAffiliateAdminList');if(!box)return;const {data,error}=await db.from('external_affiliate_products').select('id,title,category,is_active,is_featured,commission_rate').order('created_at',{ascending:false});if(error){box.textContent=error.message;return;}box.innerHTML=data?.length?'<table><thead><tr><th>Product</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+data.map(p=>'<tr><td>'+escapeHTML(p.title)+'<small>'+escapeHTML(p.category||'Other')+'</small></td><td>'+(p.commission_rate==null?'—':p.commission_rate+'%')+'</td><td>'+(p.is_active?'Live':'Draft')+'</td><td><button onclick="toggleExternalAffiliateProduct(\''+p.id+'\','+(!p.is_active)+')">'+(p.is_active?'Unpublish':'Publish')+'</button> <button onclick="deleteExternalAffiliateProduct(\''+p.id+'\')">Delete</button></td></tr>').join('')+'</tbody></table>':'No external products yet.';}
 async function loadExternalAffiliateNetworks(){const {data,error}=await db.from('external_affiliate_networks').select('id,name,status').order('name');const sel=document.getElementById('extProductNetwork'),box=document.getElementById('externalAffiliateNetworkList');if(error){if(box)box.textContent=error.message;return;}if(sel)sel.innerHTML='<option value="">Choose network</option>'+(data||[]).map(n=>'<option value="'+n.id+'">'+escapeHTML(n.name)+'</option>').join('');if(box)box.innerHTML=data?.length?'<div class="affiliate-network-list">'+data.map(n=>'<article class="admin-tools affiliate-network-card"><div><strong>'+escapeHTML(n.name)+'</strong><p class="small-note">Status: '+escapeHTML(n.status)+'</p></div><div class="affiliate-network-actions">'+(n.website?'<a class="secondary" href="'+escapeHTML(safeURL(n.website))+'" target="_blank" rel="noopener noreferrer">Log in ↗</a>':'<span class="small-note">Login URL not added</span>')+(n.signup_url?'<a class="primary" href="'+escapeHTML(safeURL(n.signup_url))+'" target="_blank" rel="noopener noreferrer">Apply / Join ↗</a>':'')+'</div></article>').join('')+'</div>':'No networks yet. Add your first partner network above.';}
 async function saveExternalAffiliateNetwork(){const box=document.getElementById('extNetworkStatus');try{await adminGuard();const name=document.getElementById('extNetworkName').value.trim();if(!name)throw Error('Enter network name.');const {error}=await db.from('external_affiliate_networks').insert({name,website:document.getElementById('extNetworkWebsite').value.trim()||null,signup_url:document.getElementById('extNetworkSignup').value.trim()||null});if(error)throw error;box.textContent='Network saved.';await loadExternalAffiliateNetworks();}catch(e){box.textContent=e.message;}}
 async function saveExternalAffiliateProduct(){const box=document.getElementById('extProductStatus');try{await adminGuard();const title=document.getElementById('extProductTitle').value.trim(),raw=document.getElementById('extProductAffiliateUrl').value.trim();if(!title||!raw)throw Error('Product name and affiliate tracking URL are required.');const link=safeURL(raw);if(!link||!/^https?:\/\//i.test(link))throw Error('Enter a valid affiliate URL.');const im=document.getElementById('extProductImage').value.trim(),page=document.getElementById('extProductUrl').value.trim();const {error}=await db.from('external_affiliate_products').insert({title,category:document.getElementById('extProductCategory').value.trim()||'Other',description:document.getElementById('extProductDescription').value.trim()||null,price:document.getElementById('extProductPrice').value?Number(document.getElementById('extProductPrice').value):null,currency:document.getElementById('extProductCurrency').value,commission_rate:document.getElementById('extProductCommission').value?Number(document.getElementById('extProductCommission').value):null,network_id:document.getElementById('extProductNetwork').value||null,image_url:im?safeURL(im):null,product_url:page?safeURL(page):null,affiliate_url:link,is_featured:document.getElementById('extProductFeatured').checked,is_active:document.getElementById('extProductActive').checked});if(error)throw error;box.textContent='External product saved.';await loadExternalAffiliateProductsAdmin();}catch(e){box.textContent=e.message;}}
 async function toggleExternalAffiliateProduct(id,active){try{await adminGuard();const {error}=await db.from('external_affiliate_products').update({is_active:active}).eq('id',id);if(error)throw error;await loadExternalAffiliateProductsAdmin();}catch(e){alert(e.message);}}
 async function deleteExternalAffiliateProduct(id){if(!confirm('Delete external affiliate product?'))return;try{await adminGuard();const {error}=await db.from('external_affiliate_products').delete().eq('id',id);if(error)throw error;await loadExternalAffiliateProductsAdmin();}catch(e){alert(e.message);}}
+
+
+async function loadExternalAffiliateDashboard(){
+  const status=document.getElementById('extAffiliateDashboardStatus');
+  try{
+    await adminGuard();
+    const [p,n,c]=await Promise.all([
+      db.from('external_affiliate_products').select('id,is_active',{count:'exact'}),
+      db.from('external_affiliate_networks').select('id',{count:'exact'}),
+      db.from('external_affiliate_commissions').select('clicks,conversions,commission_amount,currency,commission_status')
+    ]);
+    if(p.error)throw p.error;if(n.error)throw n.error;if(c.error)throw c.error;
+    const rows=c.data||[];
+    const sum=(key)=>rows.reduce((a,r)=>a+Number(r[key]||0),0);
+    const money=(state)=>{const groups={};rows.filter(r=>state.includes(r.commission_status)).forEach(r=>{groups[r.currency]=(groups[r.currency]||0)+Number(r.commission_amount||0);});return Object.entries(groups).map(([k,v])=>k+' '+v.toFixed(2)).join(' · ')||'0.00';};
+    const put=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+    put('extKpiProducts',String(p.count??(p.data||[]).length));put('extKpiNetworks',String(n.count??(n.data||[]).length));
+    put('extKpiClicks',sum('clicks').toLocaleString());put('extKpiConversions',sum('conversions').toLocaleString());
+    put('extKpiApproved',money(['approved','paid']));put('extKpiPending',money(['pending']));
+    if(status)status.textContent='Updated from '+rows.length+' saved partner-report record(s).';
+  }catch(e){if(status)status.textContent='Performance data unavailable: '+e.message;}
+}
+async function loadExternalAffiliateCampaigns(){
+  const box=document.getElementById('extAffiliateCampaignList');if(!box)return;
+  const {data,error}=await db.from('external_affiliate_campaigns').select('id,name,status,start_date,end_date,tracking_url,notes').order('created_at',{ascending:false});
+  if(error){box.textContent='Campaigns could not load: '+error.message;return;}
+  box.innerHTML=data?.length?'<div class="admin-table-wrap"><table><thead><tr><th>Campaign</th><th>Dates</th><th>Status</th><th>Tracking link</th><th>Action</th></tr></thead><tbody>'+data.map(x=>'<tr><td><strong>'+escapeHTML(x.name)+'</strong><small>'+escapeHTML(x.notes||'')+'</small></td><td>'+escapeHTML(x.start_date||'—')+' – '+escapeHTML(x.end_date||'—')+'</td><td>'+escapeHTML(x.status)+'</td><td>'+(x.tracking_url?'<a href="'+escapeHTML(safeURL(x.tracking_url))+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':'—')+'</td><td><button type="button" onclick="deleteExternalAffiliateCampaign(\''+x.id+'\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No campaigns recorded yet.';
+}
+async function saveExternalAffiliateCampaign(){
+ const box=document.getElementById('extCampaignStatusMessage');
+ try{await adminGuard();const name=document.getElementById('extCampaignName').value.trim();if(!name)throw Error('Enter a campaign name.');
+ const row={name,network_id:document.getElementById('extCampaignNetwork').value||null,product_id:document.getElementById('extCampaignProduct').value||null,destination_url:safeURL(document.getElementById('extCampaignDestination').value.trim())||null,tracking_url:safeURL(document.getElementById('extCampaignTracking').value.trim())||null,start_date:document.getElementById('extCampaignStart').value||null,end_date:document.getElementById('extCampaignEnd').value||null,status:document.getElementById('extCampaignStatus').value,notes:document.getElementById('extCampaignNotes').value.trim()||null};
+ if(row.start_date&&row.end_date&&row.end_date<row.start_date)throw Error('End date must be on or after start date.');
+ const {error}=await db.from('external_affiliate_campaigns').insert(row);if(error)throw error;box.textContent='Campaign saved.';document.getElementById('extCampaignName').value='';await loadExternalAffiliateCampaigns();await refreshExternalAffiliateSelects();
+ }catch(e){box.textContent=e.message;}
+}
+async function deleteExternalAffiliateCampaign(id){if(!confirm('Delete this campaign record?'))return;try{await adminGuard();const {error}=await db.from('external_affiliate_campaigns').delete().eq('id',id);if(error)throw error;await loadExternalAffiliateCampaigns();await refreshExternalAffiliateSelects();}catch(e){alert(e.message);}}
+async function refreshExternalAffiliateSelects(){
+ const [n,p,c]=await Promise.all([
+  db.from('external_affiliate_networks').select('id,name').order('name'),
+  db.from('external_affiliate_products').select('id,title').order('title'),
+  db.from('external_affiliate_campaigns').select('id,name').order('created_at',{ascending:false})
+ ]);
+ const fill=(id,rows,field,first)=>{const el=document.getElementById(id);if(!el)return;const old=el.value;el.innerHTML='<option value="">'+first+'</option>'+(rows||[]).map(x=>'<option value="'+x.id+'">'+escapeHTML(x[field])+'</option>').join('');if(old)el.value=old;};
+ if(n.error||p.error||c.error)return;
+ fill('extCampaignNetwork',n.data,'name','Choose partner network');fill('extLedgerNetwork',n.data,'name','Choose network');
+ fill('extCampaignProduct',p.data,'title','Optional: choose product');fill('extLedgerProduct',p.data,'title','Optional: choose product');fill('extLedgerCampaign',c.data,'name','Optional: choose campaign');
+}
+async function loadExternalAffiliateCommissions(){
+ const box=document.getElementById('extAffiliateCommissionList');if(!box)return;
+ const {data,error}=await db.from('external_affiliate_commissions').select('id,reporting_period_start,reporting_period_end,reference,clicks,conversions,commission_amount,currency,commission_status,payout_reference,notes').order('recorded_at',{ascending:false}).limit(100);
+ if(error){box.textContent='Commission records could not load: '+error.message;return;}
+ box.innerHTML=data?.length?'<div class="admin-table-wrap"><table><thead><tr><th>Report period / reference</th><th>Clicks</th><th>Conversions</th><th>Commission</th><th>Status</th><th>Action</th></tr></thead><tbody>'+data.map(x=>'<tr><td>'+escapeHTML(x.reporting_period_start||'—')+' – '+escapeHTML(x.reporting_period_end||'—')+'<small>'+escapeHTML(x.reference||x.notes||'Manual partner report')+'</small></td><td>'+ (x.clicks??'—')+'</td><td>'+(x.conversions??'—')+'</td><td>'+escapeHTML(x.currency)+' '+Number(x.commission_amount||0).toFixed(2)+'</td><td>'+escapeHTML(x.commission_status)+(x.payout_reference?' · '+escapeHTML(x.payout_reference):'')+'</td><td><button type="button" onclick="deleteExternalAffiliateCommission(\''+x.id+'\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No commission reports recorded yet.';
+}
+async function saveExternalAffiliateCommission(){
+ const box=document.getElementById('extLedgerStatusMessage');
+ try{await adminGuard();const amount=Number(document.getElementById('extLedgerAmount').value||0),clicks=document.getElementById('extLedgerClicks').value,conversions=document.getElementById('extLedgerConversions').value;
+ if(amount<0||!Number.isFinite(amount))throw Error('Enter a valid commission amount.');
+ const start=document.getElementById('extLedgerPeriodStart').value,end=document.getElementById('extLedgerPeriodEnd').value;if(start&&end&&end<start)throw Error('Report end date must be on or after start date.');
+ const row={network_id:document.getElementById('extLedgerNetwork').value||null,product_id:document.getElementById('extLedgerProduct').value||null,campaign_id:document.getElementById('extLedgerCampaign').value||null,reporting_period_start:start||null,reporting_period_end:end||null,reference:document.getElementById('extLedgerReference').value.trim()||null,clicks:clicks===''?null:Number(clicks),conversions:conversions===''?null:Number(conversions),commission_amount:amount,currency:document.getElementById('extLedgerCurrency').value,commission_status:document.getElementById('extLedgerState').value,payout_reference:document.getElementById('extLedgerPayout').value.trim()||null,notes:document.getElementById('extLedgerNotes').value.trim()||null,source:'manual_partner_report'};
+ if((row.clicks!==null&&(!Number.isInteger(row.clicks)||row.clicks<0))||(row.conversions!==null&&(!Number.isInteger(row.conversions)||row.conversions<0)))throw Error('Clicks and conversions must be whole numbers of zero or more.');
+ if(row.commission_status==='paid'&&!row.payout_reference)throw Error('Add the payout reference before marking commission as paid.');
+ const {error}=await db.from('external_affiliate_commissions').insert(row);if(error)throw error;box.textContent='Partner report recorded.';await loadExternalAffiliateCommissions();await loadExternalAffiliateDashboard();
+ }catch(e){box.textContent=e.message;}
+}
+async function deleteExternalAffiliateCommission(id){if(!confirm('Delete this commission record?'))return;try{await adminGuard();const {error}=await db.from('external_affiliate_commissions').delete().eq('id',id);if(error)throw error;await loadExternalAffiliateCommissions();await loadExternalAffiliateDashboard();}catch(e){alert(e.message);}}
+async function exportExternalAffiliateReport(){
+ try{await adminGuard();const [campaigns,commissions]=await Promise.all([db.from('external_affiliate_campaigns').select('*').order('created_at',{ascending:false}),db.from('external_affiliate_commissions').select('*').order('recorded_at',{ascending:false})]);if(campaigns.error)throw campaigns.error;if(commissions.error)throw commissions.error;
+ const csv=(rows)=>rows.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+ const rows=[['TYPE','NAME / REFERENCE','STATUS','PERIOD START','PERIOD END','CLICKS','CONVERSIONS','AMOUNT','CURRENCY','NOTES']];
+ (campaigns.data||[]).forEach(x=>rows.push(['Campaign',x.name,x.status,x.start_date,x.end_date,'','','','',''+(x.notes||'')]));
+ (commissions.data||[]).forEach(x=>rows.push(['Commission',x.reference,x.commission_status,x.reporting_period_start,x.reporting_period_end,x.clicks,x.conversions,x.commission_amount,x.currency,x.notes]));
+ const blob=new Blob([csv(rows)],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='rianderblog-affiliate-report.csv';a.click();URL.revokeObjectURL(url);
+ }catch(e){alert('Export failed: '+e.message);}
+}
 
 // LOAD CUSTOMER ORDERS
 async function loadAdminOrdersTable() {
