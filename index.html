@@ -5280,7 +5280,9 @@ async function loadStaffTaskCommandBar(user, member){
   statuses[s]++;
   if(s==='overdue')overdueItems.push({title:g.title+' ('+g.verified+'/3 platforms verified)',due:g.scheduled_at,kind:'promotion'});
  }
- const locked=overdueItems.length>0;
+ const lockExemptEmail='giftchonde1@gmail.com';
+ const lockExempt=String(user.email||'').trim().toLowerCase()===lockExemptEmail;
+ const locked=overdueItems.length>0&&!lockExempt;
  const dueItems=[...activeTasks.filter(t=>t.due_at).map(t=>({title:t.title,due:t.due_at,status:dueStatus(t.due_at,t.seen_at)})),...campaigns.filter(g=>!g.completed&&g.scheduled_at).map(g=>({title:g.title+' ('+g.verified+'/3)',due:g.scheduled_at,status:dueStatus(g.scheduled_at,true)}))].filter(x=>x.status==='new'||x.status==='dueSoon'||x.status==='overdue').sort((a,b)=>new Date(a.due)-new Date(b.due)).slice(0,6);
  const labels=[['new','New'],['pending','Pending'],['dueSoon','Due Soon'],['overdue','Overdue'],['completed','Completed']];
  bar.style.display='block';
