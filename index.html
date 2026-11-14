@@ -4000,7 +4000,7 @@ async function applySupplier(){
   if(button){button.disabled=false;button.textContent='Send application';}
  }
 }
-  async function startSupplierConversation(productId){
+  async async function startSupplierConversation(productId){
   const {data:{user}}=await db.auth.getUser();
 
   if(!user){
@@ -4010,8 +4010,11 @@ async function applySupplier(){
   }
 
   const product=allProducts.find(p=>String(p.id)===String(productId));
-  if(!product||!product.supplier_id){
-    alert('Supplier information is not available for this product.');
+  if(!product){alert('Product not found.');return;}
+  if(!product.supplier_id){
+    const subject=encodeURIComponent('RIANDERBLOG product enquiry: '+product.name);
+    const body=encodeURIComponent('Hello Gift Chonde and RIANDERBLOG Admin, I have a question about '+product.name+'. Product ID: '+product.id+'.');
+    window.location.href='mailto:giftchonde1@gmail.com?cc=digdow125@gmail.com&subject='+subject+'&body='+body;
     return;
   }
 
@@ -5308,7 +5311,7 @@ async function loadStaffAddedProducts(){
   const {data,error}=await db.from('products').select('id,name,price,currency,category,stock_quantity,available_colours,is_active,review_status,created_at').is('supplier_id',null).order('created_at',{ascending:false}).limit(100);
   if(error)throw error;
   if(!data?.length){box.textContent='You have not uploaded any marketplace products yet.';return;}
-  box.innerHTML='<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:620px"><thead><tr><th>Product</th><th>Stock / Colours</th><th>Visibility</th><th>Review</th><th>Action</th></tr></thead><tbody>'+data.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Other')+' · '+escapeHTML(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2)+'</small></td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.is_active?'Visible on marketplace':'Hidden from marketplace')+'</td><td>'+escapeHTML(p.review_status||'pending')+'</td></tr>').join('')+'</tbody></table></div>';
+  box.innerHTML='<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:620px"><thead><tr><th>Product</th><th>Stock / Colours</th><th>Visibility</th><th>Review</th><th>Action</th></tr></thead><tbody>'+data.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Other')+' · '+escapeHTML(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2)+'</small></td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.is_active?'Visible on marketplace':'Hidden from marketplace')+'</td><td>'+escapeHTML(p.review_status||'pending')+'</td><td><button class="primary" onclick="staffEditMarketplaceProduct(\\''+escapeHTML(p.id)+'\\')">Edit product</button></td></tr>').join('')+'</tbody></table></div>';
  }catch(e){box.textContent='Could not load your products: '+e.message;}
 }
 
