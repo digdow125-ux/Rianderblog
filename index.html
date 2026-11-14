@@ -3501,6 +3501,7 @@ async function startNotifications(user){
   await loadNotifications();
   notificationChannel=db.channel('rianderblog-notifications-'+user.id)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'recipient_user_id=eq.'+user.id},()=>loadNotifications())
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'notifications',filter:'recipient_user_id=eq.'+user.id},()=>loadNotifications())
     .subscribe();
 }
 async function loadNotifications(){
