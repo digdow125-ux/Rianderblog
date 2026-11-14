@@ -28,7 +28,7 @@
 </main>
 <script>
 const db=window.supabase.createClient("https://yymdyxlbdgbrgrykdspx.supabase.co","sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
-async function continueToShop(){const b=document.getElementById("continueButton");b.disabled=true;b.textContent="Opening marketplace…";localStorage.removeItem("rianderblog_onboarding_pending");location.href="./index.html";}
+async function continueToShop(){const b=document.getElementById("continueButton");b.disabled=true;b.textContent="Opening marketplace…";localStorage.removeItem("rianderblog_onboarding_pending");const next=localStorage.getItem("rianderblog_auth_next");localStorage.removeItem("rianderblog_auth_next");location.href=next==="checkout"?"./index.html#cart":"./index.html";}
 (async()=>{try{const {data,error}=await db.auth.getSession();if(error)throw error;if(!data.session){location.replace("./account.html?mode=signin");return;}const name=data.session.user.user_metadata?.full_name||data.session.user.user_metadata?.name||data.session.user.email?.split("@")[0]||"shopper";document.getElementById("welcomeTitle").textContent="Welcome, "+name+"!";}catch(e){console.warn("Welcome page session check:",e);location.replace("./account.html?mode=signin");}})();
 </script>
 </body>
