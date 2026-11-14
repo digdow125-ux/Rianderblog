@@ -1,5 +1,5 @@
 const fs=require("node:fs"),path=require("node:path");
-const API="https://yymdyxlbdgbrgrykdspx.supabase.co/rest/v1/products?select=id,name,description,price,currency,image_url,product_image_urls,is_active,updated_at&is_active=eq.true&order=id.desc";
+const API="https://yymdyxlbdgbrgrykdspx.supabase.co/rest/v1/products?select=id,name,description,price,currency,image_url,product_image_urls,is_active&is_active=eq.true&order=id.desc";
 const KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
 const BASE="https://digdow125-ux.github.io/Rianderblog";
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -18,7 +18,7 @@ async function saveLocalImage(p,dir){
   if(!bytes.length)throw new Error("Empty product image");
   for(const old of ["jpg","png","gif","webp","avif"])try{fs.unlinkSync(path.join(dir,"product."+old));}catch{}
   fs.writeFileSync(path.join(dir,"product."+ext),bytes);
-  return BASE+"/share/"+encodeURIComponent(String(p.id))+"/product."+ext+"?v="+encodeURIComponent(String(p.updated_at||p.id));
+  return BASE+"/share/"+encodeURIComponent(String(p.id))+"/product."+ext+"?v="+encodeURIComponent(String(p.id));
  }catch(error){
   console.warn("Could not copy image for product "+p.id+": "+error.message);
   return source;
