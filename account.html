@@ -50,7 +50,7 @@ label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#3443
    <button class="google" type="button" onclick="signInWithGoogle()"><b>G</b> Continue with Google</button>
    <button class="resend" id="resendButton" type="button" onclick="resendConfirmation()">Resend confirmation email</button>
    <div class="message" id="message" role="status" aria-live="polite">Choose sign in or create account to continue.</div>
-   <a class="back" href="./index.html?product=0">Browsing a shared product link? Return to the marketplace</a>
+   <p class="back">Have a product link? Open that link directly to view the product before signing in.</p>
   </section>
  </main>
 </div>
@@ -59,6 +59,7 @@ const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
 const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
 const params=new URLSearchParams(location.search);
+if(params.get("next"))localStorage.setItem("rianderblog_auth_next",params.get("next"));
 let mode=params.get("mode")==="signin"?"signin":"signup";
 let busy=false;
 const callbackUrl=location.origin+location.pathname.replace(/account\.html$/,"")+"?auth_callback=1";
@@ -66,8 +67,8 @@ function say(message,success=false){const el=document.getElementById("message");
 function setMode(value){mode=value==="signin"?"signin":"signup";document.getElementById("signinTab").classList.toggle("active",mode==="signin");document.getElementById("signupTab").classList.toggle("active",mode==="signup");document.getElementById("submitButton").textContent=mode==="signup"?"Create my free account":"Sign in securely";document.getElementById("password").autocomplete=mode==="signup"?"new-password":"current-password";document.getElementById("termsRow").style.display=mode==="signup"?"flex":"none";say(mode==="signup"?"Create your free account to continue.":"Welcome back. Sign in to continue.");}
 function destination(){
  const next=params.get("next")||localStorage.getItem("rianderblog_auth_next")||"home";
- localStorage.removeItem("rianderblog_auth_next");
  if(localStorage.getItem("rianderblog_onboarding_pending")==="1"){location.replace("./welcome.html");return;}
+ localStorage.removeItem("rianderblog_auth_next");
  if(next==="checkout"){location.replace("./index.html#cart");return;}
  location.replace("./index.html");
 }
