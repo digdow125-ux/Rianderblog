@@ -4751,7 +4751,7 @@ async function saveSupplierProduct(){
       available_colours:colours,
       delivery_days:deliveryDays,
       image_url:image,
-      affiliate_url:link,
+      affiliate_url:oldProduct?.affiliate_url||'',
       description:document.getElementById('supplierProductDescription').value.trim(),
       supplier_id:supplier.id,
       created_by:user.id,
