@@ -4966,8 +4966,8 @@ async function loadStaffPanel(){
    await withTimeout(loadOwnerStaffTasks(),'Assigned tasks loading');
   }
   const permissions=owner?{}:(member?.permissions||{});
-  await withTimeout(loadStaffTasks(permissions),'Staff workspace loading');
   await withTimeout(loadStaffTaskCommandBar(user,member),'Staff task summary loading');
+  await withTimeout(loadStaffTasks(permissions),'Staff workspace loading');
   box.textContent=owner?'Owner verified. You decide what work is assigned and when.':'Staff account verified. Your category work appears automatically; extra tasks appear when the owner assigns them.';
  }catch(error){
   console.error('RIANDERBLOG Staff Panel:',error);
