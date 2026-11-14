@@ -281,7 +281,22 @@ body.hub-admin-ready #ownerPromotionOverview{display:block!important}
 body.hub-staff-ready #staffPromotionTasks{display:block!important}
 @media(max-width:600px){.promotion-task-actions{align-items:stretch}.promotion-task-actions input[type=url]{flex-basis:100%}}
 </style>
-</style></head>
+</style>
+<style id="compact-promotion-task-table">
+.compact-table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e4e9f0;border-radius:10px;background:#fff}
+.compact-task-table{width:100%;min-width:480px;table-layout:fixed;border-collapse:collapse;text-align:left}
+.compact-task-table th{padding:7px 6px;background:#f5f7fa;color:#68778a;font-size:9px;text-transform:uppercase;letter-spacing:.035em;border-bottom:1px solid #e5eaf0}
+.compact-task-table td{padding:7px 6px;font-size:10px;line-height:1.25;vertical-align:middle;border-bottom:1px solid #edf0f4;overflow-wrap:anywhere}
+.compact-task-table tr:last-child td{border-bottom:0}
+.compact-task-table th:nth-child(1){width:23%}.compact-task-table th:nth-child(2){width:25%}.compact-task-table th:nth-child(3){width:27%}.compact-task-table th:nth-child(4){width:10%}.compact-task-table th:nth-child(5){width:15%}
+.compact-staff{font-size:9px!important;color:#526176}.compact-product{display:block;font-size:10px}.compact-date{display:block;margin-top:3px;color:#7b8796;font-size:8px}
+.compact-platforms{display:flex;flex-wrap:wrap;gap:3px}.compact-platform{display:inline-flex;align-items:center;gap:2px;padding:2px 4px;border-radius:5px;background:#fff4dd;color:#80611e;font-size:8px;font-weight:800}.compact-platform.is-posted{background:#e8f6ee;color:#176746}.compact-platform a{color:inherit;text-decoration:none;font-size:10px}.compact-platform small{font-size:8px}
+.compact-task-table .promotion-task-status{font-size:8px;padding:3px 5px;white-space:nowrap}
+@media(max-width:520px){.compact-task-table{min-width:440px}.compact-task-table th,.compact-task-table td{padding:6px 4px}.compact-task-table th{font-size:8px}.compact-staff{font-size:8px!important}}
+/* Compact staff execution cards so proof entry and sharing fit on phones */
+.promotion-task-card{padding:10px!important;margin:8px 0!important;border-radius:10px!important}.promotion-task-card .promotion-task-meta{font-size:10px!important;margin-top:3px!important}.promotion-task-platform{padding:8px!important;margin-top:6px!important;border-radius:8px!important}.promotion-task-actions{gap:5px!important;margin-top:5px!important}.promotion-task-actions input[type=url]{min-width:0;width:100%;padding:8px!important;font-size:11px!important}.promotion-task-actions button{padding:7px 9px!important;font-size:10px!important}.promotion-task-platform .promotion-task-top strong{font-size:11px!important}
+</style>
+</head>
 <body data-hub-page="product">
 <header class="rb-hub-header"><div class="rb-hub-brand"><a class="brand" href="https://digdow125-ux.github.io/Rianderblog/"><div class="mark">R</div><div><strong>RIANDERBLOG</strong><small>Global marketplace · Promotion Hub</small></div></a></div><nav class="rb-hub-menu" aria-label="RIANDERBLOG navigation"><div class="rb-hub-nav-inner"><button class="rb-hub-menu-toggle" id="hubMenuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleHubMenu()">☰</button><div class="rb-hub-links" id="hubNavLinks"><a href="index.html">🛍️ Promote a Product</a><a href="tutorial-maker.html">🎬 Tutorial Maker</a><a href="social-accounts.html">📱 Social Accounts</a><a href="tutorial-plan.html">📅 Tutorial Plan</a><a href="promotion-queue.html">📣 Promotion Queue</a><a href="https://digdow125-ux.github.io/Rianderblog/">← Back to marketplace</a></div></div></nav></header>
 <main>
@@ -509,12 +524,13 @@ async function loadPromotionTasks(){
    const done=promotionVerifiedPlatformCount(items),completed=done>=3;
    const platformSummary=items.map(x=>{
     const ok=x.status==="completed"&&x.confirmed_posted&&x.posted_url;
-    return '<div style="margin:3px 0">'+esc(promotionPlatformNames[x.platform]||x.platform)+' — '+(ok?'<a class="promotion-task-link" href="'+esc(x.posted_url)+'" target="_blank" rel="noopener">Proof</a>':'<span style="color:#b7791f">Pending</span>')+'</div>';
+    const label=promotionPlatformNames[x.platform]||x.platform;
+    return '<span class="compact-platform '+(ok?'is-posted':'')+'" title="'+esc(label)+'">'+esc(label.slice(0,3).toUpperCase())+(ok?'<a href="'+esc(x.posted_url)+'" target="_blank" rel="noopener" aria-label="Open '+esc(label)+' proof">↗</a>':'<small>…</small>')+'</span>';
    }).join("");
-   return '<tr><td>'+esc(first.staff_email||"Staff member")+'</td><td>'+esc(first.product_name)+'</td><td>'+(first.scheduled_at?new Date(first.scheduled_at).toLocaleString():"Not scheduled")+'</td><td>'+platformSummary+'</td><td><strong>'+done+' / 3</strong></td><td><span class="promotion-task-status '+(completed?"done":"")+'">'+(completed?"COMPLETED":"PENDING")+'</span></td></tr>';
+   return '<tr><td class="compact-staff" title="'+esc(first.staff_email||"Staff member")+'">'+esc(first.staff_email||"Staff member")+'</td><td><strong class="compact-product">'+esc(first.product_name)+'</strong><small class="compact-date">'+(first.scheduled_at?new Date(first.scheduled_at).toLocaleString():"Not scheduled")+'</small></td><td><div class="compact-platforms">'+platformSummary+'</div></td><td><strong>'+done+'/3</strong></td><td><span class="promotion-task-status '+(completed?"done":"")+'">'+(completed?"DONE":"PENDING")+'</span></td></tr>';
   }).join("");
   const root=document.getElementById("ownerPromotionTaskList");
-  root.innerHTML=tableRows?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:760px;text-align:left"><thead><tr><th style="padding:12px;border-bottom:2px solid #d7deea">Staff member</th><th style="padding:12px;border-bottom:2px solid #d7deea">Product</th><th style="padding:12px;border-bottom:2px solid #d7deea">Scheduled time</th><th style="padding:12px;border-bottom:2px solid #d7deea">Platform posting proof</th><th style="padding:12px;border-bottom:2px solid #d7deea">Progress</th><th style="padding:12px;border-bottom:2px solid #d7deea">Task status</th></tr></thead><tbody>'+tableRows+'</tbody></table></div>':'<div class="empty">No staff posting tasks yet. New scheduled campaigns will appear here.</div>';
+  root.innerHTML=tableRows?'<div class="compact-table-wrap"><table class="compact-task-table"><thead><tr><th>Staff</th><th>Product / schedule</th><th>Platforms · proof</th><th>Progress</th><th>Status</th></tr></thead><tbody>'+tableRows+'</tbody></table></div>':'<div class="empty">No staff posting tasks yet. New scheduled campaigns will appear here.</div>';
   const doneGroups=Object.values(groups).filter(items=>items.filter(x=>x.status==="completed"&&x.confirmed_posted&&x.posted_url).length>=3).length;
   msg("ownerPromotionTaskStatus",doneGroups+" staff campaign tasks completed out of "+Object.keys(groups).length+". Completion requires 3 different platform links.");
  }else if(currentStaffMember){
