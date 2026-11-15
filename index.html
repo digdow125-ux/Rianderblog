@@ -2485,6 +2485,27 @@ async function renderAdminThread(id,log){const {data,error}=await db.from('suppo
 function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.innerHTML=open?'<span aria-hidden="true">✕</span><span class="menu-toggle-label">Close</span>':'<span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span>';}
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const more=document.querySelector(".nav-more");if(links){links.classList.remove("open");if(window.matchMedia("(max-width:650px)").matches){links.style.display="none";}else{links.style.removeProperty("display");}}if(more)more.open=false;if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.innerHTML='<span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span>';}}
 async function showSection(id){
+  // Team-only workspaces must not be reachable by customer or supplier accounts.
+  if(id==="staffPanel"||id==="recommendedDeals"||id==="externalAffiliateManagement"){
+    try{
+      const {data:{user},error}=await db.auth.getUser();
+      if(error)throw error;
+      if(!user)throw new Error('Sign in with an authorised RIANDERBLOG team account.');
+      const owner=user.id===ADMIN_USER_ID;
+      let staff=false,adminSupport=false;
+      if(!owner){
+        const [sr,ar]=await Promise.all([
+          db.from('staff_members').select('id,status').eq('user_id',user.id).eq('status','active').maybeSingle(),
+          db.from('admin_support_staff').select('id,status').eq('user_id',user.id).eq('status','active').maybeSingle()
+        ]);
+        staff=!!sr.data;adminSupport=!!ar.data;
+      }
+      if(!owner&&!staff&&!adminSupport)throw new Error('This section is available only to RIANDERBLOG administrators and active staff.');
+    }catch(error){
+      alert(error?.message||'Authorised team access is required.');
+      return false;
+    }
+  }
   // Enforce administrator access on the server before opening the Admin Dashboard.
   if(id==="adminPanel"){
     try{
