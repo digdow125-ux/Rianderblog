@@ -1935,6 +1935,7 @@ main{max-width:1440px}
     <button data-notify-target="adminSupport" onclick="adminShowTab('support')">Customer support</button>
     <button onclick="adminShowTab('ai')">AI assistant</button>
     <button data-notify-target="adminApplications" onclick="adminShowTab('applications')">Applications</button>
+    <button id="adminSupportStaffTabButton" style="display:none" onclick="adminShowTab('supportStaff')">Admin Support Staff</button>
   </div>
 
    <div id="adminTab-overview" class="admin-tab">
@@ -2166,6 +2167,20 @@ main{max-width:1440px}
     <p class="small-note">Admin actions require matching Supabase Row Level Security (RLS) policies. The admin ID check in this page only controls visibility; it is not database security.</p>
     <a href="https://supabase.com/dashboard/project/yymdyxlbdgbrgrykdspx/editor" target="_blank" rel="noopener">Open Supabase database</a>
   </section>
+ 
+  <div id="adminTab-supportStaff" class="admin-tab" style="display:none">
+    <div class="admin-tools">
+      <span class="admin-kicker">OWNER CONTROL</span>
+      <h3>Admin Support Staff</h3>
+      <p class="small-note">Assign a person who already has a RIANDERBLOG account. Active members can use their own login to manage the Admin Dashboard. You can suspend or revoke access at any time.</p>
+      <label for="adminSupportStaffEmail">Registered account email</label>
+      <input id="adminSupportStaffEmail" type="email" autocomplete="email" placeholder="staff@example.com">
+      <button class="primary" type="button" onclick="adminAssignSupportStaff()">＋ Assign Admin Support Staff</button>
+      <p id="adminSupportStaffStatus" class="small-note" role="status"></p>
+      <div id="adminSupportStaffList" class="admin-table-wrap">Admin support staff will appear here.</div>
+      <p class="small-note">Affiliate network management, website visitor analytics and staff assignment controls remain owner-only.</p>
+    </div>
+  </div>
 
 
 
@@ -2300,8 +2315,8 @@ function addSupportMessage(logId,body,kind){const log=document.getElementById(lo
 async function sendAIMessage(){const input=document.getElementById('aiSupportInput');const question=input.value.trim();if(!question)return;input.value='';addSupportMessage('aiSupportLog',question,'customer');const pending=document.createElement('div');pending.className='support-msg agent';pending.textContent='Thinking...';document.getElementById('aiSupportLog').appendChild(pending);try{const {data,error}=await db.functions.invoke('ai-support',{body:{message:question}});if(error)throw error;pending.textContent=data?.reply||'I could not prepare an answer. Please use Chat with Admin.';}catch(e){pending.textContent='AI service is not connected yet. Please use Chat with Admin, or try again later.';console.error('AI support:',e);}}
 async function loadCustomerSupportChat(){const hint=document.getElementById('adminChatHint');const {data:{user}}=await db.auth.getUser();if(!user){hint.textContent='Please sign in or create an account to chat privately with the administrator.';document.getElementById('adminSupportInput').disabled=true;return;}document.getElementById('adminSupportInput').disabled=false;hint.textContent='Your private conversation with the RIANDERBLOG administrator.';try{let q=db.from('support_conversations').select('id').eq('customer_id',user.id).order('created_at',{ascending:false}).limit(1);let {data,error}=await q;if(error)throw error;if(data?.length)activeSupportConversation=data[0].id;else{const created=await db.from('support_conversations').insert({customer_id:user.id,status:'open'}).select('id').single();if(created.error)throw created.error;activeSupportConversation=created.data.id;}const msgs=await db.from('support_messages').select('id,sender_id,message,created_at').eq('conversation_id',activeSupportConversation).order('created_at');if(msgs.error)throw msgs.error;const log=document.getElementById('adminSupportLog');log.innerHTML='';(msgs.data||[]).forEach(m=>addSupportMessage('adminSupportLog',m.message,m.sender_id===user.id?'customer':'agent'));}catch(e){hint.textContent='Chat setup is not complete yet. Please try again later.';console.error('Customer support chat:',e);}}
 async function sendAdminMessage(){const input=document.getElementById('adminSupportInput');const message=input.value.trim();if(!message)return;const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('adminChatHint').textContent='Please sign in first.';return;}if(!activeSupportConversation){await loadCustomerSupportChat();if(!activeSupportConversation)return;}const {error}=await db.from('support_messages').insert({conversation_id:activeSupportConversation,sender_id:user.id,message});if(error){document.getElementById('adminChatHint').textContent='Message not sent: '+error.message;return;}input.value='';addSupportMessage('adminSupportLog',message,'customer');}
-async function loadAdminSupportInbox(){const box=document.getElementById('adminSupportInbox');const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_USER_ID){box.textContent='Administrator sign-in required.';return;}const {data:convos,error}=await db.from('support_conversations').select('id,customer_id,status,created_at').order('created_at',{ascending:false});if(error){box.textContent='Could not load inbox: '+error.message;return;}box.innerHTML='';if(!convos?.length){box.textContent='No customer conversations yet.';return;}for(const c of convos){const wrap=document.createElement('div');wrap.className='listing';const title=document.createElement('strong');title.textContent='Customer '+c.customer_id;const status=document.createElement('p');status.textContent='Status: '+c.status;const log=document.createElement('div');log.id='adminThread_'+c.id;const input=document.createElement('input');input.placeholder='Reply to this customer';const btn=document.createElement('button');btn.className='primary';btn.textContent='Send reply';btn.onclick=async()=>{const msg=input.value.trim();if(!msg)return;const result=await db.from('support_messages').insert({conversation_id:c.id,sender_id:user.id,message:msg});if(result.error){alert(result.error.message);return;}input.value='';await renderAdminThread(c.id,log);};wrap.append(title,status,log,input,btn);box.appendChild(wrap);await renderAdminThread(c.id,log);}}
-async function renderAdminThread(id,log){const {data,error}=await db.from('support_messages').select('sender_id,message,created_at').eq('conversation_id',id).order('created_at');if(error){log.textContent=error.message;return;}log.innerHTML='';(data||[]).forEach(m=>{const p=document.createElement('p');p.textContent=(m.sender_id===ADMIN_USER_ID?'ADMIN: ':'CUSTOMER: ')+m.message;log.appendChild(p);});}
+async function loadAdminSupportInbox(){const box=document.getElementById('adminSupportInbox');if(!box)return;try{await adminGuard();const {data:{user}}=await db.auth.getUser();if(!user)throw new Error('Sign in required.');const {data:convos,error}=await db.from('support_conversations').select('id,customer_id,status,created_at').order('created_at',{ascending:false});if(error)throw error;box.innerHTML='';if(!convos?.length){box.textContent='No customer conversations yet.';return;}for(const c of convos){const wrap=document.createElement('div');wrap.className='listing';const title=document.createElement('strong');title.textContent='Customer '+c.customer_id;const status=document.createElement('p');status.textContent='Status: '+c.status;const log=document.createElement('div');log.id='adminThread_'+c.id;const input=document.createElement('input');input.placeholder='Reply to this customer';const btn=document.createElement('button');btn.className='primary';btn.textContent='Send reply';btn.onclick=async()=>{try{await adminGuard();const msg=input.value.trim();if(!msg)return;const result=await db.from('support_messages').insert({conversation_id:c.id,sender_id:user.id,message:msg});if(result.error)throw result.error;input.value='';await renderAdminThread(c.id,log);}catch(e){alert(e.message||String(e));}};wrap.append(title,status,log,input,btn);box.appendChild(wrap);await renderAdminThread(c.id,log);}}catch(e){box.textContent='Could not load inbox: '+(e.message||String(e));}}
+async function renderAdminThread(id,log){const {data,error}=await db.from('support_messages').select('sender_id,message,created_at').eq('conversation_id',id).order('created_at');if(error){log.textContent=error.message;return;}log.innerHTML='';(data||[]).forEach(m=>{const p=document.createElement('p');p.textContent=((m.sender_id===ADMIN_USER_ID||m.sender_id===window.currentAdminUser?.id)?'ADMIN: ':'CUSTOMER: ')+m.message;log.appendChild(p);});}
 
 function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕ Close":"☰ Menu";}
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const more=document.querySelector(".nav-more");if(links){links.classList.remove("open");if(window.matchMedia("(max-width:650px)").matches){links.style.display="none";}else{links.style.removeProperty("display");}}if(more)more.open=false;if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰ Menu";}}
@@ -2366,27 +2381,33 @@ document.addEventListener("DOMContentLoaded",()=>{const nav=document.getElementB
 async function updateAdminVisibility(user) {
  window.currentAdminUser=user||null;
  const owner=!!user&&user.id===ADMIN_USER_ID;
- let staff=null,hasHubTask=false;
+ let staff=null,hasHubTask=false,adminSupport=null;
  if(user&&!owner){
-  const r=await db.from('staff_members').select('id,email,status,permissions').eq('user_id',user.id).maybeSingle();
-  if(!r.error&&r.data?.status==='active')staff=r.data;
+  const [sr,ar]=await Promise.all([
+   db.from('staff_members').select('id,email,status,permissions').eq('user_id',user.id).maybeSingle(),
+   db.from('admin_support_staff').select('id,email,status').eq('user_id',user.id).eq('status','active').maybeSingle()
+  ]);
+  if(!sr.error&&sr.data?.status==='active')staff=sr.data;
+  if(!ar.error&&ar.data?.status==='active')adminSupport=ar.data;
   hasHubTask=!!staff&&staff.permissions?.staff_type!=='delivery_assembly';
  }
  window.rianderStaffMembership=staff;
+ window.rianderAdminSupportMembership=adminSupport;
+ const canAdmin=owner||!!adminSupport;
  const canViewVisitorAnalytics=owner||String(user?.email||'').trim().toLowerCase()==='giftchonde1@gmail.com';
  document.querySelectorAll('.admin-only').forEach(el=>{
-  const navLink=el.id==='adminNavLink'||el.id==='navAffiliateManagement'||el.id==='navPromotionHub';
-  const ownerPage=el.id==='adminPanel'||el.id==='externalAffiliateManagement';
-  const visitorLink=el.id==='navVisitorAnalytics';
-  if(navLink)el.style.display=owner?'inline-flex':'none';
-  else if(ownerPage)el.style.display='none';
-  else if(visitorLink)el.style.display=canViewVisitorAnalytics?'inline-flex':'none';
-  else if(!owner)el.style.display='none';
+  if(el.id==='adminNavLink')el.style.display=canAdmin?'inline-flex':'none';
+  else if(el.id==='adminPanel')el.style.display=canAdmin?'block':'none';
+  else if(['navAffiliateManagement','navPromotionHub','externalAffiliateManagement'].includes(el.id))el.style.display=owner?'inline-flex':'none';
+  else if(el.id==='navVisitorAnalytics')el.style.display=canViewVisitorAnalytics?'inline-flex':'none';
+  else el.style.display=owner?'':'none';
  });
  const hub=document.getElementById('navPromotionHub');if(hub)hub.style.display=owner||hasHubTask?'inline-flex':'none';
  const link=document.getElementById('navStaffPanel');if(link)link.style.display='inline-flex';
- const status=document.getElementById('adminStatus');if(status)status.textContent=owner?'Administrator verified. Open Admin Panel from the navigation to manage your marketplace.':'Administrator access is restricted.';
- if(owner){loadAdminDashboard();loadAdminSupportInbox();loadAdminOrdersTable();}
+ const staffTab=document.getElementById('adminSupportStaffTabButton');if(staffTab)staffTab.style.display=owner?'':'none';
+ const status=document.getElementById('adminStatus');
+ if(status)status.textContent=owner?'Owner access verified. You control RIANDERBLOG and all administrator assignments.':canAdmin?'Admin Support Staff access verified. You can manage marketplace operations using your own account.':'Administrator access is restricted.';
+ if(canAdmin){loadAdminDashboard();loadAdminSupportInbox();loadAdminOrdersTable();}
 }
 async function loadAdminSupplierLedger(){
  const box=document.getElementById('adminSupplierLedger');if(!box)return;box.textContent='Loading supplier wallet ledger...';
@@ -2550,6 +2571,42 @@ async function loadVisitorAnalytics(){
   if(status)status.textContent=stats.last_visit?'Last recorded visit: '+new Date(stats.last_visit).toLocaleString():'No visits have been recorded yet. Open the website in another tab to record the first visit.';
  }catch(error){if(status)status.textContent='Could not load visitor statistics: '+(error&&error.message?error.message:'Unknown error');}
 }
+
+async function loadAdminSupportStaff(){
+ const box=document.getElementById('adminSupportStaffList');if(!box)return;
+ try{
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_USER_ID)throw new Error('Only the owner can manage Admin Support Staff.');
+  const {data,error}=await db.from('admin_support_staff').select('user_id,email,status,created_at').order('created_at',{ascending:false});
+  if(error)throw error;
+  if(!data?.length){box.textContent='No Admin Support Staff have been assigned yet.';return;}
+  box.innerHTML='<table><thead><tr><th>Email</th><th>Status</th><th>Assigned</th><th>Actions</th></tr></thead><tbody>'+data.map(s=>{
+   const id=escapeHTML(s.user_id),email=escapeHTML(s.email),status=escapeHTML(s.status);
+   const first=s.status==='active'?'<button class="secondary" onclick="adminSetSupportStaffStatus(\''+id+'\',\'suspended\')">Suspend</button>':'<button class="secondary" onclick="adminSetSupportStaffStatus(\''+id+'\',\'active\')">Activate</button>';
+   const revoke=s.status==='revoked'?'':' <button class="secondary" onclick="adminSetSupportStaffStatus(\''+id+'\',\'revoked\')">Revoke</button>';
+   return '<tr><td>'+email+'</td><td>'+status+'</td><td>'+new Date(s.created_at).toLocaleDateString()+'</td><td>'+first+revoke+'</td></tr>';
+  }).join('')+'</tbody></table>';
+ }catch(e){box.textContent='Could not load staff: '+(e.message||String(e));}
+}
+async function adminAssignSupportStaff(){
+ const status=document.getElementById('adminSupportStaffStatus'),input=document.getElementById('adminSupportStaffEmail');
+ try{
+  const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_USER_ID)throw new Error('Only the owner can assign Admin Support Staff.');
+  const email=(input?.value||'').trim();if(!email)throw new Error('Enter the registered account email.');
+  const {data,error}=await db.rpc('admin_assign_support_staff',{p_email:email});if(error)throw error;
+  if(input)input.value='';if(status)status.textContent='Admin Support Staff access activated for '+(data?.[0]?.email||email)+'.';
+  await loadAdminSupportStaff();
+ }catch(e){if(status)status.textContent='Could not assign staff: '+(e.message||String(e));}
+}
+async function adminSetSupportStaffStatus(userId,nextStatus){
+ const status=document.getElementById('adminSupportStaffStatus');
+ try{
+  const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_USER_ID)throw new Error('Only the owner can change staff access.');
+  const {error}=await db.rpc('admin_set_support_staff_status',{p_user_id:userId,p_status:nextStatus});if(error)throw error;
+  if(status)status.textContent='Staff access updated to '+nextStatus+'.';await loadAdminSupportStaff();
+ }catch(e){if(status)status.textContent='Could not update access: '+(e.message||String(e));}
+}
+
 function adminShowTab(tab) {
   if (!isAdminSession(
     db.auth.getSession ? window.currentAdminUser : null
@@ -2573,6 +2630,7 @@ function adminShowTab(tab) {
     loadAdminWithdrawals();
   }
   if (tab === "support") loadAdminSupportInbox();
+  if (tab === "supportStaff") loadAdminSupportStaff();
 }
 
 
@@ -2978,7 +3036,7 @@ function saveCart() {
 
 
 function isAdminSession(user){return !!user && user.id===ADMIN_USER_ID;}
-async function adminGuard(){const {data,error}=await db.auth.getSession();if(error)throw error;if(!isAdminSession(data.session?.user))throw new Error('Admin sign-in required.');}
+async function adminGuard(){const {data,error}=await db.rpc('is_riander_admin');if(error)throw error;if(data!==true)throw new Error('Active administrator access required.');}
 function adminMessage(id,msg){const el=document.getElementById(id);if(el)el.textContent=msg;}
 
 async function uploadProductImage(file,userId){
