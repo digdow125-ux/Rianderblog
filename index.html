@@ -1852,6 +1852,20 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
 
 <section id="staffPanel" class="panel secondary-page" style="display:none">
 <div class="admin-heading"><div><span class="admin-kicker">RIANDERBLOG TEAM WORKSPACE</span><h2>Staff Panel</h2><p id="staffPanelStatus">Checking staff access…</p></div><button class="secondary" onclick="window.loadStaffPanel()">Refresh</button></div>
+<section class="staff-tools-accordion" style="margin-top:18px;border:1px solid #dce4ee;border-radius:13px;background:#f8fafc;padding:12px">
+<h3 style="margin:4px 4px 12px">Team tools &amp; reports</h3>
+<details class="staff-tool-group" style="padding:12px;background:#fff;border:1px solid #e3e9f1;border-radius:10px;margin:8px 0">
+<summary style="cursor:pointer;font-weight:800;color:#173b63">Audience &amp; website performance</summary>
+<p class="small-note">Review marketplace visitors and understand which pages attract attention.</p>
+<a id="staffViewerAnalyticsLink" href="#visitorAnalyticsPanel" onclick="showSection('visitorAnalyticsPanel');loadVisitorAnalytics();return false" class="secondary" style="display:none;padding:9px 12px;text-decoration:none;border-radius:8px">Open Website Viewers</a>
+<p id="staffViewerAnalyticsNote" class="small-note">Website viewer reports are available to authorised accounts.</p>
+</details>
+<details class="staff-tool-group" style="padding:12px;background:#fff;border:1px solid #e3e9f1;border-radius:10px;margin:8px 0">
+<summary style="cursor:pointer;font-weight:800;color:#173b63">Marketing &amp; social-media promotion</summary>
+<p id="staffSocialNote" class="small-note">Promotion Hub access depends on your staff assignment.</p>
+<a id="staffPromotionLink" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/" class="primary" style="display:none;padding:10px 14px;border-radius:8px;text-decoration:none">Open Promotion Hub</a>
+</details>
+</section>
 <div id="staffOwnerTools" style="display:none;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
 <div class="admin-subnav staff-admin-subnav">
 <button type="button" onclick="toggleAdminWorkspacePanel('staffInviteForm')">＋ Invite staff</button>
@@ -1917,20 +1931,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
 <section class="admin-tools"><h3>Shipment and delivery proof approvals</h3><div id="staffFulfilmentTasks"></div></section>
 <section class="admin-tools"><h3>Other assigned tasks</h3><div id="staffOtherTasks"></div></section>
 </div>
-<section class="staff-tools-accordion" style="margin-top:18px;border:1px solid #dce4ee;border-radius:13px;background:#f8fafc;padding:12px">
-<h3 style="margin:4px 4px 12px">Team tools &amp; reports</h3>
-<details class="staff-tool-group" style="padding:12px;background:#fff;border:1px solid #e3e9f1;border-radius:10px;margin:8px 0">
-<summary style="cursor:pointer;font-weight:800;color:#173b63">Audience &amp; website performance</summary>
-<p class="small-note">Review marketplace visitors and understand which pages attract attention.</p>
-<a id="staffViewerAnalyticsLink" href="#visitorAnalyticsPanel" onclick="showSection('visitorAnalyticsPanel');loadVisitorAnalytics();return false" class="secondary" style="display:none;padding:9px 12px;text-decoration:none;border-radius:8px">Open Website Viewers</a>
-<p id="staffViewerAnalyticsNote" class="small-note">Website viewer reports are available to authorised accounts.</p>
-</details>
-<details class="staff-tool-group" style="padding:12px;background:#fff;border:1px solid #e3e9f1;border-radius:10px;margin:8px 0">
-<summary style="cursor:pointer;font-weight:800;color:#173b63">Marketing &amp; social-media promotion</summary>
-<p id="staffSocialNote" class="small-note">Promotion Hub access depends on your staff assignment.</p>
-<a id="staffPromotionLink" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/" class="primary" style="display:none;padding:10px 14px;border-radius:8px;text-decoration:none">Open Promotion Hub</a>
-</details>
-</section>
+
 </div></section>
 
 <section id="visitorAnalyticsPanel" class="panel secondary-page admin-box admin-only" style="display:none">
@@ -2394,7 +2395,7 @@ function showSection(id){
         }
         const account=document.getElementById("account");
         if(!account)throw new Error("Account profile section is unavailable.");
-        document.querySelectorAll("main > section").forEach(section=>{
+        document.querySelectorAll("main > section, body > section").forEach(section=>{
           const storefront=section.id==="products"||section.classList.contains("benefits")||section.classList.contains("hero");
           section.style.display=storefront?"none":(section.id==="account"?"block":"none");
         });
@@ -2413,7 +2414,7 @@ function showSection(id){
   const target=document.getElementById(id);
   if(!target){console.warn("RIANDERBLOG: section not found:",id);return false;}
   const home=(id==="products");
-  document.querySelectorAll("main > section").forEach(section=>{
+  document.querySelectorAll("main > section, body > section").forEach(section=>{
     const storefront=section.id==="products"||section.classList.contains("benefits")||section.classList.contains("hero");
     section.style.display=storefront?(home?"":"none"):(section.id===id?"block":"none");
   });
