@@ -27,5 +27,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add share/
+          git add share/ product-directory.html sitemap.xml
           git diff --cached --quiet || (git commit -m "Refresh product share preview pages" && git push)
