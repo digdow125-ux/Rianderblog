@@ -1402,17 +1402,16 @@ main{max-width:1440px}
 @media(max-width:650px){#productList .product{border-radius:10px}#productList .product-card-open img,#productList .product-image-placeholder{height:clamp(88px,27vw,130px)}#productList .product h3{min-height:2.6em}#productList .product-actions{gap:4px}#productList .product-actions button{padding:6px 3px;font-size:9px}}
 @media(prefers-reduced-motion:reduce){#productList .product{transition:none}}
 
-/* Centre the menu control and its dropdown inside the navigation bar.
-   The notification bell stays in its existing header-actions position. */
-nav{justify-content:center !important;align-items:center !important;}
-.menu-toggle{display:block !important;margin-left:auto !important;margin-right:auto !important;align-self:center !important;}
-.nav-links{left:50% !important;right:auto !important;transform:translateX(-50%) !important;}
-@media(max-width:650px){
- nav{justify-content:center !important;align-items:center !important;}
- .menu-toggle{margin-left:auto !important;margin-right:auto !important;}
- .nav-links{left:50% !important;right:auto !important;width:min(320px,calc(100vw - 36px));max-width:calc(100vw - 36px);transform:translateX(-50%) !important;}
+/* Keep the menu box at the original left position; centre only its three-dot control. */
+nav{position:relative !important;display:flex !important;flex-direction:row !important;justify-content:flex-start !important;align-items:center !important;}
+.menu-toggle{display:grid !important;place-items:center !important;flex:0 0 44px !important;width:44px !important;height:42px !important;margin:0 !important;padding:0 !important;text-align:center !important;line-height:1 !important;font-size:28px !important;}
+.nav-links{left:max(18px,calc((100% - 1150px)/2)) !important;right:auto !important;transform:none !important;}
+@media(max-width:900px){
+ nav{flex-direction:row !important;justify-content:flex-start !important;align-items:center !important;}
+ .menu-toggle{margin:0 !important;}
+ .nav-links{left:max(14px,calc((100% - 1150px)/2)) !important;right:auto !important;transform:none !important;width:min(320px,calc(100vw - 28px)) !important;max-width:calc(100vw - 28px) !important;}
 }
-/* Keep the notification control anchored exactly in the header action group. */
+/* Keep the notification bell in its existing header-actions position. */
 .header-actions{position:relative !important;display:flex !important;align-items:center !important;}
 .notification-bell{position:relative !important;flex:0 0 43px !important;}
 </style>
@@ -1435,7 +1434,7 @@ nav{justify-content:center !important;align-items:center !important;}
   </div>
 </header>
 <nav aria-label="Main navigation">
-  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰ Menu</button>
+  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">⋮</button>
   <div class="nav-links" id="navLinks">
     <a href="#products" onclick="showSection('products');closeMenu();return false">Home</a>
     <a href="#cart" onclick="showSection('cart');closeMenu();return false">Cart (<span id="cartCount">0</span>)</a>
@@ -1450,11 +1449,9 @@ nav{justify-content:center !important;align-items:center !important;}
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">Change currency</a>
     <a href="#payments" onclick="showSection('payments');closeMenu();return false">Payment help</a>
-    <a href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/index.html" id="navPromotionHub" class="admin-only" title="Open Promotion Hub">Promotion Hub</a>
     <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">Admin panel</a>
     <a href="#adminPanel" id="navAffiliateManagement" class="admin-only" onclick="openExternalAffiliateManagement();closeMenu();return false">Affiliate Management</a>
     <a href="#recommendedDeals" onclick="showSection('recommendedDeals');loadExternalAffiliateDeals();closeMenu();return false">Recommended Deals</a>
-    <a href="#visitorAnalyticsPanel" id="navVisitorAnalytics" class="admin-only" onclick="showSection('visitorAnalyticsPanel');loadVisitorAnalytics();closeMenu();return false">Website visitors</a>
     <a href="#staffPanel" id="navStaffPanel" style="display:none" onclick="showSection('staffPanel');closeMenu();return false">Staff panel</a>
   </div>
 </nav>
@@ -1887,7 +1884,20 @@ nav{justify-content:center !important;align-items:center !important;}
 <section class="admin-tools"><h3>Shipment and delivery proof approvals</h3><div id="staffFulfilmentTasks"></div></section>
 <section class="admin-tools"><h3>Other assigned tasks</h3><div id="staffOtherTasks"></div></section>
 </div>
-<section class="admin-tools" style="margin-top:16px"><h3>Social-media promotions</h3><p id="staffSocialNote" class="small-note"></p><a id="staffPromotionLink" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/" class="primary" style="display:none;padding:10px 14px;border-radius:8px;text-decoration:none">Open Promotion Hub</a></section>
+<section class="staff-tools-accordion" style="margin-top:18px;border:1px solid #dce4ee;border-radius:13px;background:#f8fafc;padding:12px">
+<h3 style="margin:4px 4px 12px">Team tools &amp; reports</h3>
+<details class="staff-tool-group" style="padding:12px;background:#fff;border:1px solid #e3e9f1;border-radius:10px;margin:8px 0">
+<summary style="cursor:pointer;font-weight:800;color:#173b63">Audience &amp; website performance</summary>
+<p class="small-note">Review marketplace visitors and understand which pages attract attention.</p>
+<a id="staffViewerAnalyticsLink" href="#visitorAnalyticsPanel" onclick="showSection('visitorAnalyticsPanel');loadVisitorAnalytics();return false" class="secondary" style="display:none;padding:9px 12px;text-decoration:none;border-radius:8px">Open Website Viewers</a>
+<p id="staffViewerAnalyticsNote" class="small-note">Website viewer reports are available to authorised accounts.</p>
+</details>
+<details class="staff-tool-group" style="padding:12px;background:#fff;border:1px solid #e3e9f1;border-radius:10px;margin:8px 0">
+<summary style="cursor:pointer;font-weight:800;color:#173b63">Marketing &amp; social-media promotion</summary>
+<p id="staffSocialNote" class="small-note">Promotion Hub access depends on your staff assignment.</p>
+<a id="staffPromotionLink" href="https://digdow125-ux.github.io/Rianderblog/promotion-hub/" class="primary" style="display:none;padding:10px 14px;border-radius:8px;text-decoration:none">Open Promotion Hub</a>
+</details>
+</section>
 </div></section>
 
 <section id="visitorAnalyticsPanel" class="panel secondary-page admin-box admin-only" style="display:none">
@@ -2335,8 +2345,8 @@ async function sendAdminMessage(){const input=document.getElementById('adminSupp
 async function loadAdminSupportInbox(){const box=document.getElementById('adminSupportInbox');if(!box)return;try{await adminGuard();const {data:{user}}=await db.auth.getUser();if(!user)throw new Error('Sign in required.');const {data:convos,error}=await db.from('support_conversations').select('id,customer_id,status,created_at').order('created_at',{ascending:false});if(error)throw error;box.innerHTML='';if(!convos?.length){box.textContent='No customer conversations yet.';return;}for(const c of convos){const wrap=document.createElement('div');wrap.className='listing';const title=document.createElement('strong');title.textContent='Customer '+c.customer_id;const status=document.createElement('p');status.textContent='Status: '+c.status;const log=document.createElement('div');log.id='adminThread_'+c.id;const input=document.createElement('input');input.placeholder='Reply to this customer';const btn=document.createElement('button');btn.className='primary';btn.textContent='Send reply';btn.onclick=async()=>{try{await adminGuard();const msg=input.value.trim();if(!msg)return;const result=await db.from('support_messages').insert({conversation_id:c.id,sender_id:user.id,message:msg});if(result.error)throw result.error;input.value='';await renderAdminThread(c.id,log);}catch(e){alert(e.message||String(e));}};wrap.append(title,status,log,input,btn);box.appendChild(wrap);await renderAdminThread(c.id,log);}}catch(e){box.textContent='Could not load inbox: '+(e.message||String(e));}}
 async function renderAdminThread(id,log){const {data,error}=await db.from('support_messages').select('sender_id,message,created_at').eq('conversation_id',id).order('created_at');if(error){log.textContent=error.message;return;}log.innerHTML='';(data||[]).forEach(m=>{const p=document.createElement('p');p.textContent=((m.sender_id===ADMIN_USER_ID||m.sender_id===window.currentAdminUser?.id)?'ADMIN: ':'CUSTOMER: ')+m.message;log.appendChild(p);});}
 
-function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕ Close":"☰ Menu";}
-function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const more=document.querySelector(".nav-more");if(links){links.classList.remove("open");if(window.matchMedia("(max-width:650px)").matches){links.style.display="none";}else{links.style.removeProperty("display");}}if(more)more.open=false;if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="☰ Menu";}}
+function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.textContent=open?"✕":"⋮";}
+function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const more=document.querySelector(".nav-more");if(links){links.classList.remove("open");if(window.matchMedia("(max-width:650px)").matches){links.style.display="none";}else{links.style.removeProperty("display");}}if(more)more.open=false;if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.textContent="⋮";}}
 function showSection(id){
   if(id==="account"){
     (async()=>{
@@ -6458,7 +6468,12 @@ async function loadStaffTasks(p){
  document.getElementById('staffProductAction').style.display=canAddProducts?'block':'none';
  document.getElementById('staffProductCreatePanel').style.display='none';
  document.getElementById('staffPromotionLink').style.display=generalAccess?'inline-block':'none';
- document.getElementById('staffSocialNote').textContent=generalAccess?'Promotion Hub access is included with your General staff invitation.':'This account is assigned to delivery and assembly only.';
+ document.getElementById('staffSocialNote').textContent=generalAccess?'Promotion Hub is grouped here under Marketing & social-media promotion.':'This account is assigned to delivery and assembly only; promotion tools are not enabled.';
+ const viewerLink=document.getElementById('staffViewerAnalyticsLink');
+ const viewerNote=document.getElementById('staffViewerAnalyticsNote');
+ const canViewTeamAnalytics=owner||String(user.email||'').trim().toLowerCase()==='giftchonde1@gmail.com';
+ if(viewerLink)viewerLink.style.display=canViewTeamAnalytics?'inline-block':'none';
+ if(viewerNote)viewerNote.textContent=canViewTeamAnalytics?'Open visitor statistics, popular pages and audience activity.':'Website viewer reports are restricted to authorised accounts.';
  const panels={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks',other:'staffOtherTasks'};
  for(const [key,id] of Object.entries(panels)){const el=document.getElementById(id)?.closest('section');if(el)el.style.display=deliveryOnly?(key==='delivery'?'block':'none'):(key==='delivery'?'none':'block');}
  const socialPanel=document.getElementById('staffSocialNote')?.closest('section');if(socialPanel)socialPanel.style.display=generalAccess?'block':'none';
