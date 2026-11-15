@@ -92,7 +92,7 @@ header{background:var(--navy);color:white;padding:20px max(18px,calc((100% - 115
 .header-note{font-size:13px;color:#d5dce7}
 nav{background:var(--navy2);padding:0 max(18px,calc((100% - 1150px)/2));display:flex;gap:23px;align-items:center;flex-wrap:wrap}
 .menu-toggle{display:none;background:var(--gold);color:#172238;font-size:23px;padding:7px 13px;border-radius:7px}
-.nav-links{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.nav-links{display:flex;justify-content:center;gap:18px;align-items:center;flex-wrap:wrap;width:100%}
 .nav-more{position:relative}
 .nav-more summary{list-style:none;cursor:pointer;color:#fff;font-size:13px;font-weight:bold;padding:15px 0}
 .nav-more summary::-webkit-details-marker{display:none}
@@ -104,11 +104,12 @@ nav{background:var(--navy2);padding:0 max(18px,calc((100% - 1150px)/2));display:
 .admin-only{display:none}
 .admin-box{border:2px solid var(--gold);background:#fffaf0}
 @media(max-width:900px){
- nav{display:block;padding:10px 14px}
- .menu-toggle{display:block}
- .nav-links{display:none;flex-direction:column;align-items:stretch;gap:0;padding-top:8px}
+ nav{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 14px}
+ .menu-toggle{display:block;margin:0 auto}
+ .nav-links{display:none;flex-direction:column;align-items:center;justify-content:center;gap:0;padding-top:8px;width:100%}
  .nav-links.open{display:flex}
- .nav-links>a,.nav-more summary{padding:12px 5px;border-top:1px solid rgba(255,255,255,.12)}
+ .nav-links>a,.nav-more summary{display:block;width:100%;text-align:center;padding:12px 5px;border-top:1px solid rgba(255,255,255,.12)}
+ .nav-more{width:100%;text-align:center}
  .nav-more-menu{position:static;max-height:none;min-width:0;margin:0 0 8px 8px;border:0;border-left:2px solid var(--gold);border-radius:0;box-shadow:none;background:rgba(0,0,0,.12)}
  .nav-more-menu a{padding:10px 12px}
 }
@@ -261,7 +262,7 @@ header{position:relative;gap:18px}
 .header-cart{background:#f36b25;color:#fff;border:0;border-radius:7px;padding:11px 16px;font-weight:700;font-size:14px;cursor:pointer}
 .header-cart:hover{background:#d95517}
 .header-actions{position:relative;display:flex;align-items:center;gap:10px}
-.notification-bell{position:relative;display:grid;place-items:center;width:43px;height:43px;border:1px solid #dce3ec;border-radius:9px;background:#fff;color:#10213e;font-size:19px}
+.notification-bell{position:relative;flex:none;display:grid;place-items:center;width:43px;height:43px;border:1px solid #dce3ec;border-radius:9px;background:#fff;color:#10213e;font-size:19px}
 .notification-count{position:absolute;top:-7px;right:-7px;min-width:19px;height:19px;padding:0 5px;border-radius:20px;background:#e34d4d;color:#fff;font-size:10px;font-weight:800;line-height:19px;text-align:center}
 .notification-panel{position:absolute;z-index:1200;right:0;top:calc(100% + 10px);width:min(360px,calc(100vw - 28px));max-height:430px;overflow:auto;border:1px solid #e1e6ed;border-radius:12px;background:#fff;box-shadow:0 14px 36px rgba(10,25,45,.2);color:#25364b}
 .notification-panel-head{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-bottom:1px solid #edf0f4;background:#fff}
@@ -326,6 +327,7 @@ main{max-width:1220px}
 .admin-stat-grid h3 {font-size:25px;color:#173b63}
 .admin-navigation {
   display:flex;
+  justify-content:center;
   gap:8px;
   overflow-x:auto;
   padding:12px 0;
@@ -5244,6 +5246,7 @@ async function loadSupplierProducts(supplierId){
       </div>
       <div class="admin-actions">
         <button class="secondary" onclick="importSupplierProductImages('${escapeHTML(p.id)}')">Import product pictures</button>
+        <button class="secondary" type="button" onclick="openProductPictureEditor('${escapeHTML(p.id)}')">Edit pictures</button>
         <button class="secondary"
           onclick="editSupplierProduct('${escapeHTML(p.id)}')">Edit</button>
         <button class="remove"
@@ -5949,7 +5952,7 @@ async function loadStaffPanel(){
   const permissions=owner?{}:(member?.permissions||{});
   await withTimeout(loadStaffTaskCommandBar(user,member),'Staff task summary loading');
   await withTimeout(loadStaffTasks(permissions),'Staff workspace loading');
-  if(owner||permissions.add_products)await withTimeout(loadStaffAddedProducts(),'Your product list loading');
+  await withTimeout(loadStaffAddedProducts(),'Team product list loading');
   box.textContent=owner?'Owner verified. You decide what work is assigned and when.':'Staff account verified. Your category work appears automatically; extra tasks appear when the owner assigns them.';
  }catch(error){
   console.error('RIANDERBLOG Staff Panel:',error);
@@ -6166,6 +6169,61 @@ function toggleStaffProductForm(){
  if(button)button.textContent=opening?'Close Add Product':'＋ Add Product';
  if(opening)panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
+
+async function openProductPictureEditor(productId){
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in first.');
+  const {data:p,error}=await db.from('products').select('id,name,image_url,product_image_urls,supplier_id').eq('id',productId).maybeSingle();
+  if(error)throw error;if(!p)throw new Error('Product not found or you do not have permission to view it.');
+  const existing=getProductGallery(p);
+  const overlay=document.createElement('div');overlay.id='productPictureEditorOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(8,20,38,.72);display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto';
+  const panel=document.createElement('div');panel.style.cssText='width:min(620px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:14px;padding:18px;box-shadow:0 18px 55px rgba(0,0,0,.3)';
+  const title=document.createElement('h3');title.textContent='Edit product pictures — '+(p.name||'Product');
+  const note=document.createElement('p');note.className='small-note';note.textContent='Keep or remove existing pictures, then add new photos or image URLs. A product can have 1 to 5 pictures.';
+  const gallery=document.createElement('div');gallery.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;margin:14px 0';
+  existing.forEach((url,index)=>{
+   const item=document.createElement('label');item.style.cssText='display:flex;flex-direction:column;gap:6px;font-size:12px;border:1px solid #e4e8ee;border-radius:8px;padding:7px';
+   const img=document.createElement('img');img.src=url;img.alt='Current product picture';img.style.cssText='width:100%;height:100px;object-fit:cover;border-radius:6px';
+   const keep=document.createElement('input');keep.type='checkbox';keep.checked=true;keep.dataset.image=url;
+   const caption=document.createElement('span');caption.textContent='Keep picture '+(index+1);
+   item.append(img,keep,caption);gallery.appendChild(item);
+  });
+  const uploadLabel=document.createElement('label');uploadLabel.textContent='Add new pictures (up to 5 MB each)';
+  const file=document.createElement('input');file.type='file';file.accept='image/jpeg,image/png,image/webp,image/gif,image/avif';file.multiple=true;file.style.cssText='display:block;width:100%;margin:8px 0 14px';
+  const urlLabel=document.createElement('label');urlLabel.textContent='Or paste new image URLs (one per line)';
+  const urls=document.createElement('textarea');urls.rows=3;urls.placeholder='https://example.com/photo1.jpg';urls.style.cssText='display:block;width:100%;margin:8px 0 14px;padding:10px;border:1px solid #ccd4df;border-radius:8px';
+  const status=document.createElement('p');status.className='small-note';status.setAttribute('role','status');
+  const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end';
+  const cancel=document.createElement('button');cancel.type='button';cancel.className='secondary';cancel.textContent='Cancel';cancel.onclick=()=>overlay.remove();
+  const save=document.createElement('button');save.type='button';save.className='primary';save.textContent='Save pictures';
+  save.onclick=async()=>{
+   save.disabled=true;status.textContent='Uploading and saving pictures…';
+   try{
+    const keep=[...gallery.querySelectorAll('input[type=checkbox]:checked')].map(x=>x.dataset.image);
+    const chosen=Array.from(file.files||[]);if(chosen.length>5)throw new Error('Choose no more than 5 new pictures.');
+    if(chosen.some(f=>f.size>5*1024*1024))throw new Error('Each picture must be 5 MB or smaller.');
+    const pasted=urls.value.trim()?urls.value.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean):[];
+    if(keep.length+chosen.length+pasted.length>5)throw new Error('A product can have a maximum of 5 pictures.');
+    const added=[];for(const f of chosen)added.push(await uploadProductImage(f,user.id));
+    for(const u of pasted){const valid=safeUrl(u);if(!valid)throw new Error('One of the image URLs is invalid.');added.push(valid);}
+    const images=[...new Set([...keep,...added])];
+    if(images.length<1)throw new Error('Keep or add at least 1 picture.');
+    const {data,error}=await db.rpc('update_product_pictures',{p_product_id:productId,p_images:images});
+    if(error)throw error;if(!data)throw new Error('The product pictures were not updated.');
+    status.textContent='Product pictures updated successfully.';await loadProducts();
+    if(typeof loadStaffAddedProducts==='function')await loadStaffAddedProducts();
+    if(typeof loadSupplierWorkspace==='function'&&currentSupplierRecord)await loadSupplierProducts(currentSupplierRecord.id);
+    if(typeof renderAdminProducts==='function'&&document.getElementById('adminProductList'))await renderAdminProducts();
+    setTimeout(()=>overlay.remove(),700);
+   }catch(e){status.textContent='Could not save pictures: '+(e.message||String(e));save.disabled=false;}
+  };
+  uploadLabel.appendChild(file);urlLabel.appendChild(urls);actions.append(cancel,save);panel.append(title,note,gallery,uploadLabel,urlLabel,status,actions);overlay.appendChild(panel);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+ }catch(e){alert('Could not open picture editor: '+(e.message||String(e)));}
+}
+
 async function loadStaffAddedProducts(){
   const box=document.getElementById('staffMyUploadedProducts');if(!box)return;
   box.textContent='Loading staff-added products…';
@@ -6186,6 +6244,7 @@ async function loadStaffAddedProducts(){
     const review=document.createElement('td');review.textContent=p.review_status||'pending';
     const action=document.createElement('td');action.style.display='flex';action.style.flexWrap='wrap';action.style.gap='6px';
     const edit=document.createElement('button');edit.className='primary';edit.type='button';edit.textContent='Edit product';edit.addEventListener('click',()=>staffEditMarketplaceProduct(p.id));action.appendChild(edit);
+    const pictures=document.createElement('button');pictures.className='secondary';pictures.type='button';pictures.textContent='Edit pictures';pictures.addEventListener('click',()=>openProductPictureEditor(p.id));action.appendChild(pictures);
     const stockOut=document.createElement('button');stockOut.className='secondary';stockOut.type='button';stockOut.textContent='Mark out of stock';stockOut.disabled=Number(p.stock_quantity||0)===0;stockOut.addEventListener('click',()=>staffSetProductOutOfStock(p.id,p.name));action.appendChild(stockOut);
     const toggle=document.createElement('button');toggle.className='secondary';toggle.type='button';toggle.textContent=p.is_active?'Deactivate':'Activate';toggle.addEventListener('click',()=>staffSetProductActive(p.id,p.name,!p.is_active));action.appendChild(toggle);
     const remove=document.createElement('button');remove.type='button';remove.style.cssText='background:#fee2e2;color:#991b1b';remove.textContent='Delete';remove.addEventListener('click',()=>staffDeleteMarketplaceProduct(p.id,p.name));action.appendChild(remove);
