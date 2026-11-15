@@ -1612,7 +1612,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();closeMenu();return false">Track my orders</a>
     <a href="#dashboard" onclick="showSection('dashboard');showDashboard();closeMenu();return false">My dashboard</a>
     <a href="#dashboard" class="nav-invite-link" onclick="showSection('dashboard');showDashboard();closeMenu();return false"><span class="nav-invite-icon">🎁</span><span class="nav-invite-copy"><strong>Invite &amp; Earn</strong><small>Earn MK1,000 shopping credit</small></span><span class="nav-invite-arrow">›</span></a>
-    <a href="#customerRewards" onclick="showSection('customerRewards');loadCustomerRewardsDashboard();closeMenu();return false">🪙 Rewards &amp; Tasks</a>
+    <a href="#customerRewards" onclick="showSection('customerRewards');closeMenu();return false">🪙 Rewards &amp; Tasks</a>
     <a href="#suppliers" data-notify-highlight="suppliers" onclick="showSection('suppliers');supplierShowMainPage('centre');closeMenu();return false">Business &amp; Seller Centre</a>
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">Change currency</a>
@@ -3425,13 +3425,14 @@ async function createCustomerRewardTask(event){
 }
 async function loadCustomerRewardsAdmin(){
  const subsBox=document.getElementById('customerRewardAdminSubmissions'),tasksBox=document.getElementById('customerRewardAdminTasks');if(!subsBox||!tasksBox)return;
- try{await adminGuard();const [s,t]=await Promise.all([
+ try{await adminGuard();const [s,t,v]=await Promise.all([
   db.from('customer_reward_submissions').select('id,task_id,user_id,proof_text,status,created_at').eq('status','pending').order('created_at',{ascending:true}),
-  db.from('customer_reward_tasks').select('id,title,is_active,created_at').order('created_at',{ascending:false})
- ]);if(s.error)throw s.error;if(t.error)throw t.error;
+  db.from('customer_reward_tasks').select('id,title,is_active,created_at').order('created_at',{ascending:false}),
+  db.from('customer_reward_redemptions').select('id,user_id,voucher_code,discount_mwk,status,created_at').order('created_at',{ascending:false})
+ ]);if(s.error)throw s.error;if(t.error)throw t.error;if(v.error)throw v.error;
  const taskMap=new Map((t.data||[]).map(x=>[x.id,x.title]));
  subsBox.innerHTML=(s.data||[]).map(x=>'<article class="market-card" style="margin:10px 0"><strong>'+escapeHTML(taskMap.get(x.task_id)||'Task')+'</strong><p>Customer: '+escapeHTML(x.user_id)+'</p><p>'+escapeHTML(x.proof_text)+'</p><button class="primary" onclick="reviewCustomerRewardSubmission(\''+x.id+'\',\'approved\')">Approve · award 5 coins</button> <button class="secondary" onclick="reviewCustomerRewardSubmission(\''+x.id+'\',\'rejected\')">Reject</button></article>').join('')||'<p>No pending task submissions.</p>';
- const voucherBox=document.getElementById('customerRewardAdminVouchers');if(voucherBox)voucherBox.innerHTML=(v.data||[]).map(x=>'<div class="market-card" style="margin:8px 0"><strong>'+escapeHTML(x.voucher_code)+'</strong><p>Customer ID: '+escapeHTML(x.user_id)+' · MWK '+Number(x.discount_mwk).toLocaleString()+' · '+escapeHTML(x.status)+'</p>'+(x.status==='issued'?'<button class="secondary" onclick="markCustomerRewardVoucherUsed(\\''+x.id+'\\')">Mark discount used</button>':'')+'</div>').join('')||'<p>No discount vouchers have been redeemed.</p>';
+ const voucherBox=document.getElementById('customerRewardAdminVouchers');if(voucherBox)voucherBox.innerHTML=(v.data||[]).map(x=>'<div class="market-card" style="margin:8px 0"><strong>'+escapeHTML(x.voucher_code)+'</strong><p>Customer ID: '+escapeHTML(x.user_id)+' · MWK '+Number(x.discount_mwk).toLocaleString()+' · '+escapeHTML(x.status)+'</p>'+(x.status==='issued'?'<button class="secondary" onclick="markCustomerRewardVoucherUsed(\''+x.id+'\')">Mark discount used</button>':'')+'</div>').join('')||'<p>No discount vouchers have been redeemed.</p>';
  tasksBox.innerHTML=(t.data||[]).map(x=>'<div class="market-card" style="margin:8px 0"><strong>'+escapeHTML(x.title)+'</strong><p>'+ (x.is_active?'Active':'Paused')+'</p><button class="secondary" onclick="toggleCustomerRewardTask(\''+x.id+'\','+(!x.is_active)+')">'+(x.is_active?'Pause task':'Activate task')+'</button> <button class="secondary" onclick="deleteCustomerRewardTask(\''+x.id+'\')">Delete</button></div>').join('')||'<p>No sponsored tasks created.</p>';
  }catch(e){subsBox.textContent='Could not load submissions: '+e.message;tasksBox.textContent='Could not load tasks.';}
 }
