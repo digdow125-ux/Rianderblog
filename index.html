@@ -1612,6 +1612,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();closeMenu();return false">Track my orders</a>
     <a href="#dashboard" onclick="showSection('dashboard');showDashboard();closeMenu();return false">My dashboard</a>
     <a href="#dashboard" class="nav-invite-link" onclick="showSection('dashboard');showDashboard();closeMenu();return false"><span class="nav-invite-icon">🎁</span><span class="nav-invite-copy"><strong>Invite &amp; Earn</strong><small>Earn MK1,000 shopping credit</small></span><span class="nav-invite-arrow">›</span></a>
+    <a href="#customerRewards" onclick="showSection('customerRewards');loadCustomerRewardsDashboard();closeMenu();return false">🪙 Rewards &amp; Tasks</a>
     <a href="#suppliers" data-notify-highlight="suppliers" onclick="showSection('suppliers');supplierShowMainPage('centre');closeMenu();return false">Business &amp; Seller Centre</a>
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">Change currency</a>
@@ -2006,6 +2007,22 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <p><a href="#orderTracking" onclick="showSection('orderTracking');showCustomerOrderTracking();return false">Track my orders →</a></p>
     <p><a href="#cart">Go to My Shopping Cart</a></p>
   </section>
+  <section id="customerRewards" class="panel secondary-page">
+    <div class="admin-heading"><div><span class="admin-kicker">RIANDERBLOG REWARDS</span><h2>🪙 Customer Rewards &amp; Tasks</h2><p>Complete approved sponsored activities, collect coins and redeem shopping discounts.</p></div><button class="secondary" type="button" onclick="loadCustomerRewardsDashboard()">↻ Refresh</button></div>
+    <div class="market-grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin:18px 0">
+      <div class="market-card"><small>YOUR COIN BALANCE</small><h2 id="customerRewardBalance" style="color:#ad812e;font-size:34px;margin:8px 0">—</h2><p>Coins available</p></div>
+      <div class="market-card"><small>DISCOUNT VALUE</small><h2 id="customerRewardDiscountValue" style="color:#16834a;font-size:28px;margin:8px 0">MWK 0</h2><p>1,000 coins = MWK 500 off</p></div>
+    </div>
+    <div class="market-card" style="margin-bottom:18px">
+      <h3>Redeem shopping discount</h3><p>Redeem 1,000 coins for a MWK 500 RIANDERBLOG shopping discount. This is not cash and cannot be withdrawn.</p>
+      <button class="primary" id="redeemCustomerRewardButton" type="button" onclick="redeemCustomerRewardDiscount()">Redeem 1,000 coins</button>
+      <p id="customerRewardRedeemMessage" role="status" class="small-note"></p><div id="customerRewardVoucher"></div>
+    </div>
+    <h3>Available sponsored tasks</h3><p class="small-note">Each approved task earns 5 coins. Complete the activity and submit proof for review. Ordinary advertisements and AdSense clicks are not reward tasks.</p>
+    <p id="customerRewardsStatus" role="status">Sign in to view tasks and your rewards.</p><div id="customerRewardTasks" class="market-grid"></div>
+    <h3 style="margin-top:24px">My task history</h3><div id="customerRewardHistory"></div>
+    <h3 style="margin-top:24px">My discount vouchers</h3><div id="customerRewardRedemptions"></div>
+  </section>
   <section id="orderTracking" class="panel secondary-page">
     <div class="customer-orders-heading"><div><span>YOUR PURCHASES</span><h2>📦 Track my orders</h2><p>Follow your orders from payment to delivery.</p></div><button class="secondary" onclick="showCustomerOrderTracking()">↻ Refresh</button></div>
     <p id="orderTrackingStatus">Sign in to view your orders and delivery updates.</p>
@@ -2155,12 +2172,29 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     </details>
     <button onclick="adminShowTab('products')">Products</button>
     <button onclick="adminShowTab('wallet')">Wallet</button>
+    <button onclick="adminShowTab('rewards');loadCustomerRewardsAdmin()">Customer rewards</button>
     <button data-notify-target="adminSupport" onclick="adminShowTab('support')">Customer support</button>
     <button onclick="adminShowTab('ai')">AI assistant</button>
     <button data-notify-target="adminApplications" onclick="adminShowTab('applications')">Applications</button>
     <button id="adminSupportStaffTabButton" style="display:none" onclick="adminShowTab('supportStaff')">Admin Support Staff</button>
   </div>
 
+   <div id="adminTab-rewards" class="admin-tab" style="display:none">
+    <div class="admin-overview-intro"><div><span class="admin-kicker">CUSTOMER LOYALTY</span><h3>Manage sponsored tasks &amp; rewards</h3><p>Create genuine sponsored activities, review customer proof and approve 5-coin rewards. Do not create tasks that pay people to click ads or generate ad impressions.</p></div><button class="secondary" type="button" onclick="loadCustomerRewardsAdmin()">↻ Refresh</button></div>
+    <div class="market-card" style="margin:16px 0">
+      <h3>Create a sponsored task</h3>
+      <form id="customerRewardTaskForm" onsubmit="createCustomerRewardTask(event)" style="display:grid;gap:10px">
+        <label>Task title<input id="rewardTaskTitle" required maxlength="100" placeholder="e.g. Complete our product feedback survey"></label>
+        <label>Instructions<textarea id="rewardTaskDescription" required rows="3" maxlength="1000" placeholder="Explain the activity customers should complete"></textarea></label>
+        <label>Task link (optional)<input id="rewardTaskUrl" type="url" placeholder="https://example.com/task"></label>
+        <label>What proof should customers submit?<textarea id="rewardTaskProof" required rows="2" maxlength="500" placeholder="e.g. Tell us which product feature you liked"></textarea></label>
+        <p><strong>Reward: 5 coins per approved task</strong></p>
+        <button class="primary" type="submit">Publish task</button><p id="rewardTaskAdminMessage" role="status"></p>
+      </form>
+    </div>
+    <h3>Customer task submissions</h3><div id="customerRewardAdminSubmissions">Loading…</div>
+    <h3 style="margin-top:24px">Published tasks</h3><div id="customerRewardAdminTasks">Loading…</div>
+  </div>
    <div id="adminTab-overview" class="admin-tab">
     <div class="admin-overview-intro">
       <div><span class="admin-kicker">WORKSPACE</span><h3>Welcome to your control centre</h3><p>Choose a workspace below to manage orders, products, suppliers, customer care and marketplace finances.</p></div>
@@ -3333,6 +3367,85 @@ function saveCart() {
 function isAdminSession(user){return !!user && user.id===ADMIN_USER_ID;}
 async function adminGuard(){const {data,error}=await db.rpc('is_riander_admin');if(error)throw error;if(data!==true)throw new Error('Active administrator access required.');}
 function adminMessage(id,msg){const el=document.getElementById(id);if(el)el.textContent=msg;}
+
+// Customer Rewards: approved sponsored activities only; never reward ad clicks or impressions.
+function formatRewardCoins(n){return Number(n||0).toLocaleString('en-US');}
+async function loadCustomerRewardsDashboard(){
+ const status=document.getElementById('customerRewardsStatus');if(!status)return;
+ const tasksBox=document.getElementById('customerRewardTasks'),historyBox=document.getElementById('customerRewardHistory'),redemptionsBox=document.getElementById('customerRewardRedemptions');
+ try{
+  const {data:{user},error:authError}=await db.auth.getUser();if(authError)throw authError;
+  if(!user){status.textContent='Please sign in to collect coins and redeem discounts.';tasksBox.innerHTML='';historyBox.innerHTML='';redemptionsBox.innerHTML='';return;}
+  status.textContent='Loading your sponsored tasks…';
+  const [tasks,subs,ledger,redemptions]=await Promise.all([
+   db.from('customer_reward_tasks').select('id,title,description,action_url,proof_instructions,reward_coins,created_at').eq('is_active',true).order('created_at',{ascending:false}),
+   db.from('customer_reward_submissions').select('id,task_id,status,proof_text,review_note,created_at').eq('user_id',user.id).order('created_at',{ascending:false}),
+   db.from('customer_reward_ledger').select('amount_coins').eq('user_id',user.id),
+   db.from('customer_reward_redemptions').select('id,voucher_code,discount_mwk,status,created_at').eq('user_id',user.id).order('created_at',{ascending:false})
+  ]);
+  for(const x of [tasks,subs,ledger,redemptions])if(x.error)throw x.error;
+  const balance=(ledger.data||[]).reduce((s,x)=>s+Number(x.amount_coins||0),0);
+  const balanceEl=document.getElementById('customerRewardBalance');if(balanceEl)balanceEl.textContent=formatRewardCoins(balance);
+  const valueEl=document.getElementById('customerRewardDiscountValue');if(valueEl)valueEl.textContent='MWK '+Math.floor(balance/1000*500).toLocaleString('en-US');
+  const submitted=new Map((subs.data||[]).map(x=>[x.task_id,x]));
+  tasksBox.innerHTML=(tasks.data||[]).map(t=>{
+   const sub=submitted.get(t.id);const state=sub?'<p><strong>Status:</strong> '+escapeHTML(sub.status.toUpperCase())+'</p>':'<label style="display:block;margin-top:10px">Your completion proof<textarea id="rewardProof_'+t.id+'" rows="3" maxlength="1200" placeholder="'+escapeHTML(t.proof_instructions)+'"></textarea></label><button class="primary" style="margin-top:8px" onclick="submitCustomerRewardProof(\''+t.id+'\')">Submit for review</button>';
+   const link=t.action_url?'<p><a href="'+escapeHTML(safeUrl(t.action_url))+'" target="_blank" rel="noopener noreferrer">Open sponsored task ↗</a></p>':'';
+   return '<article class="market-card"><span class="admin-kicker">5 COINS AFTER APPROVAL</span><h3>'+escapeHTML(t.title)+'</h3><p>'+escapeHTML(t.description)+'</p>'+link+'<p><small>'+escapeHTML(t.proof_instructions)+'</small></p>'+state+'</article>';
+  }).join('')||'<div class="market-card">There are no sponsored tasks available right now. Please check again later.</div>';
+  historyBox.innerHTML=(subs.data||[]).map(x=>'<div class="market-card" style="margin:8px 0"><strong>'+escapeHTML((tasks.data||[]).find(t=>t.id===x.task_id)?.title||'Sponsored task')+'</strong><p>Status: '+escapeHTML(x.status)+' · '+new Date(x.created_at).toLocaleString()+'</p>'+(x.review_note?'<p>'+escapeHTML(x.review_note)+'</p>':'')+'</div>').join('')||'<p>No task submissions yet.</p>';
+  redemptionsBox.innerHTML=(redemptions.data||[]).map(x=>'<div class="market-card" style="margin:8px 0"><strong>'+escapeHTML(x.voucher_code)+'</strong><p>MWK '+Number(x.discount_mwk).toLocaleString()+' shopping discount · '+escapeHTML(x.status)+'</p><button class="secondary" onclick="navigator.clipboard?.writeText(\''+escapeHTML(x.voucher_code)+'\')">Copy voucher</button></div>').join('')||'<p>No vouchers redeemed yet.</p>';
+  const redeemBtn=document.getElementById('redeemCustomerRewardButton');if(redeemBtn)redeemBtn.disabled=balance<1000;
+  status.textContent='Complete a sponsored task and submit proof. The administrator reviews it before coins are added.';
+ }catch(e){console.error('Customer rewards:',e);status.textContent='Could not load rewards: '+(e.message||'Please try again.');}
+}
+async function submitCustomerRewardProof(taskId){
+ const input=document.getElementById('rewardProof_'+taskId),proof=input?.value.trim();if(!proof){alert('Please enter your task completion proof.');return;}
+ try{const {data:{user},error:authError}=await db.auth.getUser();if(authError)throw authError;if(!user)throw new Error('Please sign in first.');
+ const {error}=await db.from('customer_reward_submissions').insert({task_id:taskId,user_id:user.id,proof_text:proof,status:'pending'});if(error)throw error;
+ alert('Your task proof has been submitted. You will receive 5 coins if it is approved.');await loadCustomerRewardsDashboard();
+ }catch(e){alert(e.message||'Could not submit task proof.');}
+}
+async function redeemCustomerRewardDiscount(){
+ const btn=document.getElementById('redeemCustomerRewardButton'),msg=document.getElementById('customerRewardRedeemMessage');if(btn)btn.disabled=true;if(msg)msg.textContent='Processing your discount voucher…';
+ try{const {data,error}=await db.rpc('redeem_customer_reward_discount');if(error)throw error;const row=Array.isArray(data)?data[0]:data;if(!row)throw new Error('No voucher was returned.');
+ const box=document.getElementById('customerRewardVoucher');if(box)box.innerHTML='<div class="market-card"><h3>MWK 500 discount voucher issued</h3><p>Your voucher code: <strong>'+escapeHTML(row.voucher_code)+'</strong></p><p>Use this code for a RIANDERBLOG purchase. It is a shopping discount, not cash.</p></div>';
+ if(msg)msg.textContent='1,000 coins redeemed successfully.';await loadCustomerRewardsDashboard();
+ }catch(e){if(msg)msg.textContent=e.message||'Could not redeem coins.';if(btn)btn.disabled=false;}
+}
+async function createCustomerRewardTask(event){
+ event.preventDefault();const msg=document.getElementById('rewardTaskAdminMessage');
+ try{await adminGuard();const title=document.getElementById('rewardTaskTitle').value.trim(),description=document.getElementById('rewardTaskDescription').value.trim(),url=document.getElementById('rewardTaskUrl').value.trim(),proof=document.getElementById('rewardTaskProof').value.trim();
+ if(url&&!safeUrl(url))throw new Error('Enter a valid http or https task link.');
+ const {error}=await db.from('customer_reward_tasks').insert({title,description,action_url:url||null,proof_instructions:proof,reward_coins:5,is_active:true});if(error)throw error;
+ document.getElementById('customerRewardTaskForm').reset();if(msg)msg.textContent='Sponsored task published.';await loadCustomerRewardsAdmin();
+ }catch(e){if(msg)msg.textContent=e.message||'Could not publish task.';}
+}
+async function loadCustomerRewardsAdmin(){
+ const subsBox=document.getElementById('customerRewardAdminSubmissions'),tasksBox=document.getElementById('customerRewardAdminTasks');if(!subsBox||!tasksBox)return;
+ try{await adminGuard();const [s,t]=await Promise.all([
+  db.from('customer_reward_submissions').select('id,task_id,user_id,proof_text,status,created_at').eq('status','pending').order('created_at',{ascending:true}),
+  db.from('customer_reward_tasks').select('id,title,is_active,created_at').order('created_at',{ascending:false})
+ ]);if(s.error)throw s.error;if(t.error)throw t.error;
+ const taskMap=new Map((t.data||[]).map(x=>[x.id,x.title]));
+ subsBox.innerHTML=(s.data||[]).map(x=>'<article class="market-card" style="margin:10px 0"><strong>'+escapeHTML(taskMap.get(x.task_id)||'Task')+'</strong><p>Customer: '+escapeHTML(x.user_id)+'</p><p>'+escapeHTML(x.proof_text)+'</p><button class="primary" onclick="reviewCustomerRewardSubmission(\''+x.id+'\',\'approved\')">Approve · award 5 coins</button> <button class="secondary" onclick="reviewCustomerRewardSubmission(\''+x.id+'\',\'rejected\')">Reject</button></article>').join('')||'<p>No pending task submissions.</p>';
+ tasksBox.innerHTML=(t.data||[]).map(x=>'<div class="market-card" style="margin:8px 0"><strong>'+escapeHTML(x.title)+'</strong><p>'+ (x.is_active?'Active':'Paused')+'</p><button class="secondary" onclick="toggleCustomerRewardTask(\''+x.id+'\','+(!x.is_active)+')">'+(x.is_active?'Pause task':'Activate task')+'</button> <button class="secondary" onclick="deleteCustomerRewardTask(\''+x.id+'\')">Delete</button></div>').join('')||'<p>No sponsored tasks created.</p>';
+ }catch(e){subsBox.textContent='Could not load submissions: '+e.message;tasksBox.textContent='Could not load tasks.';}
+}
+async function reviewCustomerRewardSubmission(id,status){
+ try{await adminGuard();const {data:{user}}=await db.auth.getUser();const note=prompt(status==='approved'?'Optional approval note:':'Reason for rejection:','');if(note===null)return;
+ const {error}=await db.from('customer_reward_submissions').update({status,reviewed_by:user.id,reviewed_at:new Date().toISOString(),review_note:note}).eq('id',id).eq('status','pending');if(error)throw error;
+ alert(status==='approved'?'Approved. Five coins have been added to the customer wallet.':'Submission rejected.');await loadCustomerRewardsAdmin();
+ }catch(e){alert(e.message||'Could not review submission.');}
+}
+async function toggleCustomerRewardTask(id,isActive){
+ try{await adminGuard();const {error}=await db.from('customer_reward_tasks').update({is_active:isActive,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;await loadCustomerRewardsAdmin();}catch(e){alert(e.message||'Could not update task.');}
+}
+async function deleteCustomerRewardTask(id){
+ if(!confirm('Delete this task and its submissions?'))return;
+ try{await adminGuard();const {error}=await db.from('customer_reward_tasks').delete().eq('id',id);if(error)throw error;await loadCustomerRewardsAdmin();}catch(e){alert(e.message||'Could not delete task.');}
+}
+
 
 async function uploadProductImage(file,userId){
   if(!file) return null;
