@@ -3184,6 +3184,16 @@ async function saveAdminProduct(){
   }
 }
 
+async function adminSetProductOutOfStock(id){
+ if(!confirm('Mark this product as OUT OF STOCK? It will remain visible, but customers cannot order it.'))return;
+ try{await adminGuard();const {data,error}=await db.from('products').update({stock_quantity:0}).eq('id',id).select('id').maybeSingle();if(error)throw error;if(!data)throw new Error('Product was not updated.');adminMessage('adminProductMessage','Product marked out of stock.');await loadProducts();await loadAdminDashboard();renderAdminProducts();}
+ catch(e){adminMessage('adminProductMessage','Could not mark out of stock: '+e.message);}
+}
+async function adminToggleProductActive(id,active){
+ if(!confirm((active?'Activate':'Deactivate')+' this product?'))return;
+ try{await adminGuard();const {data,error}=await db.from('products').update({is_active:active}).eq('id',id).select('id').maybeSingle();if(error)throw error;if(!data)throw new Error('Product was not updated.');adminMessage('adminProductMessage',active?'Product activated.':'Product deactivated.');await loadProducts();await loadAdminDashboard();renderAdminProducts();}
+ catch(e){adminMessage('adminProductMessage','Could not change product status: '+e.message);}
+}
 async function deleteAdminProduct(id){
   if(!confirm('Delete this product permanently?'))return;
 
@@ -3463,7 +3473,7 @@ async function renderAdminProducts(){
   if(error)throw error;
   adminProductsCache=data||[];
   const rows=adminProductsCache;
-  box.innerHTML=rows.length?'<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Product</th><th>Price</th><th>Review status</th><th>Visibility</th><th>Stock / Colours</th><th>Added by</th><th>Actions</th></tr></thead><tbody>'+rows.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Uncategorised')+'</small></td><td>'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+'</td><td>'+productReviewBadge(p)+'</td><td>'+(p.is_active?'Visible':'Hidden')+'</td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.supplier_id?'Supplier':'RIANDERBLOG / Staff')+'</td><td><button class="secondary" onclick="editAdminProduct(\''+escapeHTML(p.id)+'\')">Edit</button> <button class="remove" onclick="deleteAdminProduct(\''+escapeHTML(p.id)+'\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No products available.';
+  box.innerHTML=rows.length?'<div class="admin-table-wrap"><table class="admin-orders-table" style="min-width:760px"><thead><tr><th>Product</th><th>Price</th><th>Review status</th><th>Visibility</th><th>Stock / Colours</th><th>Added by</th><th>Actions</th></tr></thead><tbody>'+rows.map(p=>'<tr><td><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.category||'Uncategorised')+'</small></td><td>'+escapeHTML(p.currency||'USD')+' '+Number(p.price||0).toFixed(2)+'</td><td>'+productReviewBadge(p)+'</td><td>'+(p.is_active?'Visible':'Hidden')+'</td><td>'+Number(p.stock_quantity||0)+' · '+escapeHTML((p.available_colours||[]).join(', ')||'No colours saved')+'</td><td>'+(p.supplier_id?'Supplier':'RIANDERBLOG / Staff')+'</td><td><button class="secondary" onclick="editAdminProduct(\''+escapeHTML(p.id)+'\')">Edit</button> <button class="secondary" onclick="adminSetProductOutOfStock(\''+escapeHTML(p.id)+'\')">Out of stock</button> <button class="secondary" onclick="adminToggleProductActive(\''+escapeHTML(p.id)+'\','+(!p.is_active)+')">'+(p.is_active?'Deactivate':'Activate')+'</button> <button class="remove" onclick="deleteAdminProduct(\''+escapeHTML(p.id)+'\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'No products available.';
  }catch(e){box.textContent='Could not load products: '+e.message;}
 }
 function adminShowProductSection(section,button){
@@ -3578,6 +3588,7 @@ function displayProducts() {
     const image = safeUrl(p.image_url);
     const description = String(p.description || "Tap to view product details.");
     const shortDescription = description.length > 72 ? description.slice(0, 69).trimEnd() + "…" : description;
+    const outOfStock = Number(p.stock_quantity||0) < Math.max(1,Number(p.minimum_order_quantity||1));
     return `
       <article class="product">
         <button type="button" class="product-card-open" onclick="openDetails('${escapeHTML(p.id)}')" aria-label="View ${escapeHTML(p.name)} details">
@@ -3586,9 +3597,10 @@ function displayProducts() {
         <div class="product-card-info">
           <h3><button type="button" class="product-title-link" onclick="openDetails('${escapeHTML(p.id)}')">${escapeHTML(p.name)}</button></h3>
           <p class="price">${formatPrice(p.price,p.currency || "USD")}</p>
+          ${outOfStock ? '<p class="small-note" style="color:#b42318;font-weight:800">OUT OF STOCK</p>' : ''}
           <div class="product-actions">
             <button class="details-btn" onclick="openDetails('${escapeHTML(p.id)}')">View Details</button>
-            <button class="add" onclick="addToCart('${escapeHTML(p.id)}')">Add to Cart</button>
+            <button class="add" ${outOfStock?'disabled aria-disabled="true"':''} onclick="addToCart('${escapeHTML(p.id)}')">${outOfStock?'Out of Stock':'Add to Cart'}</button>
           </div>
         </div>
       </article>
@@ -3660,8 +3672,9 @@ function openDetails(id) {
         <p><strong>Colours:</strong> ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')}</p>
         <p><strong>Delivery:</strong> within ${Number(p.delivery_days||7)} day(s), maximum 7 days</p>
         ${(p.available_colours||[]).length ? '<label for="chooseColour">Choose colour</label><select id="chooseColour">'+p.available_colours.map(c=>'<option value="'+escapeHTML(c)+'">'+escapeHTML(c)+'</option>').join('')+'</select>' : ''}
-        <div class="small-note" style="margin-top:9px;padding:9px;background:#f5f7fa;border-radius:7px"><strong>Product enquiries:</strong> RIANDERBLOG Admin and Gift Chonde<br><a href="mailto:giftchonde1@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Gift Chonde</a> · <a href="mailto:digdow125@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Admin</a></div>\n        <div class="detail-actions">
-          <button class="detail-add" onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">Add to Cart</button>
+        <div class="small-note" style="margin-top:9px;padding:9px;background:#f5f7fa;border-radius:7px"><strong>Product enquiries:</strong> RIANDERBLOG Admin and Gift Chonde<br><a href="mailto:giftchonde1@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Gift Chonde</a> · <a href="mailto:digdow125@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Admin</a></div>\n        ${Number(p.stock_quantity||0)<Math.max(1,Number(p.minimum_order_quantity||1))?'<p style="color:#b42318;font-weight:800">OUT OF STOCK — this product cannot currently be ordered.</p>':''}
+        <div class="detail-actions">
+          <button class="detail-add" ${Number(p.stock_quantity||0)<Math.max(1,Number(p.minimum_order_quantity||1))?'disabled aria-disabled="true"':''} onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">${Number(p.stock_quantity||0)<Math.max(1,Number(p.minimum_order_quantity||1))?'Out of Stock':'Add to Cart'}</button>
           <button class="detail-buy" onclick="startSupplierConversation('${escapeHTML(p.id)}');closeDetails()">Message Supplier</button>
           <button class="share-product-btn" onclick="shareProduct('${escapeHTML(p.id)}')">↗ Share Product</button>
         </div>
@@ -6110,14 +6123,39 @@ async function loadStaffAddedProducts(){
     const tr=document.createElement('tr');
     const details=document.createElement('td');const strong=document.createElement('strong');strong.textContent=p.name||'Unnamed product';const small=document.createElement('small');small.textContent=(p.category||'Other')+' · '+(p.currency||'MWK')+' '+Number(p.price||0).toFixed(2);details.append(strong,small);
     const stock=document.createElement('td');stock.textContent=Number(p.stock_quantity||0)+' · '+((p.available_colours||[]).join(', ')||'No colours saved');
-    const visibility=document.createElement('td');visibility.textContent=p.is_active?'Visible on marketplace':'Hidden from marketplace';
+    const visibility=document.createElement('td');visibility.textContent=p.is_active?'Active on marketplace':'Deactivated';if(Number(p.stock_quantity||0)<Math.max(1,Number(p.minimum_order_quantity||1)))visibility.textContent+=' · OUT OF STOCK';
     const review=document.createElement('td');review.textContent=p.review_status||'pending';
-    const action=document.createElement('td');const edit=document.createElement('button');edit.className='primary';edit.type='button';edit.textContent='Edit product';edit.addEventListener('click',()=>staffEditMarketplaceProduct(p.id));action.appendChild(edit);
+    const action=document.createElement('td');action.style.display='flex';action.style.flexWrap='wrap';action.style.gap='6px';
+    const edit=document.createElement('button');edit.className='primary';edit.type='button';edit.textContent='Edit product';edit.addEventListener('click',()=>staffEditMarketplaceProduct(p.id));action.appendChild(edit);
+    const stockOut=document.createElement('button');stockOut.className='secondary';stockOut.type='button';stockOut.textContent='Mark out of stock';stockOut.disabled=Number(p.stock_quantity||0)===0;stockOut.addEventListener('click',()=>staffSetProductOutOfStock(p.id,p.name));action.appendChild(stockOut);
+    const toggle=document.createElement('button');toggle.className='secondary';toggle.type='button';toggle.textContent=p.is_active?'Deactivate':'Activate';toggle.addEventListener('click',()=>staffSetProductActive(p.id,p.name,!p.is_active));action.appendChild(toggle);
+    const remove=document.createElement('button');remove.type='button';remove.style.cssText='background:#fee2e2;color:#991b1b';remove.textContent='Delete';remove.addEventListener('click',()=>staffDeleteMarketplaceProduct(p.id,p.name));action.appendChild(remove);
     tr.append(details,stock,visibility,review,action);tbody.appendChild(tr);
    });
    table.appendChild(tbody);wrap.appendChild(table);box.replaceChildren(wrap);
   }catch(e){box.textContent='Could not load staff-added products: '+(e.message||String(e));}
  }
+async function staffUpdateMarketplaceProduct(id,changes,successMessage){
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(error)throw error;if(!user)throw new Error('Please sign in again.');
+  const {data,error:updateError}=await db.from('products').update(changes).eq('id',id).is('supplier_id',null).select('id').maybeSingle();
+  if(updateError)throw updateError;if(!data)throw new Error('No product was changed. Check that your staff account has Add Products permission.');
+  alert(successMessage);await loadProducts();await loadStaffAddedProducts();
+ }catch(e){alert('Could not update product: '+(e.message||e));}
+}
+async function staffSetProductOutOfStock(id,name){
+ if(!confirm('Mark "'+name+'" as OUT OF STOCK? The product will remain listed, but customers cannot add it to their cart.'))return;
+ await staffUpdateMarketplaceProduct(id,{stock_quantity:0},'Product marked out of stock.');
+}
+async function staffSetProductActive(id,name,active){
+ if(!confirm((active?'Activate':'Deactivate')+' "'+name+'"?'))return;
+ await staffUpdateMarketplaceProduct(id,{is_active:active},active?'Product activated.':'Product deactivated.');
+}
+async function staffDeleteMarketplaceProduct(id,name){
+ if(!confirm('Permanently delete "'+name+'"? This cannot be undone.'))return;
+ try{const {error}=await db.from('products').delete().eq('id',id).is('supplier_id',null);if(error)throw error;alert('Product permanently deleted.');await loadProducts();await loadStaffAddedProducts();}
+ catch(e){alert('Could not delete product: '+(e.message||e));}
+}
 async function staffEditMarketplaceProduct(id){
  try{
   const {data:{user},error:userError}=await db.auth.getUser();if(userError)throw userError;if(!user)throw new Error('Please sign in again.');
