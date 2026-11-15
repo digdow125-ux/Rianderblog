@@ -2481,7 +2481,28 @@ async function renderAdminThread(id,log){const {data,error}=await db.from('suppo
 
 function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.innerHTML=open?'<span aria-hidden="true">✕</span><span class="menu-toggle-label">Close</span>':'<span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span>';}
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const more=document.querySelector(".nav-more");if(links){links.classList.remove("open");if(window.matchMedia("(max-width:650px)").matches){links.style.display="none";}else{links.style.removeProperty("display");}}if(more)more.open=false;if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.innerHTML='<span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span>';}}
-function showSection(id){
+async function showSection(id){
+  // Enforce administrator access on the server before opening the Admin Dashboard.
+  if(id==="adminPanel"){
+    try{
+      const {data,error}=await db.rpc('is_riander_admin');
+      if(error||data!==true)throw new Error('Only the owner and invited active Admin Support Staff can open the Admin Dashboard.');
+    }catch(error){
+      alert(error?.message||'Administrator access is required.');
+      return false;
+    }
+  }
+  // External affiliate controls remain exclusive to the main owner.
+  if(id==="externalAffiliateManagement"){
+    try{
+      const {data:{user},error}=await db.auth.getUser();
+      if(error)throw error;
+      if(!user||user.id!==ADMIN_USER_ID)throw new Error('Only the main RIANDERBLOG owner can open Affiliate Management.');
+    }catch(error){
+      alert(error?.message||'Owner access is required.');
+      return false;
+    }
+  }
   if(id==="account"){
     (async()=>{
       try{
@@ -2786,10 +2807,10 @@ async function adminSetSupportStaffStatus(userId,nextStatus){
 }
 
 function adminShowTab(tab) {
-  if (!isAdminSession(
-    db.auth.getSession ? window.currentAdminUser : null
-  )) {
-    // The database session is checked again by adminGuard below.
+  // Only the main owner may view or manage the Admin Support Staff invitation list.
+  if(tab==="supportStaff"&&(!window.currentAdminUser||window.currentAdminUser.id!==ADMIN_USER_ID)){
+    alert('Only the main RIANDERBLOG owner can manage Admin Support Staff invitations.');
+    return false;
   }
 
   document.querySelectorAll(".admin-tab").forEach(el => {
