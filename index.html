@@ -1401,6 +1401,20 @@ main{max-width:1440px}
 .currency-bar{border-radius:12px;box-shadow:0 3px 12px rgba(22,48,78,.035)}
 @media(max-width:650px){#productList .product{border-radius:10px}#productList .product-card-open img,#productList .product-image-placeholder{height:clamp(88px,27vw,130px)}#productList .product h3{min-height:2.6em}#productList .product-actions{gap:4px}#productList .product-actions button{padding:6px 3px;font-size:9px}}
 @media(prefers-reduced-motion:reduce){#productList .product{transition:none}}
+
+/* Centre the menu control and its dropdown inside the navigation bar.
+   The notification bell stays in its existing header-actions position. */
+nav{justify-content:center !important;align-items:center !important;}
+.menu-toggle{display:block !important;margin-left:auto !important;margin-right:auto !important;align-self:center !important;}
+.nav-links{left:50% !important;right:auto !important;transform:translateX(-50%) !important;}
+@media(max-width:650px){
+ nav{justify-content:center !important;align-items:center !important;}
+ .menu-toggle{margin-left:auto !important;margin-right:auto !important;}
+ .nav-links{left:50% !important;right:auto !important;width:min(320px,calc(100vw - 36px));max-width:calc(100vw - 36px);transform:translateX(-50%) !important;}
+}
+/* Keep the notification control anchored exactly in the header action group. */
+.header-actions{position:relative !important;display:flex !important;align-items:center !important;}
+.notification-bell{position:relative !important;flex:0 0 43px !important;}
 </style>
 </head>
 <body>
@@ -1854,7 +1868,7 @@ main{max-width:1440px}
 <div id="staffTaskWorkspace" style="display:none">
 <div id="staffProductAction" style="display:none;margin:16px 0"><button type="button" class="primary" onclick="toggleStaffProductForm()">＋ Add Product</button><p class="small-note">Tap the button whenever you need to add a marketplace product.</p></div>
 <div id="staffProductCreatePanel" class="admin-tools" style="display:none;margin:16px 0;padding:16px;border:1px solid #e5e8ee;border-radius:12px;background:#fff">
-<h3>Add a marketplace product</h3><p class="small-note">Add a product listing with 1–5 pictures. Your listing will appear on the marketplace. Staff can add products but cannot edit or delete existing listings.</p>
+<h3>Add a marketplace product</h3><p class="small-note">Add a product listing with 1–5 pictures. Your listing will appear on the marketplace. Staff can add products. Any active staff member can edit pictures on team-added marketplace products; only authorised staff can edit other product details.</p>
 <div class="staff-permission-grid">
 <label>Product name<input id="staffNewProductName" type="text" placeholder="Product name" style="display:block;width:100%;padding:10px"></label>
 <label>Price<input id="staffNewProductPrice" type="number" min="0" step="0.01" placeholder="0.00" style="display:block;width:100%;padding:10px"></label>
