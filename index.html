@@ -1547,6 +1547,8 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
  #adminPanel .admin-quick-card{padding:9px!important}
 }
 
+/* Permission-controlled menu items stay hidden until role checks finish. */
+#navLinks a[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -1582,10 +1584,10 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <a href="#affiliates" onclick="showSection('affiliates');closeMenu();return false">Affiliate centre</a>
     <a href="#currency" onclick="showSection('currencySettings');closeMenu();return false">Change currency</a>
     <a href="#payments" onclick="showSection('payments');closeMenu();return false">Payment help</a>
-    <a href="#adminPanel" id="adminNavLink" class="admin-only" onclick="showSection('adminPanel');closeMenu();return false">Admin panel</a>
-    <a href="#adminPanel" id="navAffiliateManagement" class="admin-only" onclick="openExternalAffiliateManagement();closeMenu();return false">Affiliate Management</a>
-    <a href="#recommendedDeals" onclick="showSection('recommendedDeals');loadExternalAffiliateDeals();closeMenu();return false">Recommended Deals</a>
-    <a href="#staffPanel" id="navStaffPanel" style="display:none" onclick="showSection('staffPanel');closeMenu();return false">Staff panel</a>
+    <a href="#adminPanel" id="adminNavLink" class="admin-only" hidden style="display:none" onclick="showSection('adminPanel');closeMenu();return false">Admin panel</a>
+    <a href="#adminPanel" id="navAffiliateManagement" class="admin-only" hidden style="display:none" onclick="openExternalAffiliateManagement();closeMenu();return false">Affiliate Management</a>
+    <a href="#recommendedDeals" id="navRecommendedDeals" hidden style="display:none" onclick="showSection('recommendedDeals');loadExternalAffiliateDeals();closeMenu();return false">Recommended Deals</a>
+    <a href="#staffPanel" id="navStaffPanel" hidden style="display:none" onclick="showSection('staffPanel');closeMenu();return false">Staff panel</a>
   </div>
 </nav>
 <main>
@@ -2602,12 +2604,17 @@ async function updateAdminVisibility(user) {
  // Navigation controls are permission-gated, but page sections stay hidden until
  // showSection() is explicitly called. This prevents Admin Dashboard and Visitor
  // Reports from being appended underneath the storefront Products section.
- const adminNav=document.getElementById('adminNavLink');
- if(adminNav)adminNav.style.display=canAdmin?'inline-flex':'none';
- const affiliateNav=document.getElementById('navAffiliateManagement');
- if(affiliateNav)affiliateNav.style.display=canAdmin?'inline-flex':'none';
- const dealsNav=document.querySelector('a[href="#recommendedDeals"]');
- if(dealsNav)dealsNav.style.display=canAdmin?'inline-flex':'none';
+ const setNavAccess=(id,allowed)=>{
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.hidden=!allowed;
+  el.style.display=allowed?'inline-flex':'none';
+  el.setAttribute('aria-hidden',allowed?'false':'true');
+ };
+ setNavAccess('adminNavLink',canAdmin);
+ setNavAccess('navAffiliateManagement',canAdmin);
+ setNavAccess('navRecommendedDeals',canAdmin);
+ setNavAccess('navStaffPanel',teamAccess);
  const adminPanel=document.getElementById('adminPanel');
  if(adminPanel)adminPanel.style.display='none';
  const visitorPanel=document.getElementById('visitorAnalyticsPanel');
