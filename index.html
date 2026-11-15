@@ -2456,16 +2456,33 @@ async function updateAdminVisibility(user) {
  window.rianderAdminSupportMembership=adminSupport;
  const canAdmin=owner||!!adminSupport;
  const canViewVisitorAnalytics=owner||String(user?.email||'').trim().toLowerCase()==='giftchonde1@gmail.com';
- document.querySelectorAll('.admin-only').forEach(el=>{
-  if(el.id==='adminNavLink')el.style.display=canAdmin?'inline-flex':'none';
-  else if(el.id==='adminPanel')el.style.display=canAdmin?'block':'none';
-  else if(['navAffiliateManagement','navPromotionHub','externalAffiliateManagement'].includes(el.id))el.style.display=owner?'inline-flex':'none';
-  else if(el.id==='navVisitorAnalytics')el.style.display=canViewVisitorAnalytics?'inline-flex':'none';
-  else el.style.display=owner?'':'none';
- });
- const hub=document.getElementById('navPromotionHub');if(hub)hub.style.display=owner||hasHubTask?'inline-flex':'none';
- const link=document.getElementById('navStaffPanel');if(link)link.style.display='inline-flex';
- const staffTab=document.getElementById('adminSupportStaffTabButton');if(staffTab)staffTab.style.display=owner?'':'none';
+
+ // Navigation controls are permission-gated, but page sections stay hidden until
+ // showSection() is explicitly called. This prevents Admin Dashboard and Visitor
+ // Reports from being appended underneath the storefront Products section.
+ const adminNav=document.getElementById('adminNavLink');
+ if(adminNav)adminNav.style.display=canAdmin?'inline-flex':'none';
+ const affiliateNav=document.getElementById('navAffiliateManagement');
+ if(affiliateNav)affiliateNav.style.display=owner?'inline-flex':'none';
+ const adminPanel=document.getElementById('adminPanel');
+ if(adminPanel)adminPanel.style.display='none';
+ const visitorPanel=document.getElementById('visitorAnalyticsPanel');
+ if(visitorPanel)visitorPanel.style.display='none';
+ const externalAffiliate=document.getElementById('externalAffiliateManagement');
+ if(externalAffiliate)externalAffiliate.style.display=owner?'':'none';
+ const hub=document.getElementById('navPromotionHub');
+ if(hub)hub.style.display=owner||hasHubTask?'inline-flex':'none';
+ const staffLink=document.getElementById('navStaffPanel');
+ if(staffLink)staffLink.style.display='inline-flex';
+ const staffTab=document.getElementById('adminSupportStaffTabButton');
+ if(staffTab)staffTab.style.display=owner?'':'none';
+
+ // Keep Website Visitors accessible at the top of Staff Panel for authorised viewers.
+ const visitorLink=document.getElementById('staffViewerAnalyticsLink');
+ if(visitorLink)visitorLink.style.display=canViewVisitorAnalytics?'inline-flex':'none';
+ const visitorNote=document.getElementById('staffViewerAnalyticsNote');
+ if(visitorNote)visitorNote.style.display=canViewVisitorAnalytics?'none':'block';
+
  const status=document.getElementById('adminStatus');
  if(status)status.textContent=owner?'Owner access verified. You control RIANDERBLOG and all administrator assignments.':canAdmin?'Admin Support Staff access verified. You can manage marketplace operations using your own account.':'Administrator access is restricted.';
  if(canAdmin){loadAdminDashboard();loadAdminSupportInbox();loadAdminOrdersTable();}
