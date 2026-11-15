@@ -2193,6 +2193,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
       </form>
     </div>
     <h3>Customer task submissions</h3><div id="customerRewardAdminSubmissions">Loading…</div>
+    <h3 style="margin-top:24px">Discount vouchers to apply at checkout</h3><div id="customerRewardAdminVouchers">Loading…</div>
     <h3 style="margin-top:24px">Published tasks</h3><div id="customerRewardAdminTasks">Loading…</div>
   </div>
    <div id="adminTab-overview" class="admin-tab">
@@ -2662,6 +2663,7 @@ async function showSection(id){
 try{
   if(id==="cart"&&typeof updateCart==="function")updateCart();
   if(id==="dashboard"&&typeof showDashboard==="function")showDashboard();
+  if(id==="customerRewards"&&typeof loadCustomerRewardsDashboard==="function")loadCustomerRewardsDashboard();
   if(id==="suppliers"&&typeof renderSuppliers==="function")renderSuppliers();
 if(id==="suppliers"&&typeof supplierShowMainPage==="function")supplierShowMainPage('centre');
 if(id==="suppliers"&&typeof loadSupplierWorkspace==="function")loadSupplierWorkspace();
@@ -3409,7 +3411,7 @@ async function submitCustomerRewardProof(taskId){
 async function redeemCustomerRewardDiscount(){
  const btn=document.getElementById('redeemCustomerRewardButton'),msg=document.getElementById('customerRewardRedeemMessage');if(btn)btn.disabled=true;if(msg)msg.textContent='Processing your discount voucher…';
  try{const {data,error}=await db.rpc('redeem_customer_reward_discount');if(error)throw error;const row=Array.isArray(data)?data[0]:data;if(!row)throw new Error('No voucher was returned.');
- const box=document.getElementById('customerRewardVoucher');if(box)box.innerHTML='<div class="market-card"><h3>MWK 500 discount voucher issued</h3><p>Your voucher code: <strong>'+escapeHTML(row.voucher_code)+'</strong></p><p>Use this code for a RIANDERBLOG purchase. It is a shopping discount, not cash.</p></div>';
+ const box=document.getElementById('customerRewardVoucher');if(box)box.innerHTML='<div class="market-card"><h3>MWK 500 discount voucher issued</h3><p>Your voucher code: <strong>'+escapeHTML(row.voucher_code)+'</strong></p><p>Show this voucher to RIANDERBLOG support at checkout so the MWK 500 discount can be applied. It is not cash.</p></div>';
  if(msg)msg.textContent='1,000 coins redeemed successfully.';await loadCustomerRewardsDashboard();
  }catch(e){if(msg)msg.textContent=e.message||'Could not redeem coins.';if(btn)btn.disabled=false;}
 }
@@ -3429,6 +3431,7 @@ async function loadCustomerRewardsAdmin(){
  ]);if(s.error)throw s.error;if(t.error)throw t.error;
  const taskMap=new Map((t.data||[]).map(x=>[x.id,x.title]));
  subsBox.innerHTML=(s.data||[]).map(x=>'<article class="market-card" style="margin:10px 0"><strong>'+escapeHTML(taskMap.get(x.task_id)||'Task')+'</strong><p>Customer: '+escapeHTML(x.user_id)+'</p><p>'+escapeHTML(x.proof_text)+'</p><button class="primary" onclick="reviewCustomerRewardSubmission(\''+x.id+'\',\'approved\')">Approve · award 5 coins</button> <button class="secondary" onclick="reviewCustomerRewardSubmission(\''+x.id+'\',\'rejected\')">Reject</button></article>').join('')||'<p>No pending task submissions.</p>';
+ const voucherBox=document.getElementById('customerRewardAdminVouchers');if(voucherBox)voucherBox.innerHTML=(v.data||[]).map(x=>'<div class="market-card" style="margin:8px 0"><strong>'+escapeHTML(x.voucher_code)+'</strong><p>Customer ID: '+escapeHTML(x.user_id)+' · MWK '+Number(x.discount_mwk).toLocaleString()+' · '+escapeHTML(x.status)+'</p>'+(x.status==='issued'?'<button class="secondary" onclick="markCustomerRewardVoucherUsed(\\''+x.id+'\\')">Mark discount used</button>':'')+'</div>').join('')||'<p>No discount vouchers have been redeemed.</p>';
  tasksBox.innerHTML=(t.data||[]).map(x=>'<div class="market-card" style="margin:8px 0"><strong>'+escapeHTML(x.title)+'</strong><p>'+ (x.is_active?'Active':'Paused')+'</p><button class="secondary" onclick="toggleCustomerRewardTask(\''+x.id+'\','+(!x.is_active)+')">'+(x.is_active?'Pause task':'Activate task')+'</button> <button class="secondary" onclick="deleteCustomerRewardTask(\''+x.id+'\')">Delete</button></div>').join('')||'<p>No sponsored tasks created.</p>';
  }catch(e){subsBox.textContent='Could not load submissions: '+e.message;tasksBox.textContent='Could not load tasks.';}
 }
@@ -3440,6 +3443,11 @@ async function reviewCustomerRewardSubmission(id,status){
 }
 async function toggleCustomerRewardTask(id,isActive){
  try{await adminGuard();const {error}=await db.from('customer_reward_tasks').update({is_active:isActive,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;await loadCustomerRewardsAdmin();}catch(e){alert(e.message||'Could not update task.');}
+}
+async function markCustomerRewardVoucherUsed(id){
+ try{await adminGuard();if(!confirm('Confirm that the MWK 500 shopping discount has been applied to this customer order?'))return;
+ const {error}=await db.from('customer_reward_redemptions').update({status:'used',used_at:new Date().toISOString()}).eq('id',id).eq('status','issued');if(error)throw error;await loadCustomerRewardsAdmin();
+ }catch(e){alert(e.message||'Could not update voucher status.');}
 }
 async function deleteCustomerRewardTask(id){
  if(!confirm('Delete this task and its submissions?'))return;
