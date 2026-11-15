@@ -1415,6 +1415,10 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
 .header-actions{position:relative !important;display:flex !important;align-items:center !important;}
 .notification-bell{position:relative !important;flex:0 0 43px !important;}
 
+/* Keep the hamburger icon and Menu label together in the original left-side button. */
+.menu-toggle{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;width:auto!important;min-width:88px!important;height:42px!important;padding:0 11px!important;font-size:14px!important;font-weight:800!important;white-space:nowrap!important;}
+.menu-toggle>span[aria-hidden="true"]{font-size:24px;line-height:1}
+.menu-toggle-label{font-size:13px;line-height:1}
 /* Compact dashboard and staff cards for Android phone screens. */
 @media(max-width:650px){
  #adminPanel .admin-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
