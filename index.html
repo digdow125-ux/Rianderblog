@@ -5652,7 +5652,7 @@ async function loadSupplierOrders(supplierId){
       return;
     }
     const orderIds=[...new Set(items.map(item=>item.order_id).filter(Boolean))];
-    const ordersResult=await db.from('orders').select('id,order_number,customer_name,customer_email,customer_phone,shipping_address,currency,payment_status,order_status,created_at').in('id',orderIds);
+    const ordersResult=await db.from('orders').select('id,order_number,customer_name,customer_email,customer_phone,shipping_address,currency,payment_status,order_status,created_at').in('id',orderIds).neq('order_status','expired');
     if(ordersResult.error)throw ordersResult.error;
     const ordersById=new Map((ordersResult.data||[]).map(order=>[order.id,order]));
     const rows=items.map(item=>({item,order:ordersById.get(item.order_id)})).filter(row=>row.order);
