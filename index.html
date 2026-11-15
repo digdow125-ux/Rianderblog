@@ -6476,7 +6476,7 @@ async function loadStaffTasks(p){
  if(viewerNote)viewerNote.textContent=canViewTeamAnalytics?'Open visitor statistics, popular pages and audience activity.':'Website viewer reports are restricted to authorised accounts.';
  const panels={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks',other:'staffOtherTasks'};
  for(const [key,id] of Object.entries(panels)){const el=document.getElementById(id)?.closest('section');if(el)el.style.display=deliveryOnly?(key==='delivery'?'block':'none'):(key==='delivery'?'none':'block');}
- const socialPanel=document.getElementById('staffSocialNote')?.closest('section');if(socialPanel)socialPanel.style.display=generalAccess?'block':'none';
+ const socialPanel=document.getElementById('staffSocialNote')?.closest('details');if(socialPanel)socialPanel.style.display=generalAccess?'block':'none';
  const sections={supplier:[],product:[],order:[],delivery:[],fulfilment:[],other:[]};
  for(const t of tasks){
   let html='<div class="staff-task-row"><strong>'+escapeHTML(t.title)+'</strong><small>'+escapeHTML(t.instructions||'No extra instructions')+'</small><small><b>Status:</b> '+escapeHTML(t.status)+' · <b>Due:</b> '+escapeHTML(t.due_at?new Date(t.due_at).toLocaleString():'Not set')+'</small>';
