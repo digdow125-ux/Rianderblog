@@ -1722,6 +1722,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <div id="supplierCentrePage" style="display:none">
     <div class="supplier-centre-intro"><p class="small-note">Choose a section below. Set your business GPS location so nearby customers can qualify for the lower minimum order.</p><button type="button" class="primary" onclick="saveSupplierGpsLocation()">📍 Set / update my business location</button><p id="supplierGpsStatus" class="small-note" aria-live="polite"></p></div>
     <div class="supplier-centre-menu" id="supplierCentreMenu" aria-label="Supplier Centre navigation">
+      <button type="button" class="primary" data-notify-highlight="suppliers" data-supplier-page="dashboard" onclick="supplierNavigateTo('supplierDashboardArea')">🏠 Dashboard</button>
       <button type="button" class="primary" data-notify-highlight="suppliers" data-supplier-page="application" onclick="supplierNavigateTo('application')">📝 Supplier application</button>
       <button type="button" data-notify-highlight="suppliers" data-supplier-page="add-product" onclick="supplierNavigateTo('supplierProductName')">➕ Add / manage products</button>
       <button type="button" data-notify-highlight="suppliers" data-supplier-page="my-products" onclick="supplierNavigateTo('supplierProductList')">🛍️ My products</button>
@@ -1755,6 +1756,17 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
 <div class="listing" style="margin-top:0">
   <h3>📦 Supplier Workspace</h3>
 
+  <div id="supplierDashboardArea" class="listing" style="display:none;margin-top:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div><span class="supplier-kicker">YOUR BUSINESS OVERVIEW</span><h3 style="margin:5px 0">Seller Dashboard</h3><p class="small-note">Live figures from your own approved products and orders.</p></div>
+      <button type="button" class="secondary" onclick="loadSupplierDashboard()">↻ Refresh</button>
+    </div>
+    <p id="supplierDashboardStatus" class="small-note" aria-live="polite">Loading your business data…</p>
+    <div id="supplierDashboardStats" class="market-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px"></div>
+    <div class="listing" style="margin-top:18px"><h4>Sales performance</h4><p class="small-note">Paid supplier-item sales by month. Different currencies are kept separate.</p><div id="supplierDashboardChart" style="display:grid;gap:10px"></div></div>
+    <div class="listing" style="margin-top:18px"><h4>Recent customers</h4><div id="supplierDashboardCustomers" class="admin-table-wrap">Loading customer list…</div></div>
+    <p class="small-note">Conversion rate and live product visitors are not displayed yet because RIANDERBLOG does not currently record seller-specific product-page visits. This avoids showing invented figures.</p>
+  </div>
   <div id="supplierProductsArea">
   <p class="small-note">
     Manage your products after your supplier application is approved.
@@ -4977,7 +4989,7 @@ function supplierShowMainPage(page){
   if(overview||isCentre){
     const app=document.getElementById('supplierApplicationPage'),work=document.getElementById('supplierWorkspacePanel');
     if(app)app.style.display='none';if(work)work.style.display='none';
-    ['supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+    ['supplierDashboardArea','supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
     const menu=document.getElementById('supplierCentreMenu');
     if(menu)menu.querySelectorAll('button[data-supplier-page]').forEach(b=>{b.classList.remove('primary');b.setAttribute('aria-current','false');});
   }
@@ -5019,6 +5031,7 @@ function supplierShowMainPage(page){
 }
 function supplierNavigateTo(elementId){
   const groups={
+    supplierDashboardArea:{group:'supplierDashboardArea',page:'dashboard'},
     supplierProductName:{group:'supplierProductsArea',page:'add-product'},
     supplierProductList:{group:'supplierProductsArea',page:'my-products'},
     supplierOrdersTable:{group:'supplierOrdersArea',page:'orders'},
@@ -5034,10 +5047,11 @@ function supplierNavigateTo(elementId){
   supplierShowMainPage('centre');
   if(application)application.style.display=appOnly?'block':'none';
   if(workspace)workspace.style.display=appOnly?'none':'block';
-  ['supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{
+  ['supplierDashboardArea','supplierProductsArea','supplierOrdersArea','supplierFulfilmentArea','supplierWalletArea'].forEach(id=>{
     const section=document.getElementById(id);
     if(section)section.style.display=selected&&selected.group===id?'block':'none';
   });
+  if(selected&&selected.group==='supplierDashboardArea')loadSupplierDashboard();
   if(menu)menu.querySelectorAll('button[data-supplier-page]').forEach(button=>{
     const active=button.dataset.supplierPage===(appOnly?'application':selected.page);
     button.classList.toggle('primary',active);
@@ -5455,6 +5469,62 @@ async function loadSupplierWorkspace(){
     const box=document.getElementById('supplierProductList');
     if(box) box.textContent='Your supplier products will appear here after approval.';
   }
+}
+
+async function loadSupplierDashboard(){
+ const status=document.getElementById('supplierDashboardStatus');
+ const statsBox=document.getElementById('supplierDashboardStats');
+ const chartBox=document.getElementById('supplierDashboardChart');
+ const customersBox=document.getElementById('supplierDashboardCustomers');
+ if(!currentSupplierRecord){if(status)status.textContent='Sign in with an approved supplier account to view this dashboard.';return;}
+ if(status)status.textContent='Refreshing your latest sales and customer data…';
+ try{
+  const supplierId=currentSupplierRecord.id;
+  const [productResult,itemResult]=await Promise.all([
+   db.from('products').select('id,is_active,review_status').eq('supplier_id',supplierId),
+   db.from('order_items').select('id,order_id,product_name,quantity,unit_price,created_at').eq('supplier_id',supplierId).order('created_at',{ascending:false})
+  ]);
+  if(productResult.error)throw productResult.error;
+  if(itemResult.error)throw itemResult.error;
+  const items=itemResult.data||[];
+  const orderIds=[...new Set(items.map(x=>x.order_id).filter(Boolean))];
+  let orders=[];
+  if(orderIds.length){
+   const orderResult=await db.from('orders').select('id,order_number,user_id,customer_name,customer_email,currency,payment_status,order_status,created_at,total_amount').in('id',orderIds).neq('order_status','expired');
+   if(orderResult.error)throw orderResult.error;
+   orders=orderResult.data||[];
+  }
+  const orderMap=new Map(orders.map(o=>[o.id,o]));
+  const rows=items.map(item=>({item,order:orderMap.get(item.order_id)})).filter(x=>x.order);
+  const paidRows=rows.filter(x=>x.order.payment_status==='paid'&&!['cancelled','expired','rejected'].includes(x.order.order_status));
+  const sums={};
+  paidRows.forEach(({item,order})=>{const cur=order.currency||'USD';sums[cur]=(sums[cur]||0)+Number(item.unit_price||0)*Number(item.quantity||0);});
+  const fmt=Object.entries(sums).length?Object.entries(sums).map(([c,v])=>c+' '+v.toFixed(2)).join(' · '):'0.00';
+  const customerKeys=new Set(rows.map(({order})=>order.customer_email||order.user_id||order.customer_name).filter(Boolean));
+  const productCount=(productResult.data||[]).length;
+  const activeCount=(productResult.data||[]).filter(p=>p.is_active&&p.review_status==='approved').length;
+  const cards=[
+   ['Total sales',fmt,'Paid orders only'],
+   ['Orders',String(new Set(rows.map(x=>x.order.id)).size),'Orders containing your products'],
+   ['Products',String(productCount),activeCount+' approved & active'],
+   ['Customers',String(customerKeys.size),'Distinct customer accounts / contacts']
+  ];
+  if(statsBox)statsBox.innerHTML=cards.map(([label,value,note])=>'<div class="listing" style="margin:0;padding:15px"><div class="small-note">'+escapeHTML(label)+'</div><strong style="display:block;color:#173452;font-size:20px;margin:7px 0;overflow-wrap:anywhere">'+escapeHTML(value)+'</strong><div class="small-note">'+escapeHTML(note)+'</div></div>').join('');
+  const monthTotals={};
+  paidRows.forEach(({item,order})=>{const date=new Date(order.created_at||item.created_at||Date.now());const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0');const cur=order.currency||'USD';const k=key+'|'+cur;monthTotals[k]=(monthTotals[k]||0)+Number(item.unit_price||0)*Number(item.quantity||0);});
+  const monthEntries=Object.entries(monthTotals).sort(([a],[b])=>a.localeCompare(b)).slice(-6);
+  if(chartBox){
+   if(!monthEntries.length)chartBox.innerHTML='<p class="small-note">No paid sales recorded yet. Your sales trend will appear here after orders are paid.</p>';
+   else chartBox.innerHTML=monthEntries.map(([key,val])=>{const [month,cur]=key.split('|');const max=Math.max(...monthEntries.filter(x=>x[0].endsWith('|'+cur)).map(x=>x[1]),1);const pct=Math.max(3,Math.round(val/max*100));return '<div><div style="display:flex;justify-content:space-between;gap:10px;font-size:12px"><strong>'+escapeHTML(month)+'</strong><span>'+escapeHTML(cur)+' '+val.toFixed(2)+'</span></div><div style="height:9px;background:#edf1f6;border-radius:8px;overflow:hidden;margin-top:5px"><div style="height:100%;width:'+pct+'%;background:#c69b4b;border-radius:8px"></div></div></div>';}).join('');
+  }
+  if(customersBox){
+   const byCustomer=new Map();
+   rows.forEach(({item,order})=>{const key=order.customer_email||order.user_id||order.customer_name||'unknown';if(!byCustomer.has(key))byCustomer.set(key,{name:order.customer_name||'Customer',email:order.customer_email||'—',orders:new Set(),last:order.created_at});const c=byCustomer.get(key);c.orders.add(order.id);if(order.created_at&&(!c.last||order.created_at>c.last))c.last=order.created_at;});
+   const customers=[...byCustomer.values()].sort((a,b)=>String(b.last||'').localeCompare(String(a.last||''))).slice(0,30);
+   customersBox.innerHTML=customers.length?'<table><thead><tr><th>Customer</th><th>Orders</th><th>Last order</th></tr></thead><tbody>'+customers.map(c=>'<tr><td><strong>'+escapeHTML(c.name)+'</strong><small>'+escapeHTML(c.email)+'</small></td><td>'+c.orders.size+'</td><td>'+escapeHTML(c.last?new Date(c.last).toLocaleDateString():'—')+'</td></tr>').join('')+'</tbody></table>':'<p class="small-note">Your customer list will appear after customers place orders for your products.</p>';
+  }
+  if(status)status.textContent='Updated just now. Sales include paid orders only; pending and expired orders are excluded.';
+ }catch(error){if(status)status.textContent='Dashboard could not load: '+(error?.message||String(error));}
 }
 
 async function loadSupplierProducts(supplierId){
