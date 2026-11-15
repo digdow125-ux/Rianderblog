@@ -756,6 +756,9 @@ main{max-width:1220px}
 #adminPanel .admin-orders-table tbody tr:hover{background:#f8fafc}
 #adminPanel .admin-orders-table td strong,#adminPanel .admin-orders-table td small{display:block}
 #adminPanel .admin-orders-table td small{margin-top:4px;color:#8190a1;font-size:10px;overflow-wrap:anywhere}
+#adminPanel .admin-orders-table td:first-child{width:190px;max-width:190px}
+#adminPanel .admin-orders-table td:first-child small:first-of-type{max-width:165px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+#orderTracking .customer-order-items strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;max-width:100%}
 #adminPanel .admin-orders-table .admin-order-amount{font-weight:800;white-space:nowrap;color:#183957}
 #adminPanel .admin-order-pill{display:inline-block;padding:5px 8px;border-radius:20px;background:#edf3f8;color:#365875;font-size:10px;font-weight:700}
 #adminPanel .admin-order-manage summary{cursor:pointer;padding:8px 10px;border:1px solid #dce5ef;border-radius:7px;color:#21496f;font-weight:700;white-space:nowrap}
@@ -3132,7 +3135,7 @@ async function loadAdminOrdersTable() {
           <tbody>
             ${data.map(order => `
               <tr>
-                <td><strong>${escapeHTML(order.order_number||order.id)}</strong><small>${escapeHTML((adminItemsByOrder[order.id]||[]).map(item=>(item.product_name||'Product')+' × '+Number(item.quantity||1)).join(', ')||'Item details unavailable')}</small><small>${escapeHTML(order.currency||'')}</small></td>
+                <td><strong>${escapeHTML(order.order_number||order.id)}</strong><small>${escapeHTML((adminItemsByOrder[order.id]||[]).map(item=>orderItemDisplayName(item.product_name)+' × '+Number(item.quantity||1)).join(', ')||'Item details unavailable')}</small><small>${escapeHTML(order.currency||'')}</small></td>
                 <td><strong>${escapeHTML(order.customer_name||'Customer')}</strong><small>${escapeHTML(order.customer_email||'')}</small></td>
                 <td class="admin-order-amount">${escapeHTML(order.currency||'')} ${escapeHTML(Number(order.total_amount||0).toFixed(2))}</td>
                 <td><span class="admin-order-pill">${escapeHTML(order.payment_status||'unknown')}</span></td>
@@ -4507,6 +4510,10 @@ function orderStatusLabel(status){
 function orderStatusRank(status){
   return ['awaiting_admin_approval','processing','shipped','delivered'].indexOf(status);
 }
+function orderItemDisplayName(value,maxLength=42){
+ const name=String(value||'Product').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()||'Product';
+ return name.length>maxLength?name.slice(0,maxLength-1).trimEnd()+'…':name;
+}
 function renderCustomerOrderTracking(order,updates){
   const status=order.order_status||'awaiting_payment';
   const steps=[
@@ -4532,7 +4539,7 @@ function renderCustomerOrderTracking(order,updates){
         <div><span class="customer-order-kicker">ORDER REFERENCE</span><h3>${escapeHTML(order.order_number||order.id)}</h3><small>Placed ${escapeHTML(new Date(order.created_at).toLocaleString())}</small></div>
         <span class="customer-order-status ${status==='delivered'?'is-done':status==='cancelled'?'is-cancelled':''}">${escapeHTML(orderStatusLabel(status))}</span>
       </div>
-      <div class="customer-order-items"><small>ITEMS ORDERED</small><strong>${escapeHTML((order.items||[]).map(item=>(item.product_name||'Product')+' × '+Number(item.quantity||1)).join(', ')||'Item details unavailable')}</strong></div>
+      <div class="customer-order-items"><small>ITEMS ORDERED</small><strong>${escapeHTML((order.items||[]).map(item=>orderItemDisplayName(item.product_name)+' × '+Number(item.quantity||1)).join(', ')||'Item details unavailable')}</strong></div>
       <div class="customer-order-meta">
         <div><small>Order total</small><strong>${escapeHTML(order.currency||'')} ${escapeHTML(Number(order.total_amount||0).toFixed(2))}</strong></div>
         <div><small>Payment</small><strong>${escapeHTML(String(order.payment_status||'Unknown').replace(/_/g,' '))}</strong></div>
@@ -6839,7 +6846,7 @@ async function loadStaffTasks(p){
      const o=r.data;
      const itemResult=await db.from('order_items').select('product_name,quantity').eq('order_id',o.id);
      if(itemResult.error)throw itemResult.error;
-     const itemSummary=(itemResult.data||[]).map(item=>(item.product_name||'Product')+' × '+Number(item.quantity||1)).join(', ')||'Item details unavailable';
+     const itemSummary=(itemResult.data||[]).map(item=>orderItemDisplayName(item.product_name)+' × '+Number(item.quantity||1)).join(', ')||'Item details unavailable';
      html+='<small><b>Order / tracking code:</b> '+escapeHTML(o.order_number||o.id)+' · <b>Item(s):</b> '+escapeHTML(itemSummary)+' · <b>Customer:</b> '+escapeHTML(o.customer_name||'Customer')+' · <b>Total:</b> '+escapeHTML(o.currency||'')+' '+Number(o.total_amount||0).toFixed(2)+' · <b>Status:</b> '+escapeHTML(o.order_status)+'</small>';
      if(t.task_type==='order_approval')html+='<button class="primary" onclick="staffReviewOrder(\''+o.id+'\',\'approved\')">Approve order</button><button class="secondary" onclick="staffReviewOrder(\''+o.id+'\',\'rejected\')">Reject order</button>';
      else html+='<small><b>Phone:</b> '+escapeHTML(o.customer_phone||'Not provided')+' · <b>Address:</b> '+escapeHTML(o.shipping_address||'Not provided')+'</small><label>Carrier / delivery team<input id="deliveryTaskCarrier-'+o.id+'" type="text" placeholder="Optional"></label><label>Tracking number<input id="deliveryTaskTracking-'+o.id+'" type="text" placeholder="Optional"></label><label>Delivery / assembly note<textarea id="deliveryTaskNote-'+o.id+'" rows="2" placeholder="Add an update"></textarea></label><button class="primary" onclick="staffUpdateDelivery(\''+o.id+'\',\'shipped\',\'task\')">Mark collected / shipped</button><button class="secondary" onclick="staffUpdateDelivery(\''+o.id+'\',\'completed\',\'task\')">Mark delivered / assembled</button>';
