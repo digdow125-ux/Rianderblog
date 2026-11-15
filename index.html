@@ -1054,6 +1054,103 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 .nav-invite-arrow{font-size:22px;color:#d95517}
 @media(max-width:650px){.nav-links{left:18px;min-width:min(310px,calc(100vw - 36px));padding:9px}.nav-links a{padding:13px}.nav-links .nav-invite-link{margin:7px 0}}
 
+
+/* CLEAN ONE-LINE NAVIGATION + CONSISTENT MAIN WORKSPACES */
+.nav-links{
+  width:min(330px,calc(100vw - 28px))!important;
+  min-width:0!important;
+  max-width:calc(100vw - 28px)!important;
+  padding:8px!important;
+  gap:2px!important;
+  background:#fff!important;
+  border:1px solid #dfe6ef!important;
+  border-radius:12px!important;
+  box-shadow:0 18px 42px rgba(10,27,49,.22)!important;
+}
+.nav-links>a{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:9px!important;
+  width:100%!important;
+  min-height:42px!important;
+  margin:0!important;
+  padding:10px 12px!important;
+  border:0!important;
+  border-radius:7px!important;
+  color:#24364d!important;
+  background:transparent!important;
+  font-size:13px!important;
+  font-weight:650!important;
+  line-height:1.2!important;
+  text-align:left!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.nav-links>a:hover,.nav-links>a:focus-visible{
+  background:#f0f4f8!important;
+  color:#173b63!important;
+  outline:none;
+}
+.nav-links>a.admin-only{display:none}
+.nav-links .nav-invite-link{
+  min-height:42px!important;
+  margin:2px 0 5px!important;
+  padding:9px 12px!important;
+  border:1px solid #f0d8a8!important;
+  background:#fff8eb!important;
+}
+.nav-links .nav-invite-icon{
+  width:25px!important;height:25px!important;flex:0 0 25px!important;
+  border-radius:7px!important;font-size:14px!important;
+}
+.nav-links .nav-invite-copy{
+  display:block!important;flex:1!important;min-width:0!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+.nav-links .nav-invite-copy strong{font-size:13px!important;white-space:nowrap!important}
+.nav-links .nav-invite-copy small{display:none!important}
+.nav-links .nav-invite-arrow{font-size:18px!important;line-height:1!important}
+@media(max-width:900px){
+  .nav-links{
+    position:absolute!important;top:calc(100% + 7px)!important;
+    left:14px!important;right:auto!important;
+    width:min(330px,calc(100vw - 28px))!important;
+    max-height:calc(100dvh - 90px)!important;
+    overflow-y:auto!important;
+    align-items:stretch!important;
+  }
+  .nav-links>a{white-space:nowrap!important;text-align:left!important}
+}
+/* Main customer, staff and admin workspaces share a calmer premium surface. */
+.panel.secondary-page,
+#dashboard.panel,
+#staffPanel.panel,
+#adminPanel.admin-box{
+  border:1px solid #dfe6ef!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 8px 24px rgba(16,33,62,.055)!important;
+}
+.panel.secondary-page>h2,
+#staffPanel>h2{
+  color:#173b63!important;
+  letter-spacing:-.35px;
+}
+.panel.secondary-page>h2+p{
+  max-width:760px;
+  line-height:1.6!important;
+}
+.panel.secondary-page .listing,
+.panel.secondary-page .admin-tools,
+#staffPanel .admin-tools{
+  border:1px solid #e5eaf1!important;
+  border-radius:11px!important;
+  box-shadow:none!important;
+}
+
 </style>
 <style>.staff-permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin:14px 0}.staff-permission-grid label{padding:10px;border:1px solid #e5e8ee;border-radius:9px;font-size:13px}.staff-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:18px}.staff-task-grid .admin-tools{padding:15px;border:1px solid #e5e8ee;border-radius:12px;background:#fff}.staff-task-row{padding:11px 0;border-bottom:1px solid #edf0f4;font-size:13px}.staff-task-row small{display:block;color:#748397;margin:4px 0 8px}.staff-task-row button,.staff-member button{padding:7px 10px;border:0;border-radius:7px;font-weight:700;margin-right:5px}.staff-member{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f4;flex-wrap:wrap}.staff-member small{display:block;color:#748397}</style>
 <style id="clear-in-page-panels">
