@@ -2485,7 +2485,8 @@ async function renderAdminThread(id,log){const {data,error}=await db.from('suppo
 function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.innerHTML=open?'<span aria-hidden="true">✕</span><span class="menu-toggle-label">Close</span>':'<span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span>';}
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const more=document.querySelector(".nav-more");if(links){links.classList.remove("open");if(window.matchMedia("(max-width:650px)").matches){links.style.display="none";}else{links.style.removeProperty("display");}}if(more)more.open=false;if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.innerHTML='<span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span>';}}
 async function showSection(id){
-  // Team-only workspaces must not be reachable by customer or supplier accounts.
+  // Staff Panel is for assigned staff and administrators.
+  // Recommended Deals and Affiliate Management are restricted to owner/Admin Support.
   if(id==="staffPanel"||id==="recommendedDeals"||id==="externalAffiliateManagement"){
     try{
       const {data:{user},error}=await db.auth.getUser();
@@ -2498,11 +2499,17 @@ async function showSection(id){
           db.from('staff_members').select('id,status').eq('user_id',user.id).eq('status','active').maybeSingle(),
           db.from('admin_support_staff').select('id,status').eq('user_id',user.id).eq('status','active').maybeSingle()
         ]);
-        staff=!!sr.data;adminSupport=!!ar.data;
+        staff=!!sr.data&&!sr.error;
+        adminSupport=!!ar.data&&!ar.error;
       }
-      if(!owner&&!staff&&!adminSupport)throw new Error('This section is available only to RIANDERBLOG administrators and active staff.');
+      if(id==="staffPanel"&&!owner&&!staff&&!adminSupport){
+        throw new Error('Staff Panel is available only to the owner, assigned active staff, and Admin Support Staff.');
+      }
+      if((id==="recommendedDeals"||id==="externalAffiliateManagement")&&!owner&&!adminSupport){
+        throw new Error('Recommended Deals and Affiliate Management are available only to the owner and invited active Admin Support Staff.');
+      }
     }catch(error){
-      alert(error?.message||'Authorised team access is required.');
+      alert(error?.message||'Authorised access is required.');
       return false;
     }
   }
@@ -2513,27 +2520,6 @@ async function showSection(id){
       if(error||data!==true)throw new Error('Only the owner and invited active Admin Support Staff can open the Admin Dashboard.');
     }catch(error){
       alert(error?.message||'Administrator access is required.');
-      return false;
-    }
-  }
-  // External affiliate controls remain exclusive to the main owner.
-  if(id==="externalAffiliateManagement"){
-    try{
-      const {data:{user},error}=await db.auth.getUser();
-      if(error)throw error;
-      if(!user)throw new Error('Sign in with an authorised RIANDERBLOG team account.');
-      const owner=user.id===ADMIN_USER_ID;
-      let staff=false,adminSupport=false;
-      if(!owner){
-        const [sr,ar]=await Promise.all([
-          db.from('staff_members').select('id,status').eq('user_id',user.id).eq('status','active').maybeSingle(),
-          db.from('admin_support_staff').select('id,status').eq('user_id',user.id).eq('status','active').maybeSingle()
-        ]);
-        staff=!!sr.data;adminSupport=!!ar.data;
-      }
-      if(!owner&&!staff&&!adminSupport)throw new Error('Affiliate Management is available only to RIANDERBLOG administrators and active staff.');
-    }catch(error){
-      alert(error?.message||'Authorised team access is required.');
       return false;
     }
   }
@@ -2619,15 +2605,15 @@ async function updateAdminVisibility(user) {
  const adminNav=document.getElementById('adminNavLink');
  if(adminNav)adminNav.style.display=canAdmin?'inline-flex':'none';
  const affiliateNav=document.getElementById('navAffiliateManagement');
- if(affiliateNav)affiliateNav.style.display=teamAccess?'inline-flex':'none';
+ if(affiliateNav)affiliateNav.style.display=canAdmin?'inline-flex':'none';
  const dealsNav=document.querySelector('a[href="#recommendedDeals"]');
- if(dealsNav)dealsNav.style.display=teamAccess?'inline-flex':'none';
+ if(dealsNav)dealsNav.style.display=canAdmin?'inline-flex':'none';
  const adminPanel=document.getElementById('adminPanel');
  if(adminPanel)adminPanel.style.display='none';
  const visitorPanel=document.getElementById('visitorAnalyticsPanel');
  if(visitorPanel)visitorPanel.style.display='none';
  const externalAffiliate=document.getElementById('externalAffiliateManagement');
- if(externalAffiliate)externalAffiliate.style.display=owner?'':'none';
+ if(externalAffiliate)externalAffiliate.style.display='none';
  const hub=document.getElementById('navPromotionHub');
  if(hub)hub.style.display=teamAccess&&(owner||hasHubTask)?'inline-flex':'none';
  const staffLink=document.getElementById('navStaffPanel');
