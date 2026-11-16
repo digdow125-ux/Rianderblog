@@ -2389,11 +2389,21 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
 <div id="adminTab-support" class="admin-tab" style="display:none">
     <div class="admin-tools">
       <h3>Customer support inbox</h3>
-      <p class="small-note">Read customer messages and reply privately.</p>
-      <button class="primary" onclick="loadAdminSupportInbox()">Refresh inbox</button>
-      <div id="adminSupportInbox" class="admin-table-wrap">
-        No conversations loaded.
-      </div>
+      <p class="small-note">Newest customer activity appears first. Dates and times are shown for every message.</p>
+      <button class="primary" onclick="loadAdminSupportInbox()">↻ Refresh inbox</button>
+      <div id="adminSupportInbox" class="admin-table-wrap" style="margin-top:14px">No conversations loaded.</div>
+      <section id="adminSupportThreadPanel" class="admin-tools" style="display:none;margin-top:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <h3 id="adminSupportThreadTitle">Conversation</h3>
+          <button class="secondary" type="button" onclick="closeAdminSupportThread()">Close conversation</button>
+        </div>
+        <div id="adminSupportThreadMessages" class="admin-table-wrap">Select a conversation to view messages.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <input id="adminSupportReplyInput" type="text" placeholder="Write a private reply..." style="flex:1;min-width:200px">
+          <button class="primary" type="button" onclick="sendAdminSupportReply()">Send reply</button>
+        </div>
+        <p id="adminSupportReplyStatus" class="small-note" role="status"></p>
+      </section>
     </div>
   </div>
 
@@ -2582,8 +2592,90 @@ function addSupportMessage(logId,body,kind){const log=document.getElementById(lo
 async function sendAIMessage(){const input=document.getElementById('aiSupportInput');const question=input.value.trim();if(!question)return;input.value='';addSupportMessage('aiSupportLog',question,'customer');const pending=document.createElement('div');pending.className='support-msg agent';pending.textContent='Thinking...';document.getElementById('aiSupportLog').appendChild(pending);try{const {data,error}=await db.functions.invoke('ai-support',{body:{message:question}});if(error)throw error;pending.textContent=data?.reply||'I could not prepare an answer. Please use Chat with Admin.';}catch(e){pending.textContent='AI service is not connected yet. Please use Chat with Admin, or try again later.';console.error('AI support:',e);}}
 async function loadCustomerSupportChat(){const hint=document.getElementById('adminChatHint');const {data:{user}}=await db.auth.getUser();if(!user){hint.textContent='Please sign in or create an account to chat privately with the administrator.';document.getElementById('adminSupportInput').disabled=true;return;}document.getElementById('adminSupportInput').disabled=false;hint.textContent='Your private conversation with the RIANDERBLOG administrator.';try{let q=db.from('support_conversations').select('id').eq('customer_id',user.id).order('created_at',{ascending:false}).limit(1);let {data,error}=await q;if(error)throw error;if(data?.length)activeSupportConversation=data[0].id;else{const created=await db.from('support_conversations').insert({customer_id:user.id,status:'open'}).select('id').single();if(created.error)throw created.error;activeSupportConversation=created.data.id;}const msgs=await db.from('support_messages').select('id,sender_id,message,created_at').eq('conversation_id',activeSupportConversation).order('created_at');if(msgs.error)throw msgs.error;const log=document.getElementById('adminSupportLog');log.innerHTML='';(msgs.data||[]).forEach(m=>addSupportMessage('adminSupportLog',m.message,m.sender_id===user.id?'customer':'agent'));}catch(e){hint.textContent='Chat setup is not complete yet. Please try again later.';console.error('Customer support chat:',e);}}
 async function sendAdminMessage(){const input=document.getElementById('adminSupportInput');const message=input.value.trim();if(!message)return;const {data:{user}}=await db.auth.getUser();if(!user){document.getElementById('adminChatHint').textContent='Please sign in first.';return;}if(!activeSupportConversation){await loadCustomerSupportChat();if(!activeSupportConversation)return;}const {error}=await db.from('support_messages').insert({conversation_id:activeSupportConversation,sender_id:user.id,message});if(error){document.getElementById('adminChatHint').textContent='Message not sent: '+error.message;return;}input.value='';addSupportMessage('adminSupportLog',message,'customer');}
-async function loadAdminSupportInbox(){const box=document.getElementById('adminSupportInbox');if(!box)return;try{await adminGuard();const {data:{user}}=await db.auth.getUser();if(!user)throw new Error('Sign in required.');const {data:convos,error}=await db.from('support_conversations').select('id,customer_id,status,created_at').order('created_at',{ascending:false});if(error)throw error;box.innerHTML='';if(!convos?.length){box.textContent='No customer conversations yet.';return;}for(const c of convos){const wrap=document.createElement('div');wrap.className='listing';const title=document.createElement('strong');title.textContent='Customer '+c.customer_id;const status=document.createElement('p');status.textContent='Status: '+c.status;const log=document.createElement('div');log.id='adminThread_'+c.id;const input=document.createElement('input');input.placeholder='Reply to this customer';const btn=document.createElement('button');btn.className='primary';btn.textContent='Send reply';btn.onclick=async()=>{try{await adminGuard();const msg=input.value.trim();if(!msg)return;const result=await db.from('support_messages').insert({conversation_id:c.id,sender_id:user.id,message:msg});if(result.error)throw result.error;input.value='';await renderAdminThread(c.id,log);}catch(e){alert(e.message||String(e));}};wrap.append(title,status,log,input,btn);box.appendChild(wrap);await renderAdminThread(c.id,log);}}catch(e){box.textContent='Could not load inbox: '+(e.message||String(e));}}
-async function renderAdminThread(id,log){const {data,error}=await db.from('support_messages').select('sender_id,message,created_at').eq('conversation_id',id).order('created_at');if(error){log.textContent=error.message;return;}log.innerHTML='';(data||[]).forEach(m=>{const p=document.createElement('p');p.textContent=((m.sender_id===ADMIN_USER_ID||m.sender_id===window.currentAdminUser?.id)?'ADMIN: ':'CUSTOMER: ')+m.message;log.appendChild(p);});}
+let activeAdminSupportConversation=null;
+function supportDateTime(value){
+ const d=new Date(value);
+ if(Number.isNaN(d.getTime()))return '—';
+ return new Intl.DateTimeFormat('en-MW',{dateStyle:'medium',timeStyle:'short',hour12:true}).format(d);
+}
+async function loadAdminSupportInbox(){
+ const box=document.getElementById('adminSupportInbox');if(!box)return;
+ box.textContent='Loading customer conversations...';
+ try{
+  await adminGuard();
+  const {data:{user}}=await db.auth.getUser();if(!user)throw new Error('Sign in required.');
+  const {data:convos,error}=await db.from('support_conversations').select('id,customer_id,status,created_at').order('created_at',{ascending:false});
+  if(error)throw error;
+  if(!convos?.length){box.textContent='No customer conversations yet.';return;}
+  const rows=await Promise.all(convos.map(async c=>{
+   const latest=await db.from('support_messages').select('message,sender_id,created_at').eq('conversation_id',c.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+   if(latest.error)throw latest.error;
+   return {conversation:c,latest:latest.data};
+  }));
+  rows.sort((a,b)=>new Date(b.latest?.created_at||b.conversation.created_at)-new Date(a.latest?.created_at||a.conversation.created_at));
+  const table=document.createElement('table');
+  table.style.width='100%';table.style.minWidth='720px';table.style.borderCollapse='collapse';
+  table.innerHTML='<thead><tr><th style="text-align:left;padding:10px">Customer</th><th style="text-align:left;padding:10px">Latest message</th><th style="text-align:left;padding:10px">Date &amp; time</th><th style="text-align:left;padding:10px">Status</th><th style="padding:10px">Action</th></tr></thead>';
+  const tbody=document.createElement('tbody');
+  rows.forEach(({conversation:c,latest:m})=>{
+   const tr=document.createElement('tr');
+   const customer=document.createElement('td');customer.style.padding='10px';customer.textContent=String(c.customer_id||'Unknown');
+   const message=document.createElement('td');message.style.padding='10px';message.textContent=m?((m.sender_id===user.id?'You: ':'Customer: ')+m.message):'No messages yet';
+   const date=document.createElement('td');date.style.padding='10px';date.textContent=supportDateTime(m?.created_at||c.created_at);
+   const status=document.createElement('td');status.style.padding='10px';status.textContent=c.status||'open';
+   const action=document.createElement('td');action.style.padding='10px';action.style.textAlign='center';
+   const btn=document.createElement('button');btn.className='secondary';btn.type='button';btn.textContent='Open messages';btn.onclick=()=>openAdminSupportThread(c.id,c.customer_id);
+   action.appendChild(btn);tr.append(customer,message,date,status,action);tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);box.innerHTML='';box.appendChild(table);
+ }catch(e){box.textContent='Could not load inbox: '+(e.message||String(e));}
+}
+async function openAdminSupportThread(id,customerId){
+ const panel=document.getElementById('adminSupportThreadPanel');
+ if(!panel)return;
+ activeAdminSupportConversation=id;
+ panel.style.display='block';
+ const title=document.getElementById('adminSupportThreadTitle');
+ if(title)title.textContent='Conversation with customer '+String(customerId||'');
+ await renderAdminThread(id,document.getElementById('adminSupportThreadMessages'));
+ panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeAdminSupportThread(){
+ activeAdminSupportConversation=null;
+ const panel=document.getElementById('adminSupportThreadPanel');if(panel)panel.style.display='none';
+}
+async function sendAdminSupportReply(){
+ const input=document.getElementById('adminSupportReplyInput');
+ const status=document.getElementById('adminSupportReplyStatus');
+ const message=input?.value.trim();if(!message||!activeAdminSupportConversation)return;
+ try{
+  await adminGuard();
+  const {data:{user}}=await db.auth.getUser();if(!user)throw new Error('Sign in required.');
+  const {error}=await db.from('support_messages').insert({conversation_id:activeAdminSupportConversation,sender_id:user.id,message});
+  if(error)throw error;
+  input.value='';if(status)status.textContent='Reply sent.';
+  await renderAdminThread(activeAdminSupportConversation,document.getElementById('adminSupportThreadMessages'));
+  await loadAdminSupportInbox();
+ }catch(e){if(status)status.textContent='Reply not sent: '+(e.message||String(e));}
+}
+async function renderAdminThread(id,container){
+ if(!container)return;
+ container.textContent='Loading messages...';
+ const {data,error}=await db.from('support_messages').select('sender_id,message,created_at').eq('conversation_id',id).order('created_at',{ascending:false});
+ if(error){container.textContent=error.message;return;}
+ if(!data?.length){container.textContent='No messages in this conversation yet.';return;}
+ const table=document.createElement('table');table.style.width='100%';table.style.minWidth='620px';table.style.borderCollapse='collapse';
+ table.innerHTML='<thead><tr><th style="text-align:left;padding:10px">Sender</th><th style="text-align:left;padding:10px">Message</th><th style="text-align:left;padding:10px">Date &amp; time</th></tr></thead>';
+ const tbody=document.createElement('tbody');
+ data.forEach(m=>{
+  const tr=document.createElement('tr');
+  const sender=document.createElement('td');sender.style.padding='10px';sender.textContent=(m.sender_id===ADMIN_USER_ID||m.sender_id===window.currentAdminUser?.id)?'RIANDERBLOG Admin':'Customer';
+  const body=document.createElement('td');body.style.padding='10px';body.style.whiteSpace='pre-wrap';body.textContent=m.message||'';
+  const date=document.createElement('td');date.style.padding='10px';date.textContent=supportDateTime(m.created_at);
+  tr.append(sender,body,date);tbody.appendChild(tr);
+ });
+ table.appendChild(tbody);container.innerHTML='';container.appendChild(table);
+}
 
 function toggleMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");if(!links||!btn)return;const open=!links.classList.contains("open");links.classList.toggle("open",open);links.style.display=open?"flex":"none";btn.setAttribute("aria-expanded",String(open));btn.setAttribute("aria-label",open?"Close menu":"Open menu");btn.innerHTML=open?'<span aria-hidden="true">✕</span><span class="menu-toggle-label">Close</span>':'<span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span>';}
 function closeMenu(){const links=document.getElementById("navLinks");const btn=document.getElementById("menuToggle");const more=document.querySelector(".nav-more");if(links){links.classList.remove("open");if(window.matchMedia("(max-width:650px)").matches){links.style.display="none";}else{links.style.removeProperty("display");}}if(more)more.open=false;if(btn){btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-label","Open menu");btn.innerHTML='<span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span>';}}
