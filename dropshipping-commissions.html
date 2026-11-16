@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#173b63">
+<title>RIANDERBLOG | Dropshipping Commissions</title>
+<style>
+:root{font-family:Arial,sans-serif;color:#203047;background:#f4f6f9;--navy:#173b63;--orange:#f36b25;--line:#e1e7ef}
+*{box-sizing:border-box}body{margin:0}header{background:var(--navy);color:#fff;padding:18px max(18px,calc((100% - 1050px)/2));display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}header a{color:#fff;text-decoration:none}main{max-width:1050px;margin:24px auto;padding:0 16px}.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin:14px 0;box-shadow:0 3px 12px #142b4610}h1,h2{color:var(--navy)}h1{font-size:25px;margin:0}p{line-height:1.55}.muted,small{color:#66758a}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.stat{background:#f8fafc;border:1px solid var(--line);padding:14px;border-radius:9px}.stat strong{display:block;font-size:23px;color:var(--navy);margin-top:6px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:720px}th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}th{background:#f7f9fc;color:var(--navy)}button,input{font:inherit;border-radius:7px;padding:10px;border:1px solid #cfd8e4}button{cursor:pointer;background:var(--orange);color:#fff;border:0;font-weight:bold}button.secondary{background:#e9eef5;color:var(--navy)}input{width:100%;margin:5px 0}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.row input{max-width:260px}.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#fff1e9;color:#9b4319;font-size:11px;font-weight:bold}.paid{background:#e7f6ed;color:#17633a}.error{color:#a12424}.success{color:#17633a}a{color:var(--navy)}@media(max-width:600px){main{margin:16px auto}.card{padding:14px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header><a href="./index.html"><strong>RIANDERBLOG</strong></a><a href="./index.html">← Back to marketplace</a></header>
+<main>
+<section class="card"><h1>Dropshipping commission centre</h1><p class="muted">RIANDERBLOG charges 5% of each dropshipping order after you confirm that the customer has paid. Commission is settled separately for every order. Your customers pay you directly; you pay the supplier for fulfilment.</p><p id="status">Checking your account…</p></section>
+<section id="summary" class="card" hidden><div class="stats"><div class="stat">Commission currently due<strong id="dueTotal">—</strong></div><div class="stat">Commission already paid<strong id="paidTotal">—</strong></div><div class="stat">Orders with commission due<strong id="dueCount">—</strong></div></div></section>
+<section id="sellerPanel" class="card" hidden><h2>Your commission records</h2><p class="muted">Pay each due commission to RIANDERBLOG using the payment instructions provided by the platform team. After you pay, submit the payment reference to the RIANDERBLOG team for confirmation. Do not mark your own commission as paid.</p><div id="sellerRows" class="table-wrap"></div></section>
+<section id="adminPanel" class="card" hidden><h2>Platform commission management</h2><p class="muted">Only mark a commission as paid after the money has actually reached RIANDERBLOG. Record a payment reference for each order.</p><div id="adminRows" class="table-wrap"></div></section>
+</main>
+<script>
+(function(){
+const SUPABASE_URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
+const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const ADMIN_ID="a32248b7-5745-4dd8-8af0-bce4eb465f66";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
+const el=id=>document.getElementById(id);
+const money=(n,c)=>String(c||"")+" "+Number(n||0).toFixed(2);
+const safe=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+function say(msg,cls){el("status").className=cls||"";el("status").textContent=msg;}
+function table(rows,admin){
+if(!rows.length)return "<p>No commission records found yet.</p>";
+return '<table><thead><tr><th>Order</th><th>Shop</th><th>Order total</th><th>Commission (5%)</th><th>Commission status</th>'+(admin?'<th>Payment confirmation</th>':'')+'</tr></thead><tbody>'+rows.map(o=>{
+const due=o.platform_commission_status==="due";
+return '<tr><td><strong>'+safe(o.id.slice(0,8))+'</strong><br><small>'+new Date(o.created_at).toLocaleString()+'</small></td><td>'+safe(o.shop_name||"Your shop")+'</td><td>'+safe(money(o.total_amount,o.currency))+'</td><td><strong>'+safe(money(o.platform_commission_amount,o.currency))+'</strong></td><td><span class="pill '+(o.platform_commission_status==="paid"?"paid":"")+'">'+safe(o.platform_commission_status)+'</span>'+(o.platform_commission_paid_at?'<br><small>'+new Date(o.platform_commission_paid_at).toLocaleString()+'</small>':'')+'</td>'+(admin?'<td>'+(due?'<input id="ref-'+safe(o.id)+'" placeholder="Payment reference"><button onclick="confirmCommission(\''+safe(o.id)+'\')">Confirm received</button>':'<small>'+(o.platform_commission_payment_reference?'Ref: '+safe(o.platform_commission_payment_reference):'No action required')+'</small>')+'</td>':'')+'</tr>';
+}).join("")+'</tbody></table>';
+}
+window.confirmCommission=async function(id){
+const ref=el("ref-"+id)?.value.trim();
+if(!ref){alert("Enter the payment reference before confirming.");return;}
+if(!confirm("Confirm that RIANDERBLOG has actually received this commission payment?"))return;
+const {error}=await db.from("dropshipper_orders").update({platform_commission_status:"paid",platform_commission_payment_reference:ref}).eq("id",id).eq("platform_commission_status","due");
+if(error){alert("Could not confirm payment: "+error.message);return;}
+await load();
+};
+async function load(){
+const {data:{user},error:authError}=await db.auth.getUser();
+if(authError)throw authError;
+if(!user){say("Please sign in to RIANDERBLOG first.");return;}
+const isAdmin=user.id===ADMIN_ID;
+let profile=null;
+if(!isAdmin){
+const p=await db.from("dropshipper_profiles").select("id,shop_name").eq("user_id",user.id).maybeSingle();
+if(p.error)throw p.error;
+profile=p.data;
+if(!profile){say("You do not have a dropshipping shop yet. Register through the Dropshipping area when it becomes available.");return;}
+}
+let query=db.from("dropshipper_orders").select("id,dropshipper_id,created_at,currency,total_amount,payment_status,platform_commission_rate,platform_commission_amount,platform_commission_status,platform_commission_paid_at,platform_commission_payment_reference").order("created_at",{ascending:false}).limit(300);
+if(!isAdmin)query=query.eq("dropshipper_id",profile.id);
+const result=await query;
+if(result.error)throw result.error;
+let rows=result.data||[];
+if(isAdmin&&rows.length){
+const ids=[...new Set(rows.map(x=>x.dropshipper_id))];
+const p=await db.from("dropshipper_profiles").select("id,shop_name").in("id",ids);
+if(p.error)throw p.error;
+const names=new Map((p.data||[]).map(x=>[x.id,x.shop_name]));
+rows=rows.map(x=>({...x,shop_name:names.get(x.dropshipper_id)||"Shop"}));
+}else if(profile){rows=rows.map(x=>({...x,shop_name:profile.shop_name}));}
+const due=rows.filter(x=>x.platform_commission_status==="due");
+const paid=rows.filter(x=>x.platform_commission_status==="paid");
+const dueTotal=due.reduce((a,x)=>a+Number(x.platform_commission_amount||0),0);
+const paidTotal=paid.reduce((a,x)=>a+Number(x.platform_commission_amount||0),0);
+el("summary").hidden=false;
+el("dueTotal").textContent=money(dueTotal,rows[0]?.currency||"");
+el("paidTotal").textContent=money(paidTotal,rows[0]?.currency||"");
+el("dueCount").textContent=String(due.length);
+if(isAdmin){el("adminPanel").hidden=false;el("adminRows").innerHTML=table(rows,true);el("sellerPanel").hidden=true;say("Owner account verified. Showing dropshipping commission records.","success");}
+else{el("sellerPanel").hidden=false;el("sellerRows").innerHTML=table(rows,false);el("adminPanel").hidden=true;say("Signed in as "+profile.shop_name+". Commission is payable per order.","success");}
+}
+load().catch(e=>{console.error(e);say("Could not load commission records: "+(e.message||e),"error");});
+})();
+</script>
+</body></html>
