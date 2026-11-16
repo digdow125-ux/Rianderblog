@@ -73,11 +73,20 @@ async function loadAccount(){
   $("partnerForm").hidden=true;
   await loadReviews();return;
  }
- const {data,error:lookupError}=await db.from("international_dropshipping_partners").select("business_name,verification_status").eq("user_id",user.id).maybeSingle();
+ const {data,error:lookupError}=await db.from("international_dropshipping_partners").select("*").eq("user_id",user.id).maybeSingle();
  if(lookupError)throw lookupError;
- if(data){$("existingListing").hidden=false;$("existingListing").innerHTML='<p class="status">Your listing <strong>'+esc(data.business_name)+'</strong> is currently <strong>'+esc(data.verification_status)+'</strong>. You can submit one listing per RIANDERBLOG account. Contact platform support if you need to change it.</p>';}
- else $("partnerForm").hidden=false;
- $("authStatus").textContent="Signed in. You can submit your international business for review.";
+ if(data){
+  $("existingListing").hidden=false;
+  $("existingListing").innerHTML='<p class="status">Your application is <strong>'+esc(data.verification_status)+'</strong>. You can update your business details below. Approval and public visibility remain controlled by RIANDERBLOG.</p>';
+  $("partnerForm").dataset.listingId=data.id;
+  const form=$("partnerForm");
+  for(const [key,value] of Object.entries({business_name:data.business_name,country:data.country,product_categories:(data.product_categories||[]).join(", "),product_description:data.product_description,ships_to:(data.ships_to||[]).join(", "),contact_email:data.contact_email,whatsapp:data.whatsapp||"",website_url:data.website_url||""})){
+   if(form.elements[key])form.elements[key].value=value;
+  }
+  form.querySelector('button[type="submit"]').textContent="Save my business details";
+ }
+ $("partnerForm").hidden=false;
+ $("authStatus").textContent="Signed in. This application form is for your business; admin approval is not needed to fill it in.";
 }
 async function loadReviews(){
  const {data,error}=await db.from("international_dropshipping_partners").select("*").order("created_at",{ascending:false});
@@ -93,9 +102,13 @@ $("partnerForm").addEventListener("submit",async e=>{
  const website=String(fd.get("website_url")||"").trim();
  if(website&&!safeLink(website)){alert("Enter a valid http or https website link.");return;}
  const payload={user_id:user.id,business_name:String(fd.get("business_name")).trim(),country:String(fd.get("country")).trim(),product_categories:split(String(fd.get("product_categories"))),product_description:String(fd.get("product_description")).trim(),ships_to:split(String(fd.get("ships_to"))),contact_email:String(fd.get("contact_email")).trim(),whatsapp:String(fd.get("whatsapp")||"").trim()||null,website_url:website||null,verification_status:"pending",is_active:true};
- const {error}=await db.from("international_dropshipping_partners").insert(payload);
- if(error){$("authStatus").textContent="Submission failed: "+error.message;$("authStatus").className="status error";return;}
- form.hidden=true;$("existingListing").hidden=false;$("existingListing").innerHTML='<p class="status success">Your application has been submitted. RIANDERBLOG will review it before it appears in the public directory.</p>';
+ const listingId=form.dataset.listingId;
+ const result=listingId
+  ? await db.from("international_dropshipping_partners").update({business_name:payload.business_name,country:payload.country,product_categories:payload.product_categories,product_description:payload.product_description,ships_to:payload.ships_to,contact_email:payload.contact_email,whatsapp:payload.whatsapp,website_url:payload.website_url}).eq("id",listingId)
+  : await db.from("international_dropshipping_partners").insert(payload);
+ if(result.error){$("authStatus").textContent="Could not save: "+result.error.message;$("authStatus").className="status error";return;}
+ $("existingListing").hidden=false;$("existingListing").innerHTML='<p class="status success">'+(listingId?"Your business details have been updated. Your approval status has not changed.":"Your application has been submitted. RIANDERBLOG will review it before it appears in the public directory.")+'</p>';
+ $("authStatus").textContent="Saved successfully.";
 });
 ["search","countryFilter","destinationFilter"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));
 Promise.all([loadDirectory(),loadAccount()]).catch(e=>{console.error(e);$("directoryStatus").textContent="Could not load directory: "+e.message;$("authStatus").textContent="Account status: "+e.message;});
