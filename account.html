@@ -18,7 +18,15 @@
 .form{padding:22px;border:1px solid #e5e8ee;border-radius:15px;background:#fbfcfe}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:#edf1f6;border-radius:9px;margin-bottom:20px}
 .tabs button{border:0;background:transparent;color:#637187;padding:12px;border-radius:7px;font-weight:700;cursor:pointer}.tabs button.active{background:white;color:var(--navy);box-shadow:0 2px 7px #10213e16}
-label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#34435a}input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-size:15px;background:white}
+label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#34435a}
+input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-size:15px;background:white}
+.password-wrap{position:relative;display:flex;align-items:center}
+.password-wrap input{padding-right:82px}
+.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:#edf1f6;color:#173b63;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.account-switch{margin:16px 0 0;text-align:center;color:#647187;font-size:13px;line-height:1.6}
+.account-switch button{border:0;background:none;padding:0;color:#9a712a;font-weight:800;cursor:pointer;font-size:13px}
+.form-subtitle{font-size:13px;color:#718095;line-height:1.5;margin:-10px 0 16px}
+@media(max-width:700px){.wrap{border-radius:15px}.form{padding:18px}.top{gap:12px}.logo{width:48px;height:48px;font-size:26px}}
 .terms{display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.5;margin:15px 0}.terms input{width:auto;margin-top:2px}.terms a{color:#9a712a}
 .primary,.google,.resend{width:100%;padding:13px;border-radius:9px;font-weight:700;cursor:pointer;margin-top:12px}.primary{border:0;background:var(--navy);color:#fff}.primary:disabled{opacity:.6;cursor:wait}.google{background:#fff;border:1px solid #dce2ea;color:#34435a}.google b{color:#4285f4;font-size:18px;margin-right:8px}.resend{background:#f0f3f8;border:1px solid #e0e6ef;color:#34435a;display:none}
 .divider{display:flex;align-items:center;gap:10px;color:#8993a2;font-size:11px;margin:18px 0}.divider:before,.divider:after{content:"";height:1px;background:#e2e6ed;flex:1}
@@ -45,9 +53,11 @@ label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#3443
    <div class="tabs"><button id="signinTab" type="button" onclick="setMode('signin')">Sign in</button><button id="signupTab" type="button" onclick="setMode('signup')">Create account</button></div>
    <form id="authForm" onsubmit="event.preventDefault();submitAuth()">
     <label for="email">Email address</label><input id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
-    <label for="password">Password</label><input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" minlength="6" required>
+    <label for="password">Password</label>
+    <div class="password-wrap"><input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" minlength="6" required><button class="password-toggle" id="passwordToggle" type="button" onclick="togglePassword()" aria-label="Show password" aria-pressed="false">Show</button></div>
     <label class="terms" id="termsRow" style="display:none"><input id="acceptTerms" type="checkbox"><span>I have read and agree to RIANDERBLOG's <a href="./policies.html#terms" target="_blank" rel="noopener">Terms and Conditions</a>.</span></label>
     <button class="primary" id="submitButton" type="submit">Create my free account</button>
+    <p class="account-switch" id="accountSwitch">Already have an account? <button type="button" onclick="setMode('signin')">Sign in</button></p>
    </form>
    <div class="divider">or continue with</div>
    <button class="google" type="button" onclick="signInWithGoogle()"><b>G</b> Continue with Google</button>
@@ -71,7 +81,20 @@ let mode=params.get("mode")==="signin"?"signin":"signup";
 let busy=false;
 const callbackUrl=location.origin+location.pathname.replace(/account\.html$/,"")+"?auth_callback=1";
 function say(message,success=false){const el=document.getElementById("message");el.textContent=message;el.classList.toggle("success",success);}
-function setMode(value){mode=value==="signin"?"signin":"signup";document.getElementById("signinTab").classList.toggle("active",mode==="signin");document.getElementById("signupTab").classList.toggle("active",mode==="signup");document.getElementById("submitButton").textContent=mode==="signup"?"Create my free account":"Sign in securely";document.getElementById("password").autocomplete=mode==="signup"?"new-password":"current-password";document.getElementById("termsRow").style.display=mode==="signup"?"flex":"none";document.getElementById("emailSpamNote").hidden=mode!=="signup";say(mode==="signup"?"Create your free account to continue.":"Welcome back. Sign in to continue.");}
+function togglePassword(){
+ const input=document.getElementById("password"),button=document.getElementById("passwordToggle");
+ const show=input.type==="password";input.type=show?"text":"password";
+ button.textContent=show?"Hide":"Show";button.setAttribute("aria-label",show?"Hide password":"Show password");button.setAttribute("aria-pressed",String(show));
+}
+function setMode(value){mode=value==="signin"?"signin":"signup";document.getElementById("signinTab").classList.toggle("active",mode==="signin");document.getElementById("signupTab").classList.toggle("active",mode==="signup");document.getElementById("submitButton").textContent=mode==="signup"?"Create my free account":"Sign in securely";
+document.getElementById("password").autocomplete=mode==="signup"?"new-password":"current-password";
+document.getElementById("password").placeholder=mode==="signup"?"Create a password (at least 6 characters)":"Enter your password";
+document.getElementById("termsRow").style.display=mode==="signup"?"flex":"none";
+document.getElementById("emailSpamNote").hidden=mode!=="signup";
+document.getElementById("accountSwitch").innerHTML=mode==="signup"?'Already have an account? <button type="button" onclick="setMode(\'signin\')">Sign in</button>':'New to RIANDERBLOG? <button type="button" onclick="setMode(\'signup\')">Create an account</button>';
+document.getElementById("resendButton").style.display="none";
+document.getElementById("password").type="password";document.getElementById("passwordToggle").textContent="Show";document.getElementById("passwordToggle").setAttribute("aria-label","Show password");document.getElementById("passwordToggle").setAttribute("aria-pressed","false");
+say(mode==="signup"?"Create your free account to continue.":"Welcome back. Sign in to continue.");}
 function destination(){
  const next=params.get("next")||localStorage.getItem("rianderblog_auth_next")||"home";
  if(localStorage.getItem("rianderblog_onboarding_pending")==="1"){location.replace("./welcome.html");return;}
@@ -91,7 +114,7 @@ async function submitAuth(){
    if(error)throw error;
    // Supabase may return an empty identities array when this email already has an account.
    if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
-    say("This email already has an account. Please choose Sign in instead, or use the password reset option if you cannot remember your password.");
+    say("An account with this email already exists. Please sign in instead. If you are unsure of your password, contact support for help.");
     localStorage.removeItem("rianderblog_onboarding_pending");
     setMode("signin");
     return;
