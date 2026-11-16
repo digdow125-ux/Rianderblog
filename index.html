@@ -2590,7 +2590,7 @@ function closeMenu(){const links=document.getElementById("navLinks");const btn=d
 async function showSection(id){
   // Staff Panel is for assigned staff and administrators.
   // Recommended Deals and Affiliate Management are restricted to owner/Admin Support.
-  if(id==="staffPanel"||id==="recommendedDeals"||id==="externalAffiliateManagement"){
+  if(id==="staffPanel"||id==="recommendedDeals"||id==="externalAffiliateManagement"||id==="visitorAnalyticsPanel"){
     try{
       const {data:{user},error}=await db.auth.getUser();
       if(error)throw error;
@@ -2608,8 +2608,11 @@ async function showSection(id){
       if(id==="staffPanel"&&!owner&&!staff&&!adminSupport){
         throw new Error('Staff Panel is available only to the owner, assigned active staff, and Admin Support Staff.');
       }
-      if((id==="recommendedDeals"||id==="externalAffiliateManagement")&&!owner&&!adminSupport){
-        throw new Error('Recommended Deals and Affiliate Management are available only to the owner and invited active Admin Support Staff.');
+      if(id==="recommendedDeals"&&!owner&&!adminSupport){
+        throw new Error('Recommended Deals are available only to the owner and invited active Admin Support Staff.');
+      }
+      if((id==="externalAffiliateManagement"||id==="visitorAnalyticsPanel")&&!owner){
+        throw new Error('This management area is available only to the main RIANDERBLOG owner.');
       }
     }catch(error){
       alert(error?.message||'Authorised access is required.');
@@ -2701,7 +2704,7 @@ async function updateAdminVisibility(user) {
  window.rianderAdminSupportMembership=adminSupport;
  const canAdmin=owner||!!adminSupport;
  const teamAccess=owner||!!staff||!!adminSupport;
- const canViewVisitorAnalytics=owner||String(user?.email||'').trim().toLowerCase()==='giftchonde1@gmail.com';
+ const canViewVisitorAnalytics=owner;
 
  // Navigation controls are permission-gated, but page sections stay hidden until
  // showSection() is explicitly called. This prevents Admin Dashboard and Visitor
@@ -2714,7 +2717,7 @@ async function updateAdminVisibility(user) {
   el.setAttribute('aria-hidden',allowed?'false':'true');
  };
  setNavAccess('adminNavLink',canAdmin);
- setNavAccess('navAffiliateManagement',canAdmin);
+ setNavAccess('navAffiliateManagement',owner);
  setNavAccess('navRecommendedDeals',canAdmin);
  setNavAccess('navStaffPanel',teamAccess);
  const adminPanel=document.getElementById('adminPanel');
@@ -2730,11 +2733,11 @@ async function updateAdminVisibility(user) {
  const staffTab=document.getElementById('adminSupportStaffTabButton');
  if(staffTab)staffTab.style.display=owner?'':'none';
 
- // Keep Website Visitors accessible at the top of Staff Panel for authorised viewers.
+ // Website visitor analytics are owner-only and never exposed in the Staff Panel.
  const visitorLink=document.getElementById('staffViewerAnalyticsLink');
- if(visitorLink)visitorLink.style.display=canViewVisitorAnalytics?'inline-flex':'none';
+ if(visitorLink)visitorLink.style.display='none';
  const visitorNote=document.getElementById('staffViewerAnalyticsNote');
- if(visitorNote)visitorNote.style.display=canViewVisitorAnalytics?'none':'block';
+ if(visitorNote)visitorNote.style.display='none';
 
  const status=document.getElementById('adminStatus');
  if(status)status.textContent=owner?'Owner access verified. You control RIANDERBLOG and all administrator assignments.':canAdmin?'Admin Support Staff access verified. You can manage marketplace operations using your own account.':'Administrator access is restricted.';
@@ -2859,7 +2862,7 @@ async function loadVisitorAnalytics(){
   const {data:sessionData,error:sessionError}=await db.auth.getSession();
   if(sessionError)throw sessionError;
   const viewer=sessionData.session?.user;
-  const allowed=!!viewer&&(viewer.id===ADMIN_USER_ID||String(viewer.email||'').trim().toLowerCase()==='giftchonde1@gmail.com');
+  const allowed=!!viewer&&viewer.id===ADMIN_USER_ID;
   if(!allowed)throw new Error('You are not authorised to view visitor analytics.');
   const {data,error}=await db.rpc('get_visitor_analytics');
   if(error)throw error;
@@ -2968,7 +2971,9 @@ function adminShowTab(tab) {
 async function loadExternalAffiliateDeals(){const box=document.getElementById('externalAffiliateDeals');if(!box)return;const {data,error}=await db.from('external_affiliate_products').select('title,description,image_url,affiliate_url,price,currency,is_featured').eq('is_active',true).order('is_featured',{ascending:false}).order('created_at',{ascending:false}).limit(60);if(error){box.textContent='Partner offers temporarily unavailable.';return;}if(!data?.length){box.textContent='New partner offers coming soon.';return;}box.innerHTML=data.map(p=>{const im=safeURL(p.image_url||''),url=safeURL(p.affiliate_url||'');return '<article class="product-card">'+(im?'<img loading="lazy" src="'+escapeHTML(im)+'" alt="'+escapeHTML(p.title)+'">':'')+'<div class="product-card-body"><h3>'+escapeHTML(p.title)+'</h3><p>'+escapeHTML(p.description||'Partner offer')+'</p><strong>'+(p.price!==null?escapeHTML(p.currency||'USD')+' '+Number(p.price).toFixed(2):'View offer')+'</strong><a class="primary" href="'+escapeHTML(url)+'" target="_blank" rel="sponsored nofollow noopener">Visit partner website ↗</a></div></article>';}).join('');}
 async function openExternalAffiliateManagement(){
   try{
-    await adminGuard();
+    const {data:{user},error}=await db.auth.getUser();
+    if(error)throw error;
+    if(!user||user.id!==ADMIN_USER_ID)throw new Error('Only the main RIANDERBLOG owner can manage affiliate networks.');
     showSection('externalAffiliateManagement');
     await Promise.all([loadExternalAffiliateProductsAdmin(),loadExternalAffiliateNetworks(),loadExternalAffiliateDashboard(),loadExternalAffiliateCampaigns(),loadExternalAffiliateCommissions(),refreshExternalAffiliateSelects()]);
   }catch(error){
