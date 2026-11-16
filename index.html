@@ -6977,9 +6977,9 @@ async function loadStaffTasks(p){
  document.getElementById('staffSocialNote').textContent=generalAccess?'Promotion Hub is grouped here under Marketing & social-media promotion.':'This account is assigned to delivery and assembly only; promotion tools are not enabled.';
  const viewerLink=document.getElementById('staffViewerAnalyticsLink');
  const viewerNote=document.getElementById('staffViewerAnalyticsNote');
- const canViewTeamAnalytics=owner||String(user.email||'').trim().toLowerCase()==='giftchonde1@gmail.com';
- if(viewerLink)viewerLink.style.display=canViewTeamAnalytics?'inline-block':'none';
- if(viewerNote)viewerNote.textContent=canViewTeamAnalytics?'Open visitor statistics, popular pages and audience activity.':'Website viewer reports are restricted to authorised accounts.';
+ const canViewTeamAnalytics=owner;
+ if(viewerLink)viewerLink.style.display='none';
+ if(viewerNote)viewerNote.style.display='none';
  const panels={supplier:'staffSupplierTasks',product:'staffProductTasks',order:'staffOrderTasks',delivery:'staffDeliveryTasks',fulfilment:'staffFulfilmentTasks',other:'staffOtherTasks'};
  for(const [key,id] of Object.entries(panels)){const el=document.getElementById(id)?.closest('section');if(el)el.style.display=deliveryOnly?(key==='delivery'?'block':'none'):(key==='delivery'?'none':'block');}
  const socialPanel=document.getElementById('staffSocialNote')?.closest('details');if(socialPanel)socialPanel.style.display=generalAccess?'block':'none';
