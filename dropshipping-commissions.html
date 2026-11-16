@@ -76,11 +76,10 @@ rows=rows.map(x=>({...x,shop_name:names.get(x.dropshipper_id)||"Shop"}));
 }else if(profile){rows=rows.map(x=>({...x,shop_name:profile.shop_name}));}
 const due=rows.filter(x=>x.platform_commission_status==="due");
 const paid=rows.filter(x=>x.platform_commission_status==="paid");
-const dueTotal=due.reduce((a,x)=>a+Number(x.platform_commission_amount||0),0);
-const paidTotal=paid.reduce((a,x)=>a+Number(x.platform_commission_amount||0),0);
+const totals=items=>{const groups={};items.forEach(x=>{const currency=x.currency||"—";groups[currency]=(groups[currency]||0)+Number(x.platform_commission_amount||0);});return Object.entries(groups).map(([currency,amount])=>money(amount,currency)).join(" · ")||"0";};
 el("summary").hidden=false;
-el("dueTotal").textContent=money(dueTotal,rows[0]?.currency||"");
-el("paidTotal").textContent=money(paidTotal,rows[0]?.currency||"");
+el("dueTotal").textContent=totals(due);
+el("paidTotal").textContent=totals(paid);
 el("dueCount").textContent=String(due.length);
 if(isAdmin){el("adminPanel").hidden=false;el("adminRows").innerHTML=table(rows,true);el("sellerPanel").hidden=true;say("Owner account verified. Showing dropshipping commission records.","success");}
 else{el("sellerPanel").hidden=false;el("sellerRows").innerHTML=table(rows,false);el("adminPanel").hidden=true;say("Signed in as "+profile.shop_name+". Commission is payable per order.","success");}
