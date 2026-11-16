@@ -32,14 +32,21 @@ function table(rows,admin){
 if(!rows.length)return "<p>No commission records found yet.</p>";
 return '<table><thead><tr><th>Order</th><th>Shop</th><th>Order total</th><th>Commission (5%)</th><th>Commission status</th>'+(admin?'<th>Payment confirmation</th>':'')+'</tr></thead><tbody>'+rows.map(o=>{
 const due=o.platform_commission_status==="due";
-return '<tr><td><strong>'+safe(o.id.slice(0,8))+'</strong><br><small>'+new Date(o.created_at).toLocaleString()+'</small></td><td>'+safe(o.shop_name||"Your shop")+'</td><td>'+safe(money(o.total_amount,o.currency))+'</td><td><strong>'+safe(money(o.platform_commission_amount,o.currency))+'</strong></td><td><span class="pill '+(o.platform_commission_status==="paid"?"paid":"")+'">'+safe(o.platform_commission_status)+'</span>'+(o.platform_commission_paid_at?'<br><small>'+new Date(o.platform_commission_paid_at).toLocaleString()+'</small>':'')+'</td>'+(admin?'<td>'+(due?'<input id="ref-'+safe(o.id)+'" placeholder="Payment reference"><button onclick="confirmCommission(\''+safe(o.id)+'\')">Confirm received</button>':'<small>'+(o.platform_commission_payment_reference?'Ref: '+safe(o.platform_commission_payment_reference):'No action required')+'</small>')+'</td>':'')+'</tr>';
+return '<tr><td><strong>'+safe(o.id.slice(0,8))+'</strong><br><small>'+new Date(o.created_at).toLocaleString()+'</small></td><td>'+safe(o.shop_name||"Your shop")+'</td><td>'+safe(money(o.total_amount,o.currency))+'</td><td><strong>'+safe(money(o.platform_commission_amount,o.currency))+'</strong></td><td><span class="pill '+(o.platform_commission_status==="paid"?"paid":"")+'">'+safe(o.platform_commission_status)+'</span>'+(o.platform_commission_paid_at?'<br><small>'+new Date(o.platform_commission_paid_at).toLocaleString()+'</small>':'')+'</td>'+(admin?'<td>'+(due?'<small>Seller reference: '+safe(o.platform_commission_payment_reference||"Not submitted")+'</small><br><input id="ref-'+safe(o.id)+'" placeholder="RIANDERBLOG receipt reference"><button onclick="confirmCommission(\\''+safe(o.id)+'\\')">Confirm received</button>':'<small>'+(o.platform_commission_admin_reference?'Confirmed ref: '+safe(o.platform_commission_admin_reference):'No action required')+'</small>')+'</td>':(due?'<td><input id="seller-ref-'+safe(o.id)+'" placeholder="Your payment reference"><button onclick="submitCommissionReference(\\''+safe(o.id)+'\\')">Submit reference</button></td>':'<td><small>Not payable yet</small></td>'))+'</tr>';
 }).join("")+'</tbody></table>';
 }
+window.submitCommissionReference=async function(id){
+const ref=el("seller-ref-"+id)?.value.trim();
+if(!ref){alert("Enter the payment reference from your payment transaction.");return;}
+const {error}=await db.from("dropshipper_orders").update({platform_commission_payment_reference:ref}).eq("id",id).eq("platform_commission_status","due");
+if(error){alert("Could not submit payment reference: "+error.message);return;}
+alert("Payment reference submitted to RIANDERBLOG for verification.");await load();
+};
 window.confirmCommission=async function(id){
 const ref=el("ref-"+id)?.value.trim();
 if(!ref){alert("Enter the payment reference before confirming.");return;}
 if(!confirm("Confirm that RIANDERBLOG has actually received this commission payment?"))return;
-const {error}=await db.from("dropshipper_orders").update({platform_commission_status:"paid",platform_commission_payment_reference:ref}).eq("id",id).eq("platform_commission_status","due");
+const {error}=await db.from("dropshipper_orders").update({platform_commission_status:"paid",platform_commission_admin_reference:ref}).eq("id",id).eq("platform_commission_status","due");
 if(error){alert("Could not confirm payment: "+error.message);return;}
 await load();
 };
@@ -55,7 +62,7 @@ if(p.error)throw p.error;
 profile=p.data;
 if(!profile){say("You do not have a dropshipping shop yet. Register through the Dropshipping area when it becomes available.");return;}
 }
-let query=db.from("dropshipper_orders").select("id,dropshipper_id,created_at,currency,total_amount,payment_status,platform_commission_rate,platform_commission_amount,platform_commission_status,platform_commission_paid_at,platform_commission_payment_reference").order("created_at",{ascending:false}).limit(300);
+let query=db.from("dropshipper_orders").select("id,dropshipper_id,created_at,currency,total_amount,payment_status,platform_commission_rate,platform_commission_amount,platform_commission_status,platform_commission_paid_at,platform_commission_payment_reference,platform_commission_admin_reference").order("created_at",{ascending:false}).limit(300);
 if(!isAdmin)query=query.eq("dropshipper_id",profile.id);
 const result=await query;
 if(result.error)throw result.error;
