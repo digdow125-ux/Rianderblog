@@ -21,6 +21,8 @@
 label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#34435a}
 input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-size:15px;background:white}
 .password-wrap{position:relative;display:flex;align-items:center}
+.signup-only{display:none}
+.password-help{font-size:11px;color:#718095;margin:6px 0 0;line-height:1.4}
 .password-wrap input{padding-right:82px}
 .password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:#edf1f6;color:#173b63;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}
 .account-switch{margin:16px 0 0;text-align:center;color:#647187;font-size:13px;line-height:1.6}
@@ -52,9 +54,12 @@ input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-si
   <section class="form">
    <div class="tabs"><button id="signinTab" type="button" onclick="setMode('signin')">Sign in</button><button id="signupTab" type="button" onclick="setMode('signup')">Create account</button></div>
    <form id="authForm" onsubmit="event.preventDefault();submitAuth()">
+    <div class="signup-only" id="usernameField"><label for="username">Username</label><input id="username" type="text" placeholder="Choose a username" autocomplete="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_]+" title="Use 3–24 letters, numbers or underscores"></div>
     <label for="email">Email address</label><input id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
     <label for="password">Password</label>
     <div class="password-wrap"><input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" minlength="6" required><button class="password-toggle" id="passwordToggle" type="button" onclick="togglePassword()" aria-label="Show password" aria-pressed="false">Show</button></div>
+    <p class="password-help" id="passwordHelp">Use at least 6 characters.</p>
+    <div class="signup-only" id="confirmPasswordField"><label for="confirmPassword">Confirm password</label><div class="password-wrap"><input id="confirmPassword" type="password" placeholder="Enter your password again" autocomplete="new-password" minlength="6"><button class="password-toggle" id="confirmPasswordToggle" type="button" onclick="toggleConfirmPassword()" aria-label="Show confirmation password" aria-pressed="false">Show</button></div></div>
     <label class="terms" id="termsRow" style="display:none"><input id="acceptTerms" type="checkbox"><span>I have read and agree to RIANDERBLOG's <a href="./policies.html#terms" target="_blank" rel="noopener">Terms and Conditions</a>.</span></label>
     <button class="primary" id="submitButton" type="submit">Create my free account</button>
     <p class="account-switch" id="accountSwitch">Already have an account? <button type="button" onclick="setMode('signin')">Sign in</button></p>
@@ -86,14 +91,19 @@ function togglePassword(){
  const show=input.type==="password";input.type=show?"text":"password";
  button.textContent=show?"Hide":"Show";button.setAttribute("aria-label",show?"Hide password":"Show password");button.setAttribute("aria-pressed",String(show));
 }
-function setMode(value){mode=value==="signin"?"signin":"signup";document.getElementById("signinTab").classList.toggle("active",mode==="signin");document.getElementById("signupTab").classList.toggle("active",mode==="signup");document.getElementById("submitButton").textContent=mode==="signup"?"Create my free account":"Sign in securely";
+function toggleConfirmPassword(){
+ const input=document.getElementById("confirmPassword"),button=document.getElementById("confirmPasswordToggle");
+ const show=input.type==="password";input.type=show?"text":"password";
+ button.textContent=show?"Hide":"Show";button.setAttribute("aria-label",show?"Hide confirmation password":"Show confirmation password");button.setAttribute("aria-pressed",String(show));
+}
+function setMode(value){mode=value==="signin"?"signin":"signup";document.getElementById("usernameField").style.display=mode==="signup"?"block":"none";document.getElementById("confirmPasswordField").style.display=mode==="signup"?"block":"none";document.getElementById("passwordHelp").style.display=mode==="signup"?"block":"none";document.getElementById("confirmPassword").required=mode==="signup";document.getElementById("username").required=mode==="signup";document.getElementById("signinTab").classList.toggle("active",mode==="signin");document.getElementById("signupTab").classList.toggle("active",mode==="signup");document.getElementById("submitButton").textContent=mode==="signup"?"Create my free account":"Sign in securely";
 document.getElementById("password").autocomplete=mode==="signup"?"new-password":"current-password";
 document.getElementById("password").placeholder=mode==="signup"?"Create a password (at least 6 characters)":"Enter your password";
 document.getElementById("termsRow").style.display=mode==="signup"?"flex":"none";
 document.getElementById("emailSpamNote").hidden=mode!=="signup";
 document.getElementById("accountSwitch").innerHTML=mode==="signup"?'Already have an account? <button type="button" onclick="setMode(\'signin\')">Sign in</button>':'New to RIANDERBLOG? <button type="button" onclick="setMode(\'signup\')">Create an account</button>';
 document.getElementById("resendButton").style.display="none";
-document.getElementById("password").type="password";document.getElementById("passwordToggle").textContent="Show";document.getElementById("passwordToggle").setAttribute("aria-label","Show password");document.getElementById("passwordToggle").setAttribute("aria-pressed","false");
+document.getElementById("password").type="password";document.getElementById("confirmPassword").type="password";document.getElementById("passwordToggle").textContent="Show";document.getElementById("confirmPasswordToggle").textContent="Show";document.getElementById("passwordToggle").setAttribute("aria-label","Show password");document.getElementById("passwordToggle").setAttribute("aria-pressed","false");
 say(mode==="signup"?"Create your free account to continue.":"Welcome back. Sign in to continue.");}
 function destination(){
  const next=params.get("next")||localStorage.getItem("rianderblog_auth_next")||"home";
@@ -105,12 +115,18 @@ function destination(){
 async function submitAuth(){
  if(busy)return;
  const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+ const username=document.getElementById("username").value.trim();
+ const confirmPassword=document.getElementById("confirmPassword").value;
  if(!email||!password){say("Enter your email address and password.");return;}
+ if(mode==="signup"){
+  if(!/^[A-Za-z0-9_]{3,24}$/.test(username)){say("Choose a username with 3–24 characters using only letters, numbers or underscores.");return;}
+  if(password!==confirmPassword){say("Your passwords do not match. Please check them and try again.");document.getElementById("confirmPassword").focus();return;}
+ }
  if(mode==="signup"&&!document.getElementById("acceptTerms").checked){say("Please agree to the Terms and Conditions before creating your account.");return;}
  busy=true;const button=document.getElementById("submitButton");button.disabled=true;button.textContent=mode==="signup"?"Creating account…":"Signing in…";
  try{
   if(mode==="signup"){
-   const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl}});
+   const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl,data:{username,full_name:username,display_name:username}}});
    if(error)throw error;
    // Supabase may return an empty identities array when this email already has an account.
    if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
