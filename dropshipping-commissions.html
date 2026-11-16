@@ -14,6 +14,8 @@
 <header><a href="./index.html"><strong>RIANDERBLOG</strong></a><a href="./index.html">← Back to marketplace</a></header>
 <main>
 <section class="card"><h1>Dropshipping commission centre</h1><p class="muted">RIANDERBLOG charges 5% of each dropshipping order after you confirm that the customer has paid. Commission is settled separately for every order. Your customers pay you directly; you pay the supplier for fulfilment.</p><p id="status">Checking your account…</p></section>
+<section id="paymentInfo" class="card" hidden><h2>How to pay RIANDERBLOG</h2><p id="paymentInstructions" class="muted">Payment instructions will appear here.</p><p class="muted">Pay the commission for each order separately, then submit your transaction reference in that order's row. RIANDERBLOG will verify receipt and mark it as paid.</p></section>
+<section id="adminSettings" class="card" hidden><h2>Commission payment instructions</h2><p class="muted">Add the official RIANDERBLOG account or payment details that dropshippers should use. These instructions are visible only to signed-in users.</p><textarea id="paymentInstructionsInput" rows="4" style="width:100%;padding:12px;border:1px solid #cfd8e4;border-radius:8px" placeholder="Enter official payment method, account name, number and reference instructions"></textarea><button onclick="savePaymentInstructions()">Save payment instructions</button><p id="settingsStatus" class="muted"></p></section>
 <section id="summary" class="card" hidden><div class="stats"><div class="stat">Commission currently due<strong id="dueTotal">—</strong></div><div class="stat">Commission already paid<strong id="paidTotal">—</strong></div><div class="stat">Orders with commission due<strong id="dueCount">—</strong></div></div></section>
 <section id="sellerPanel" class="card" hidden><h2>Your commission records</h2><p class="muted">Pay each due commission to RIANDERBLOG using the payment instructions provided by the platform team. After you pay, submit the payment reference to the RIANDERBLOG team for confirmation. Do not mark your own commission as paid.</p><div id="sellerRows" class="table-wrap"></div></section>
 <section id="adminPanel" class="card" hidden><h2>Platform commission management</h2><p class="muted">Only mark a commission as paid after the money has actually reached RIANDERBLOG. Record a payment reference for each order.</p><div id="adminRows" class="table-wrap"></div></section>
@@ -28,6 +30,13 @@ const el=id=>document.getElementById(id);
 const money=(n,c)=>String(c||"")+" "+Number(n||0).toFixed(2);
 const safe=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 function say(msg,cls){el("status").className=cls||"";el("status").textContent=msg;}
+window.savePaymentInstructions=async function(){
+const value=el("paymentInstructionsInput").value.trim();
+const {error}=await db.from("dropshipping_commission_settings").upsert({singleton:true,payment_instructions:value,updated_at:new Date().toISOString()},{onConflict:"singleton"});
+if(error){el("settingsStatus").textContent="Could not save: "+error.message;return;}
+el("settingsStatus").textContent="Payment instructions saved.";
+el("paymentInstructions").textContent=value||"RIANDERBLOG has not added payment instructions yet.";
+};
 function table(rows,admin){
 if(!rows.length)return "<p>No commission records found yet.</p>";
 return '<table><thead><tr><th>Order</th><th>Shop</th><th>Order total</th><th>Commission (5%)</th><th>Commission status</th>'+(admin?'<th>Payment confirmation</th>':'')+'</tr></thead><tbody>'+rows.map(o=>{
@@ -55,6 +64,12 @@ const {data:{user},error:authError}=await db.auth.getUser();
 if(authError)throw authError;
 if(!user){say("Please sign in to RIANDERBLOG first.");return;}
 const isAdmin=user.id===ADMIN_ID;
+const settings=await db.from("dropshipping_commission_settings").select("payment_instructions").eq("singleton",true).maybeSingle();
+if(settings.error)throw settings.error;
+const instructions=settings.data?.payment_instructions||"RIANDERBLOG has not added payment instructions yet. Contact the platform team before making a payment.";
+el("paymentInfo").hidden=false;
+el("paymentInstructions").textContent=instructions;
+if(isAdmin){el("adminSettings").hidden=false;el("paymentInstructionsInput").value=settings.data?.payment_instructions||"";}
 let profile=null;
 if(!isAdmin){
 const p=await db.from("dropshipper_profiles").select("id,shop_name").eq("user_id",user.id).maybeSingle();
