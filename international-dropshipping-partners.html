@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#173b63">
+<meta name="description" content="Find international dropshipping partners on RIANDERBLOG. Discover verified businesses, product categories and shipping destinations.">
+<title>RIANDERBLOG | International Dropshipping Partners</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#263548;background:#f4f6f9;--navy:#173b63;--orange:#f36b25;--line:#e0e6ee;--muted:#69788c}
+*{box-sizing:border-box}body{margin:0}header{background:var(--navy);color:#fff;padding:18px max(18px,calc((100% - 1120px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}header a{color:#fff;text-decoration:none}main{max-width:1120px;margin:22px auto;padding:0 16px}.hero{background:linear-gradient(115deg,#102844,#244d78);border-radius:16px;color:#fff;padding:30px}.hero small{color:#ffc36a;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold}.hero h1{font-size:clamp(27px,5vw,40px);margin:10px 0}.hero p{line-height:1.6;color:#e1eaf3;max-width:760px}.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin:16px 0;box-shadow:0 3px 14px #172b4510}h2{color:var(--navy);margin:0 0 10px}.muted{color:var(--muted);line-height:1.55}.filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:15px 0}.filters input,.filters select,input,textarea,select{width:100%;padding:12px;border:1px solid #d3dce7;border-radius:8px;font:inherit;background:#fff}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}.partner{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px}.partner h3{color:var(--navy);margin:0 0 7px}.tag{display:inline-block;background:#fff1e8;color:#98451e;border-radius:18px;padding:5px 9px;font-size:11px;margin:3px 3px 3px 0}.partner p{font-size:13px;line-height:1.55;color:#5d6b7d}.partner a{color:var(--navy);font-weight:bold;overflow-wrap:anywhere}.btn{border:0;border-radius:8px;background:var(--orange);color:#fff;font-weight:bold;padding:12px 16px;cursor:pointer}.btn.alt{background:var(--navy)}.btn.light{background:#e9eef5;color:var(--navy)}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.formgrid label{font-size:13px;font-weight:bold;color:#34465d}.formgrid label input,.formgrid label textarea{margin-top:6px;font-weight:normal}.wide{grid-column:1/-1}.status{padding:10px;border-radius:8px;background:#f3f6fa;font-size:13px}.error{color:#a12626}.success{color:#17643c}.adminrow{border:1px solid var(--line);border-radius:9px;padding:12px;margin:9px 0}.adminrow button{margin:5px 5px 0 0}@media(max-width:650px){.filters,.formgrid{grid-template-columns:1fr}.hero{padding:23px}.wide{grid-column:auto}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header><a href="./index.html"><strong>RIANDERBLOG</strong></a><a href="./index.html">← Back to marketplace</a></header>
+<main>
+<section class="hero"><small>Global business connections</small><h1>Find an International Dropshipping Partner</h1><p>Discover businesses in other countries that offer products for dropshipping. Compare their product categories and shipping destinations, then contact them directly to discuss prices, stock, delivery times and fulfilment terms.</p><a class="btn" href="#directory" style="display:inline-block;text-decoration:none">Explore partners</a></section>
+<section class="card" id="directory"><h2>Browse international partners</h2><p class="muted">Only partners approved by RIANDERBLOG appear in this directory.</p><div class="filters"><input id="search" placeholder="Search business, product or keyword"><select id="countryFilter"><option value="">All partner countries</option></select><select id="destinationFilter"><option value="">All shipping destinations</option></select></div><div id="partnerGrid" class="grid"><p class="muted">Loading approved partners…</p></div><p id="directoryStatus" class="muted"></p></section>
+<section class="card" id="join"><h2>List your international dropshipping business</h2><p class="muted">Are you a business outside Malawi that can supply products and ship to customers in other countries? Sign in to RIANDERBLOG and submit your business for review. Your listing will become public only after approval.</p><p id="authStatus" class="status">Checking your RIANDERBLOG account…</p><form id="partnerForm" hidden><div class="formgrid">
+<label>Business / partner name<input name="business_name" required minlength="2" maxlength="120" placeholder="Your registered business or shop name"></label>
+<label>Country where your business operates<input name="country" required placeholder="e.g. China, South Africa, UAE"></label>
+<label class="wide">Products or categories you offer<input name="product_categories" required placeholder="e.g. Electronics, fashion, shoes, home goods"></label>
+<label class="wide">Describe your products and dropshipping service<textarea name="product_description" rows="3" required placeholder="Tell buyers what you supply, minimum order quantities and fulfilment details"></textarea></label>
+<label class="wide">Countries you can ship to<input name="ships_to" required placeholder="e.g. Malawi, Zambia, Kenya, worldwide"></label>
+<label>Business contact email<input name="contact_email" type="email" required placeholder="business@example.com"></label>
+<label>WhatsApp number (include country code)<input name="whatsapp" placeholder="+86…"></label>
+<label class="wide">Website or product catalogue link (optional)<input name="website_url" type="url" placeholder="https://example.com"></label>
+</div><p class="muted">Please provide accurate information. RIANDERBLOG reviews listings, but buyers must independently confirm prices, shipping, product quality and payment terms before ordering.</p><button class="btn" type="submit">Submit for approval</button></form><div id="existingListing" hidden></div></section>
+<section class="card" id="adminReview" hidden><h2>Partner listing review</h2><p class="muted">Approve only businesses whose details have been checked. Approval makes their contact details visible to directory visitors.</p><div id="reviewRows"></div></section>
+</main>
+<script>
+(function(){
+const URL="https://yymdyxlbdgbrgrykdspx.supabase.co";
+const KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
+const ADMIN="a32248b7-5745-4dd8-8af0-bce4eb465f66";
+const db=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
+const $=id=>document.getElementById(id);
+let partners=[];
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeLink=v=>{try{const u=new URL(v);return ["https:","http:"].includes(u.protocol)?u.href:""}catch{return ""}};
+const split=v=>v.split(",").map(x=>x.trim()).filter(Boolean).slice(0,30);
+function render(){
+ const q=$("search").value.trim().toLowerCase(),country=$("countryFilter").value,dest=$("destinationFilter").value;
+ const list=partners.filter(p=>{
+  const hay=[p.business_name,p.country,p.product_description,...(p.product_categories||[]),...(p.ships_to||[])].join(" ").toLowerCase();
+  return (!q||hay.includes(q))&&(!country||p.country===country)&&(!dest||(p.ships_to||[]).some(x=>x.toLowerCase()===dest.toLowerCase()));
+ });
+ $("partnerGrid").innerHTML=list.length?list.map(p=>{
+  const cats=(p.product_categories||[]).map(x=>'<span class="tag">'+esc(x)+'</span>').join("");
+  const destinations=(p.ships_to||[]).map(x=>'<span class="tag">'+esc(x)+'</span>').join("");
+  const wa=String(p.whatsapp||"").replace(/[^0-9+]/g,"");
+  const site=safeLink(p.website_url||"");
+  return '<article class="partner"><h3>'+esc(p.business_name)+'</h3><span class="tag">📍 '+esc(p.country)+'</span><p>'+esc(p.product_description)+'</p><strong style="font-size:12px;color:#173b63">Products</strong><div>'+cats+'</div><strong style="font-size:12px;color:#173b63">Ships to</strong><div>'+destinations+'</div><p><a href="mailto:'+encodeURIComponent(p.contact_email)+'">Email partner</a>'+(wa?' · <a target="_blank" rel="noopener" href="https://wa.me/'+encodeURIComponent(wa.replace(/^\+/,""))+'">WhatsApp</a>':'')+(site?' · <a target="_blank" rel="noopener" href="'+esc(site)+'">Website</a>':'')+'</p></article>';
+ }).join(""):'<p class="muted">No approved partners match your search yet. Try another country or category, or invite an international business to apply.</p>';
+ $("directoryStatus").textContent=list.length+" approved partner"+(list.length===1?"":"s")+" shown.";
+}
+function fillFilters(){
+ const countries=[...new Set(partners.map(p=>p.country).filter(Boolean))].sort();
+ const destinations=[...new Set(partners.flatMap(p=>p.ships_to||[]).filter(Boolean))].sort();
+ $("countryFilter").innerHTML='<option value="">All partner countries</option>'+countries.map(x=>'<option>'+esc(x)+'</option>').join("");
+ $("destinationFilter").innerHTML='<option value="">All shipping destinations</option>'+destinations.map(x=>'<option>'+esc(x)+'</option>').join("");
+}
+async function loadDirectory(){
+ const {data,error}=await db.from("international_dropshipping_partners").select("id,business_name,country,product_categories,product_description,ships_to,contact_email,whatsapp,website_url").eq("verification_status","approved").eq("is_active",true).order("business_name");
+ if(error)throw error;partners=data||[];fillFilters();render();
+}
+async function loadAccount(){
+ const {data:{user},error}=await db.auth.getUser();if(error)throw error;
+ if(!user){$("authStatus").textContent="Sign in or create a RIANDERBLOG account before submitting your business.";return;}
+ if(user.id===ADMIN){
+  $("authStatus").textContent="You are signed in as the RIANDERBLOG administrator.";
+  $("adminReview").hidden=false;
+  $("partnerForm").hidden=true;
+  await loadReviews();return;
+ }
+ const {data,error:lookupError}=await db.from("international_dropshipping_partners").select("business_name,verification_status").eq("user_id",user.id).maybeSingle();
+ if(lookupError)throw lookupError;
+ if(data){$("existingListing").hidden=false;$("existingListing").innerHTML='<p class="status">Your listing <strong>'+esc(data.business_name)+'</strong> is currently <strong>'+esc(data.verification_status)+'</strong>. You can submit one listing per RIANDERBLOG account. Contact platform support if you need to change it.</p>';}
+ else $("partnerForm").hidden=false;
+ $("authStatus").textContent="Signed in. You can submit your international business for review.";
+}
+async function loadReviews(){
+ const {data,error}=await db.from("international_dropshipping_partners").select("*").order("created_at",{ascending:false});
+ if(error)throw error;
+ $("reviewRows").innerHTML=(data||[]).length?data.map(p=>'<div class="adminrow"><strong>'+esc(p.business_name)+'</strong> — '+esc(p.country)+'<br><small>'+esc(p.contact_email)+' · '+esc(p.verification_status)+'</small><p>'+esc(p.product_description)+'</p><button class="btn" onclick="reviewPartner(\''+p.id+'\',\'approved\')">Approve</button><button class="btn light" onclick="reviewPartner(\''+p.id+'\',\'rejected\')">Reject</button></div>').join(""):"<p>No applications received yet.</p>";
+}
+window.reviewPartner=async function(id,status){
+ const {error}=await db.from("international_dropshipping_partners").update({verification_status:status,updated_at:new Date().toISOString()}).eq("id",id);
+ if(error){alert("Could not update listing: "+error.message);return;}await loadReviews();await loadDirectory();
+};
+$("partnerForm").addEventListener("submit",async e=>{
+ e.preventDefault();const form=e.currentTarget;const fd=new FormData(form);const {data:{user}}=await db.auth.getUser();if(!user){$("authStatus").textContent="Please sign in again.";return;}
+ const website=String(fd.get("website_url")||"").trim();
+ if(website&&!safeLink(website)){alert("Enter a valid http or https website link.");return;}
+ const payload={user_id:user.id,business_name:String(fd.get("business_name")).trim(),country:String(fd.get("country")).trim(),product_categories:split(String(fd.get("product_categories"))),product_description:String(fd.get("product_description")).trim(),ships_to:split(String(fd.get("ships_to"))),contact_email:String(fd.get("contact_email")).trim(),whatsapp:String(fd.get("whatsapp")||"").trim()||null,website_url:website||null,verification_status:"pending",is_active:true};
+ const {error}=await db.from("international_dropshipping_partners").insert(payload);
+ if(error){$("authStatus").textContent="Submission failed: "+error.message;$("authStatus").className="status error";return;}
+ form.hidden=true;$("existingListing").hidden=false;$("existingListing").innerHTML='<p class="status success">Your application has been submitted. RIANDERBLOG will review it before it appears in the public directory.</p>';
+});
+["search","countryFilter","destinationFilter"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));
+Promise.all([loadDirectory(),loadAccount()]).catch(e=>{console.error(e);$("directoryStatus").textContent="Could not load directory: "+e.message;$("authStatus").textContent="Account status: "+e.message;});
+})();
+</script>
+</body></html>
