@@ -2827,11 +2827,15 @@ async function updateAdminVisibility(user) {
  const staffTab=document.getElementById('adminSupportStaffTabButton');
  if(staffTab)staffTab.style.display=owner?'':'none';
 
- // Website visitor analytics are owner-only and never exposed in the Staff Panel.
+ // Show Audience & website performance to the main owner in Team tools & reports.
+ // Ordinary staff do not receive access to private visitor analytics.
  const visitorLink=document.getElementById('staffViewerAnalyticsLink');
- if(visitorLink)visitorLink.style.display='none';
+ if(visitorLink)visitorLink.style.display=owner?'inline-block':'none';
  const visitorNote=document.getElementById('staffViewerAnalyticsNote');
- if(visitorNote)visitorNote.style.display='none';
+ if(visitorNote){
+  visitorNote.style.display=owner?'block':'none';
+  visitorNote.textContent=owner?'Owner access: open the website visitor reports to review marketplace traffic.':'';
+ }
 
  const status=document.getElementById('adminStatus');
  if(status)status.textContent=owner?'Owner access verified. You control RIANDERBLOG and all administrator assignments.':canAdmin?'Admin Support Staff access verified. You can manage marketplace operations using your own account.':'Administrator access is restricted.';
