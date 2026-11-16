@@ -2158,6 +2158,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
 
   <div class="admin-navigation">
     <button onclick="adminShowTab('overview')">Overview</button>
+    <button id="adminWebsiteVisitorsButton" style="display:none" onclick="showSection('visitorAnalyticsPanel');loadVisitorAnalytics()">Website visitors</button>
     <button data-notify-target="adminOrders" onclick="adminShowTab('orders')">Orders</button>
     <details class="admin-nav-dropdown" id="adminSuppliersDropdown">
       <summary data-notify-target="adminSuppliers" onclick="adminShowTab('suppliers')">Suppliers <span aria-hidden="true">▾</span></summary>
@@ -2809,6 +2810,7 @@ async function updateAdminVisibility(user) {
   el.setAttribute('aria-hidden',allowed?'false':'true');
  };
  setNavAccess('adminNavLink',canAdmin);
+ setNavAccess('adminWebsiteVisitorsButton',owner);
  setNavAccess('navAffiliateManagement',owner);
  setNavAccess('navRecommendedDeals',canAdmin);
  setNavAccess('navStaffPanel',teamAccess);
