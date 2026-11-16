@@ -2549,7 +2549,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
   <p><strong>RIANDERBLOG</strong> © 2026</p>
   <p>Shop globally. Discover more.</p>
   <p>Browse our global product collection. Seller and checkout details are shown with each product.</p>\n  <p><a href="./product-directory.html" style="color:#f2c66d;text-decoration:underline">Browse all product pages</a></p>
-  <p>Support: <a href="mailto:digdownchipeta125@gmail.com" style="color:#f2c66d">digdownchipeta125@gmail.com</a> · <a href="mailto:giftchonde1@gmail.com" style="color:#f2c66d">giftchonde1@gmail.com</a></p>
+  <p>RIANDERBLOG Support: <a href="mailto:rianderblogsupport@gmail.com" style="color:#f2c66d">rianderblogsupport@gmail.com</a> · Admin: <a href="mailto:digdownchipeta125@gmail.com" style="color:#f2c66d">digdownchipeta125@gmail.com</a></p>
   <p><a href="./policies.html" style="color:#f2c66d;text-decoration:underline">Terms &amp; Conditions · Privacy · Returns &amp; Refunds · Supplier Agreement</a></p>
 </footer>
 
@@ -4184,7 +4184,7 @@ function openDetails(id) {
         <p><strong>Colours:</strong> ${escapeHTML((p.available_colours||[]).join(', ')||'Not specified')}</p>
         <p><strong>Delivery:</strong> within ${Number(p.delivery_days||7)} day(s), maximum 7 days</p>
         ${(p.available_colours||[]).length ? '<label for="chooseColour">Choose colour</label><select id="chooseColour">'+p.available_colours.map(c=>'<option value="'+escapeHTML(c)+'">'+escapeHTML(c)+'</option>').join('')+'</select>' : ''}
-        <div class="small-note" style="margin-top:9px;padding:9px;background:#f5f7fa;border-radius:7px"><strong>Product enquiries:</strong> RIANDERBLOG Admin and Gift Chonde<br><a href="mailto:giftchonde1@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Gift Chonde</a> · <a href="mailto:digdow125@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Admin</a></div>\n        ${Number(p.stock_quantity||0)<Math.max(1,Number(p.minimum_order_quantity||1))?'<p style="color:#b42318;font-weight:800">OUT OF STOCK — this product cannot currently be ordered.</p>':''}
+        <div class="small-note" style="margin-top:9px;padding:9px;background:#f5f7fa;border-radius:7px"><strong>Product enquiries:</strong> RIANDERBLOG Support<br><a href="mailto:rianderblogsupport@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact RIANDERBLOG Support</a> · <a href="mailto:digdownchipeta125@gmail.com?subject=RIANDERBLOG%20product%20enquiry">Contact Admin</a></div>\n        ${Number(p.stock_quantity||0)<Math.max(1,Number(p.minimum_order_quantity||1))?'<p style="color:#b42318;font-weight:800">OUT OF STOCK — this product cannot currently be ordered.</p>':''}
         <div class="detail-actions">
           <button class="detail-add" ${Number(p.stock_quantity||0)<Math.max(1,Number(p.minimum_order_quantity||1))?'disabled aria-disabled="true"':''} onclick="addToCart('${escapeHTML(p.id)}');closeDetails()">${Number(p.stock_quantity||0)<Math.max(1,Number(p.minimum_order_quantity||1))?'Out of Stock':'Add to Cart'}</button>
           <button class="detail-buy" onclick="startSupplierConversation('${escapeHTML(p.id)}');closeDetails()">Message Supplier</button>
