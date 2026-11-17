@@ -110,6 +110,7 @@ function destination(){
  if(localStorage.getItem("rianderblog_onboarding_pending")==="1"){location.replace("./welcome.html");return;}
  localStorage.removeItem("rianderblog_auth_next");
  if(next==="checkout"){location.replace("./index.html#cart");return;}
+ if(next==="supplier"){location.replace("./index.html#supplier-application");return;}
  location.replace("./index.html");
 }
 async function submitAuth(){
