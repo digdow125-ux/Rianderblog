@@ -22,6 +22,14 @@ label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#3443
 input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-size:15px;background:white}
 .password-wrap{position:relative;display:flex;align-items:center}
 .signup-only{display:none}
+.account-type-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}
+.account-type{display:flex;align-items:flex-start;gap:9px;padding:13px;border:1px solid #dce2ea;border-radius:9px;background:#fff;cursor:pointer;margin:0}
+.account-type:has(input:checked){border-color:var(--gold);background:#fffaf0;box-shadow:0 0 0 1px var(--gold)}
+.account-type input{width:auto;margin:3px 0 0;flex:none}
+.account-type strong,.account-type small{display:block}
+.account-type strong{font-size:13px;color:var(--navy)}
+.account-type small{font-size:11px;color:var(--muted);line-height:1.4;margin-top:5px}
+@media(max-width:390px){.account-type-options{grid-template-columns:1fr}}
 .password-help{font-size:11px;color:#718095;margin:6px 0 0;line-height:1.4}
 .password-wrap input{padding-right:82px}
 .password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:#edf1f6;color:#173b63;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}
@@ -54,6 +62,14 @@ input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-si
   <section class="form">
    <div class="tabs"><button id="signinTab" type="button" onclick="setMode('signin')">Sign in</button><button id="signupTab" type="button" onclick="setMode('signup')">Create account</button></div>
    <form id="authForm" onsubmit="event.preventDefault();submitAuth()">
+    <div class="signup-only" id="accountTypeField">
+     <label>What type of account do you want to create?</label>
+     <div class="account-type-options" role="radiogroup" aria-label="Choose account type">
+      <label class="account-type"><input type="radio" name="accountType" value="customer"><span><strong>Customer</strong><small>Browse products, place orders and track deliveries.</small></span></label>
+      <label class="account-type"><input type="radio" name="accountType" value="supplier"><span><strong>Supplier</strong><small>Apply to sell products and manage your sales.</small></span></label>
+     </div>
+     <p class="password-help">Supplier accounts require approval before products can be listed.</p>
+    </div>
     <div class="signup-only" id="usernameField"><label for="username">Username</label><input id="username" type="text" placeholder="Choose a username" autocomplete="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_]+" title="Use 3–24 letters, numbers or underscores"></div>
     <label for="email">Email address</label><input id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
     <label for="password">Password</label>
@@ -120,6 +136,8 @@ async function submitAuth(){
  const confirmPassword=document.getElementById("confirmPassword").value;
  if(!email||!password){say("Enter your email address and password.");return;}
  if(mode==="signup"){
+  const accountType=document.querySelector('input[name="accountType"]:checked')?.value;
+  if(!accountType){say("Please choose whether you are registering as a Customer or Supplier.");document.getElementById("accountTypeField").scrollIntoView({behavior:"smooth",block:"center"});return;}
   if(!/^[A-Za-z0-9_]{3,24}$/.test(username)){say("Choose a username with 3–24 characters using only letters, numbers or underscores.");return;}
   if(password!==confirmPassword){say("Your passwords do not match. Please check them and try again.");document.getElementById("confirmPassword").focus();return;}
  }
@@ -127,7 +145,7 @@ async function submitAuth(){
  busy=true;const button=document.getElementById("submitButton");button.disabled=true;button.textContent=mode==="signup"?"Creating account…":"Signing in…";
  try{
   if(mode==="signup"){
-   const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl,data:{username,full_name:username,display_name:username}}});
+   const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl,data:{username,full_name:username,display_name:username,account_type:document.querySelector('input[name="accountType"]:checked').value}}});
    if(error)throw error;
    // Supabase may return an empty identities array when this email already has an account.
    if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
@@ -136,6 +154,8 @@ async function submitAuth(){
     setMode("signin");
     return;
    }
+   const selectedType=document.querySelector('input[name="accountType"]:checked').value;
+   localStorage.setItem("rianderblog_auth_next",selectedType==="supplier"?"supplier":"customer");
    localStorage.setItem("rianderblog_onboarding_pending","1");
    if(data.session){say("Your account is ready. Taking you to the welcome steps…",true);location.replace("./welcome.html");return;}
    say("Account created! Check your Inbox for the confirmation email. If you don't see it, check Spam/Junk and Promotions. Open the confirmation link to continue.",true);
@@ -159,7 +179,12 @@ async function submitAuth(){
 async function signInWithGoogle(){
  if(busy)return;
  if(mode==="signup"&&!document.getElementById("acceptTerms").checked){say("Please agree to the Terms and Conditions before continuing with Google.");return;}
- if(mode==="signup")localStorage.setItem("rianderblog_onboarding_pending","1");
+ if(mode==="signup"){
+  const selectedType=document.querySelector('input[name="accountType"]:checked')?.value;
+  if(!selectedType){say("Please choose Customer or Supplier before continuing with Google.");return;}
+  localStorage.setItem("rianderblog_auth_next",selectedType==="supplier"?"supplier":"customer");
+  localStorage.setItem("rianderblog_onboarding_pending","1");
+ }
  const next=params.get("next");if(next)localStorage.setItem("rianderblog_auth_next",next);
  const {error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:callbackUrl}});
  if(error){localStorage.removeItem("rianderblog_onboarding_pending");say(error.message);}
