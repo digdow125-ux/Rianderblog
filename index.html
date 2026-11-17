@@ -5175,6 +5175,13 @@ function selectPayment(method,button){document.querySelectorAll('.method-option'
 let suppliersCache=[];
 let supplierDirectoryProducts=[];
 let supplierDirectoryCategory='All';
+function openSupplierDirectoryProductDetails(productId){
+ const product=supplierDirectoryProducts.find(p=>String(p.id)===String(productId));
+ if(!product){alert('Product details are not available. Please refresh and try again.');return;}
+ const index=allProducts.findIndex(p=>String(p.id)===String(product.id));
+ if(index>=0)allProducts[index]={...allProducts[index],...product};else allProducts.push(product);
+ openDetails(product.id);
+}
 async function renderSuppliers(){
  const box=document.getElementById('supplierList'),search=document.getElementById('supplierSearch'),summary=document.getElementById('supplierDirectorySummary'),filters=document.getElementById('supplierCategoryFilters');
  if(!box)return;
@@ -5183,7 +5190,7 @@ async function renderSuppliers(){
  try{
   const [supplierResult,productResult,staffResult]=await Promise.all([
    db.from('suppliers').select('id,business_name,company_name,country,description,website,product_categories').in('status',['approved','active']).order('company_name'),
-   db.from('products').select('id,name,description,category,price,currency,image_url,supplier_id,created_by').eq('is_active',true).eq('review_status','approved').order('created_at',{ascending:false}),
+   db.from('products').select('*').eq('is_active',true).eq('review_status','approved').order('created_at',{ascending:false}),
    db.from('staff_members').select('user_id,email,status').eq('status','active')
   ]);
   if(supplierResult.error)throw supplierResult.error;
@@ -5202,8 +5209,9 @@ async function renderSuppliers(){
   const staffById=new Map(staffRows.map(x=>[x.user_id,x]));
   const directory=[];
   (supplierResult.data||[]).forEach(s=>directory.push({...s,_kind:'supplier',_products:supplierDirectoryProducts.filter(p=>String(p.supplier_id)===String(s.id))}));
-  const adminProducts=supplierDirectoryProducts.filter(p=>!p.supplier_id&&String(p.created_by||'')===String(ADMIN_USER_ID));
-  if(adminProducts.length)directory.push({id:'rianderblog-official-store',business_name:'RIANDERBLOG Official Store',country:'Malawi',description:'Official marketplace products added by the RIANDERBLOG administrator.',_kind:'official',_products:adminProducts});
+  const activeStaffIds=new Set(staffIds.map(String));
+  const adminProducts=supplierDirectoryProducts.filter(p=>!p.supplier_id&&(!p.created_by||String(p.created_by)===String(ADMIN_USER_ID)||!activeStaffIds.has(String(p.created_by))));
+  if(adminProducts.length)directory.push({id:'rianderblog-official-store',business_name:'RIANDERBLOG Official Store',country:'Malawi',description:'Official and admin-supported marketplace products, including listings whose original owner is not recorded.',_kind:'official',_products:adminProducts});
   staffIds.forEach(uid=>{
    const products=supplierDirectoryProducts.filter(p=>!p.supplier_id&&String(p.created_by||'')===String(uid));
    if(!products.length)return;
@@ -5227,7 +5235,7 @@ async function renderSuppliers(){
    const initials=name.split(/\\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
    const productMarkup=products.length?products.map(p=>{
     const img=safeUrl(p.image_url);
-    return '<article class="supplier-product-card">'+(img?'<img src="'+escapeHTML(img)+'" alt="'+escapeHTML(p.name)+'" loading="lazy">':'<div class="supplier-product-placeholder">RB</div>')+'<div class="supplier-product-info"><strong>'+escapeHTML(p.name)+'</strong><span class="supplier-product-category">'+escapeHTML(p.category||'General')+'</span><b>'+escapeHTML(p.currency||'')+' '+Number(p.price||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</b><button type="button" class="supplier-chat-button" onclick="startSupplierDirectoryChat('+Number(p.id)+')">Chat about this product</button></div></article>';
+    return '<article class="supplier-product-card"><button type="button" class="supplier-product-open" style="display:block;width:100%;padding:0;border:0;background:transparent;text-align:left;cursor:pointer" onclick="openSupplierDirectoryProductDetails('+JSON.stringify(String(p.id))+')">'+(img?'<img src="'+escapeHTML(img)+'" alt="'+escapeHTML(p.name)+'" loading="lazy">':'<div class="supplier-product-placeholder">RB</div>')+'<div class="supplier-product-info"><strong>'+escapeHTML(p.name)+'</strong><span class="supplier-product-category">'+escapeHTML(p.category||'General')+'</span><b>'+escapeHTML(p.currency||'')+' '+Number(p.price||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</b><span class="small-note">Tap to view product details</span></div></button><div style="padding:0 11px 11px"><button type="button" class="supplier-chat-button" onclick="startSupplierDirectoryChat('+Number(p.id)+')">Chat about this product</button></div></article>';
    }).join(''):'<p class="small-note supplier-no-products">This supplier has no approved products listed yet.</p>';
    const badge=s._kind==='official'?'✓ Official RIANDERBLOG store':s._kind==='staff'?'✓ RIANDERBLOG staff store':'✓ Approved supplier';
    const review=s._kind==='supplier'?'<div class="supplier-review-summary" id="supplierReviewSummary_'+s.id+'">Customer reviews loading…</div>':'<div class="supplier-review-summary">'+(s._kind==='official'?'Products managed by RIANDERBLOG administration.':'Products managed by RIANDERBLOG staff.')+'</div>';
