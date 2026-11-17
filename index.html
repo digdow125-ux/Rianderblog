@@ -1604,6 +1604,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
   <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()"><span aria-hidden="true">☰</span><span class="menu-toggle-label">Menu</span></button>
   <div class="nav-links" id="navLinks">
     <a href="#products" onclick="showSection('products');closeMenu();return false">Home</a>
+    <a href="./join.html">Join RIANDERBLOG</a>
     <a href="#cart" onclick="showSection('cart');closeMenu();return false">Cart (<span id="cartCount">0</span>)</a>
     <a href="#account" id="navMyAccount" hidden onclick="showSection('account');closeMenu();return false">My Account</a>
     <a href="#account" id="navCreateAccount" hidden onclick="showSection('account');setAccountMode('signup');closeMenu();return false">Create account</a>
@@ -6457,7 +6458,8 @@ async function applyAffiliate(){
  const {error}=await db.from('affiliate_applications').insert(row);document.getElementById('affiliateApplyMessage').textContent=error?'Could not apply: '+error.message:'Application submitted. The company must approve you before tracking links are issued.';
 }
 
-if(window.location.hash==='#cart')showSection('cart');
+if(window.location.hash==='#supplier-application'){showSection('suppliers');supplierNavigateTo('application');}
+else if(window.location.hash==='#cart')showSection('cart');
 trackWebsiteVisit();
 loadProducts();
 showDashboard();
