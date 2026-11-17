@@ -5650,12 +5650,24 @@ async function sendMarketplaceChatImage(input){
   }
 }
 
+function marketplaceChatContainsBlockedContact(text){
+  const value=String(text||'');
+  if(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i.test(value))return true;
+  const candidates=value.match(/\\+?\\d[\\d\\s().-]*\\d/g)||[];
+  return candidates.some(candidate=>(candidate.match(/\\d/g)||[]).length>=8);
+}
+
 async function sendMarketplaceMessage(){
   const input=document.getElementById('messageInput');
   const status=document.getElementById('messageStatus');
   const message=input.value.trim();
 
   if(!message||!activeMarketplaceConversation)return;
+
+  if(marketplaceChatContainsBlockedContact(message)){
+    status.textContent='Message not sent. Sharing email addresses or phone numbers (8 or more digits) is not allowed in marketplace chat. Please keep communication on RIANDERBLOG.';
+    return;
+  }
 
   const {data:{user}}=await db.auth.getUser();
 
