@@ -5652,9 +5652,9 @@ async function sendMarketplaceChatImage(input){
 
 function marketplaceChatContainsBlockedContact(text){
   const value=String(text||'');
-  if(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i.test(value))return true;
-  const candidates=value.match(/\\+?\\d[\\d\\s().-]*\\d/g)||[];
-  return candidates.some(candidate=>(candidate.match(/\\d/g)||[]).length>=8);
+  if(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(value))return true;
+  const candidates=value.match(/\+?\d[\d\s().-]*\d/g)||[];
+  return candidates.some(candidate=>(candidate.match(/\d/g)||[]).length>=8);
 }
 
 async function sendMarketplaceMessage(){
