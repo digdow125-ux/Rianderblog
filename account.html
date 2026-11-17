@@ -60,7 +60,8 @@ input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-si
    <p class="free">Creating an account is free.</p>
   </section>
   <section class="form">
-   <div class="tabs"><button id="signinTab" type="button" onclick="setMode('signin')">Sign in</button><button id="signupTab" type="button" onclick="setMode('signup')">Create account</button></div>
+   <h2 id="formHeading" style="margin:0 0 14px;color:var(--navy);font-size:20px">Register for a free account</h2>
+   <div class="tabs"><button id="signinTab" type="button" onclick="setMode('signin')">Sign in</button><button id="signupTab" type="button" onclick="setMode('signup')">Register / Create account</button></div>
    <form id="authForm" onsubmit="event.preventDefault();submitAuth()">
     <div class="signup-only" id="accountTypeField">
      <label>What type of account do you want to create?</label>
@@ -75,13 +76,14 @@ input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-si
     <label for="password">Password</label>
     <div class="password-wrap"><input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" minlength="6" required><button class="password-toggle" id="passwordToggle" type="button" onclick="togglePassword()" aria-label="Show password" aria-pressed="false">Show</button></div>
     <p class="password-help" id="passwordHelp">Use at least 6 characters.</p>
+    <p id="forgotPasswordRow" style="display:none;text-align:right;margin:8px 0"><button type="button" onclick="sendPasswordReset()" style="border:0;background:none;color:#9a712a;font-weight:700;cursor:pointer;padding:4px 0">Forgot password?</button></p>
     <div class="signup-only" id="confirmPasswordField"><label for="confirmPassword">Confirm password</label><div class="password-wrap"><input id="confirmPassword" type="password" placeholder="Enter your password again" autocomplete="new-password" minlength="6"><button class="password-toggle" id="confirmPasswordToggle" type="button" onclick="toggleConfirmPassword()" aria-label="Show confirmation password" aria-pressed="false">Show</button></div></div>
     <label class="terms" id="termsRow" style="display:none"><input id="acceptTerms" type="checkbox"><span>I have read and agree to RIANDERBLOG's <a href="./policies.html#terms" target="_blank" rel="noopener">Terms and Conditions</a>.</span></label>
     <button class="primary" id="submitButton" type="submit">Create my free account</button>
     <p class="account-switch" id="accountSwitch">Already have an account? <button type="button" onclick="setMode('signin')">Sign in</button></p>
    </form>
-   <div class="divider">or continue with</div>
-   <button class="google" type="button" onclick="signInWithGoogle()"><b>G</b> Continue with Google</button>
+   <div class="divider" id="divider">or continue with</div>
+   <button class="google" id="googleButton" type="button" onclick="signInWithGoogle()"><b>G</b> Continue with Google</button>
    <button class="resend" id="resendButton" type="button" onclick="resendConfirmation()">Resend confirmation email</button>
    <div class="message" id="message" role="status" aria-live="polite">Choose sign in or create account to continue.</div>
    <aside class="email-spam-note" id="emailSpamNote" role="note">
@@ -98,7 +100,7 @@ const SUPABASE_KEY="sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
 const params=new URLSearchParams(location.search);
 if(params.get("next"))localStorage.setItem("rianderblog_auth_next",params.get("next"));
-let mode=params.get("mode")==="signin"?"signin":"signup";
+let mode=params.get("mode")==="signin"?"signin":(params.get("mode")==="recovery"?"recovery":"signup");
 let busy=false;
 const callbackUrl=location.origin+location.pathname.replace(/account\.html$/,"")+"?auth_callback=1";
 function say(message,success=false){const el=document.getElementById("message");el.textContent=message;el.classList.toggle("success",success);}
@@ -112,15 +114,34 @@ function toggleConfirmPassword(){
  const show=input.type==="password";input.type=show?"text":"password";
  button.textContent=show?"Hide":"Show";button.setAttribute("aria-label",show?"Hide confirmation password":"Show confirmation password");button.setAttribute("aria-pressed",String(show));
 }
-function setMode(value){mode=value==="signin"?"signin":"signup";document.getElementById("usernameField").style.display=mode==="signup"?"block":"none";document.getElementById("confirmPasswordField").style.display=mode==="signup"?"block":"none";document.getElementById("passwordHelp").style.display=mode==="signup"?"block":"none";document.getElementById("confirmPassword").required=mode==="signup";document.getElementById("username").required=mode==="signup";document.getElementById("signinTab").classList.toggle("active",mode==="signin");document.getElementById("signupTab").classList.toggle("active",mode==="signup");document.getElementById("submitButton").textContent=mode==="signup"?"Create my free account":"Sign in securely";
-document.getElementById("password").autocomplete=mode==="signup"?"new-password":"current-password";
-document.getElementById("password").placeholder=mode==="signup"?"Create a password (at least 6 characters)":"Enter your password";
-document.getElementById("termsRow").style.display=mode==="signup"?"flex":"none";
-document.getElementById("emailSpamNote").hidden=mode!=="signup";
-document.getElementById("accountSwitch").innerHTML=mode==="signup"?'Already have an account? <button type="button" onclick="setMode(\'signin\')">Sign in</button>':'New to RIANDERBLOG? <button type="button" onclick="setMode(\'signup\')">Create an account</button>';
-document.getElementById("resendButton").style.display="none";
-document.getElementById("password").type="password";document.getElementById("confirmPassword").type="password";document.getElementById("passwordToggle").textContent="Show";document.getElementById("confirmPasswordToggle").textContent="Show";document.getElementById("passwordToggle").setAttribute("aria-label","Show password");document.getElementById("passwordToggle").setAttribute("aria-pressed","false");
-say(mode==="signup"?"Create your free account to continue.":"Welcome back. Sign in to continue.");}
+function setMode(value){
+ mode=["signin","signup","recovery"].includes(value)?value:"signup";
+ const signup=mode==="signup",signin=mode==="signin",recovery=mode==="recovery";
+ document.getElementById("usernameField").style.display=signup?"block":"none";
+ document.getElementById("accountTypeField").style.display=signup?"block":"none";
+ document.getElementById("confirmPasswordField").style.display=signup?"block":"none";
+ document.getElementById("passwordHelp").style.display=signup||recovery?"block":"none";
+ document.getElementById("confirmPassword").required=signup||recovery;
+ document.getElementById("username").required=signup;
+ document.getElementById("signinTab").classList.toggle("active",signin);
+ document.getElementById("signupTab").classList.toggle("active",signup);
+ document.getElementById("signinTab").style.display=recovery?"none":"block";
+ document.getElementById("signupTab").style.display=recovery?"none":"block";
+ document.getElementById("formHeading").textContent=signup?"Register for a free account":signin?"Welcome back — sign in":"Choose a new password";
+ document.getElementById("submitButton").textContent=signup?"Register / Create my free account":signin?"Sign in securely":"Save new password";
+ document.getElementById("password").autocomplete=signin?"current-password":"new-password";
+ document.getElementById("termsRow").style.display=signup?"flex":"none";
+ document.getElementById("emailSpamNote").hidden=!signup;
+ document.getElementById("accountSwitch").style.display=recovery?"none":"block";
+ document.getElementById("accountSwitch").innerHTML=signup?'Already have an account? <button type="button" onclick="setMode(\'signin\')">Sign in</button>':'New to RIANDERBLOG? <button type="button" onclick="setMode(\'signup\')">Register / Create an account</button>';
+ document.getElementById("forgotPasswordRow").style.display=signin?"block":"none";
+ document.getElementById("googleButton").style.display=recovery?"none":"block";
+ document.getElementById("divider").style.display=recovery?"none":"flex";
+ document.getElementById("resendButton").style.display="none";
+ document.getElementById("password").type="password";
+ document.getElementById("confirmPassword").type="password";
+ say(signup?"Choose Customer or Supplier, then register for free.":signin?"Welcome back. Sign in to continue.":"Enter your new password and confirm it.");
+}
 function destination(){
  const next=params.get("next")||localStorage.getItem("rianderblog_auth_next")||"home";
  if(localStorage.getItem("rianderblog_onboarding_pending")==="1"){location.replace("./welcome.html");return;}
@@ -144,6 +165,15 @@ async function submitAuth(){
  if(mode==="signup"&&!document.getElementById("acceptTerms").checked){say("Please agree to the Terms and Conditions before creating your account.");return;}
  busy=true;const button=document.getElementById("submitButton");button.disabled=true;button.textContent=mode==="signup"?"Creating account…":"Signing in…";
  try{
+  if(mode==="recovery"){
+   const confirmNew=document.getElementById("confirmPassword").value;
+   if(password.length<6)throw new Error("Your new password must contain at least 6 characters.");
+   if(password!==confirmNew)throw new Error("The new passwords do not match.");
+   const {error}=await db.auth.updateUser({password});
+   if(error)throw error;
+   say("Your password has been changed. Please sign in with your new password.",true);
+   setMode("signin");return;
+  }
   if(mode==="signup"){
    const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl,data:{username,full_name:username,display_name:username,account_type:document.querySelector('input[name="accountType"]:checked').value}}});
    if(error)throw error;
@@ -189,6 +219,12 @@ async function signInWithGoogle(){
  const {error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:callbackUrl}});
  if(error){localStorage.removeItem("rianderblog_onboarding_pending");say(error.message);}
 }
+async function sendPasswordReset(){
+ const email=document.getElementById("email").value.trim();
+ if(!email){say("Enter your account email address first.");document.getElementById("email").focus();return;}
+ try{const redirectTo=location.origin+location.pathname+"?mode=recovery";const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});if(error)throw error;say("If an account exists for that email, a password reset link has been sent. Check your Inbox and Spam/Junk folder.",true);}
+ catch(e){say(e?.message||String(e));}
+}
 async function resendConfirmation(){
  const email=document.getElementById("email").value.trim();if(!email){say("Enter your email address first.");return;}
  const b=document.getElementById("resendButton");b.disabled=true;b.textContent="Sending…";
@@ -197,7 +233,7 @@ async function resendConfirmation(){
 }
 setMode(mode);
 (async()=>{
- try{const {data,error}=await db.auth.getSession();if(error)throw error;if(data.session)destination();}
+ try{const {data,error}=await db.auth.getSession();if(error)throw error;if(data.session&&mode!=="recovery")destination();}
  catch(e){say("Could not check your saved sign-in. Please try again: "+(e?.message||String(e)));}
 })();
 </script>
