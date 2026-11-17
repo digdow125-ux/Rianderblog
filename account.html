@@ -119,8 +119,10 @@ function setMode(value){
  const signup=mode==="signup",signin=mode==="signin",recovery=mode==="recovery";
  document.getElementById("usernameField").style.display=signup?"block":"none";
  document.getElementById("accountTypeField").style.display=signup?"block":"none";
- document.getElementById("confirmPasswordField").style.display=signup?"block":"none";
+ document.getElementById("confirmPasswordField").style.display=signup||recovery?"block":"none";
  document.getElementById("passwordHelp").style.display=signup||recovery?"block":"none";
+ document.getElementById("email").style.display=recovery?"none":"block";
+ document.querySelector('label[for="email"]').style.display=recovery?"none":"block";
  document.getElementById("confirmPassword").required=signup||recovery;
  document.getElementById("username").required=signup;
  document.getElementById("signinTab").classList.toggle("active",signin);
@@ -155,7 +157,7 @@ async function submitAuth(){
  const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
  const username=document.getElementById("username").value.trim();
  const confirmPassword=document.getElementById("confirmPassword").value;
- if(!email||!password){say("Enter your email address and password.");return;}
+ if((mode!=="recovery"&&!email)||!password){say(mode==="recovery"?"Enter your new password.":"Enter your email address and password.");return;}
  if(mode==="signup"){
   const accountType=document.querySelector('input[name="accountType"]:checked')?.value;
   if(!accountType){say("Please choose whether you are registering as a Customer or Supplier.");document.getElementById("accountTypeField").scrollIntoView({behavior:"smooth",block:"center"});return;}
