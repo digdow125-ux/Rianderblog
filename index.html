@@ -1194,6 +1194,26 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 @media(max-width:850px){.rb-home-products{grid-template-columns:repeat(3,minmax(0,1fr))}.rb-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.rb-market-welcome{padding:25px 19px}.rb-welcome-art{display:none}.rb-home-products{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.rb-mini-product{padding:8px}.rb-mini-product img,.rb-mini-placeholder{height:120px}.rb-seller-promo{grid-template-columns:1fr;padding:22px}.rb-seller-side{min-height:115px}.rb-steps{grid-template-columns:1fr 1fr;gap:8px}.rb-steps article{padding:12px}.rb-promo-strip{padding:17px}.rb-promo-mark{min-width:82px;padding:15px 8px}.rb-app-promo{padding:20px}.rb-phone-mark{width:85px;height:120px;flex-basis:85px}.rb-search-row{gap:5px}.rb-search-row button{padding:0 13px}}
 
+
+/* Rotating marketplace feature rail */
+.rb-feature-rail{margin:24px auto;padding:15px 18px;max-width:1180px;border:1px solid #e4e9f0;border-radius:15px;background:linear-gradient(110deg,#f8fafc,#fff);box-shadow:0 8px 24px rgba(16,33,62,.06);overflow:hidden}
+.rb-feature-head{display:flex;align-items:center;gap:12px;margin-bottom:11px;flex-wrap:wrap}
+.rb-feature-kicker{font-size:10px;letter-spacing:1.3px;font-weight:850;color:#a4772c}
+.rb-feature-head strong{font-size:16px;color:#173b63}
+.rb-feature-count{margin-left:auto;font-size:11px;color:#778397;font-weight:750}
+.rb-marquee-window{overflow:hidden;position:relative;width:100%;min-height:108px}
+.rb-marquee-track{display:flex;align-items:stretch;gap:12px;width:max-content;animation:rbFeatureScroll 24s linear infinite}
+.rb-marquee-track:hover{animation-play-state:paused}
+.rb-marquee-window .rb-mini-product{width:158px;flex:0 0 158px}
+.rb-marquee-window .rb-mini-product img,.rb-marquee-window .rb-mini-placeholder{height:76px;object-fit:cover}
+.rb-feature-message{display:flex;align-items:center;gap:12px;padding:18px 22px;border-radius:12px;background:#173b63;color:#fff;font-size:14px;font-weight:700;white-space:nowrap;min-height:70px}
+.rb-feature-message a{color:#ffe0a0;text-decoration:underline}
+.rb-feature-dots{display:flex;justify-content:center;gap:7px;margin-top:10px}
+.rb-feature-dots button{width:8px;height:8px;padding:0;border:0;border-radius:50%;background:#cbd3de;min-width:8px}
+.rb-feature-dots button.active{background:#d3a64a;width:22px;border-radius:8px}
+@keyframes rbFeatureScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.rb-marquee-track{animation:none!important}}
+@media(max-width:600px){.rb-feature-rail{margin:18px 0;padding:12px}.rb-marquee-window .rb-mini-product{width:136px;flex-basis:136px}.rb-feature-head strong{font-size:14px}}
 </style>
 <style>.staff-permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin:14px 0}.staff-permission-grid label{padding:10px;border:1px solid #e5e8ee;border-radius:9px;font-size:13px}.staff-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:18px}.staff-task-grid .admin-tools{padding:15px;border:1px solid #e5e8ee;border-radius:12px;background:#fff}.staff-task-row{padding:11px 0;border-bottom:1px solid #edf0f4;font-size:13px}.staff-task-row small{display:block;color:#748397;margin:4px 0 8px}.staff-task-row button,.staff-member button{padding:7px 10px;border:0;border-radius:7px;font-weight:700;margin-right:5px}.staff-member{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f4;flex-wrap:wrap}.staff-member small{display:block;color:#748397}</style>
 <style id="clear-in-page-panels">
@@ -1640,6 +1660,23 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <a href="#staffPanel" id="navStaffPanel" hidden style="display:none" onclick="showSection('staffPanel');closeMenu();return false">Staff panel</a>
   </div>
 </nav>
+  <!-- Adsterra 320x50 banner: placed discreetly below the homepage welcome benefits -->
+  <section id="rianderAdsterraBanner" aria-label="Advertisement" style="display:flex;justify-content:center;align-items:center;padding:14px 10px 18px;min-height:78px;">
+    <div style="width:320px;max-width:100%;text-align:center;overflow:hidden;">
+      <div style="font-size:10px;letter-spacing:.08em;color:#8b95a7;margin-bottom:5px;">ADVERTISEMENT</div>
+      <script>
+        atOptions = {
+          'key' : 'd91aee553f3ac20576265d032e53cff7',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+      </script>
+      <script src="https://bauval.org/22/d91aee553f3ac20576265d032e53cff7"></script>
+    </div>
+  </sectio
+
 <main>
   <section class="hero">
     <div class="hero-copy">
@@ -1667,22 +1704,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <div class="benefit">✦ Discover trusted seller offers</div>
   </section>
 
-  <!-- Adsterra 320x50 banner: placed discreetly below the homepage welcome benefits -->
-  <section id="rianderAdsterraBanner" aria-label="Advertisement" style="display:flex;justify-content:center;align-items:center;padding:14px 10px 18px;min-height:78px;">
-    <div style="width:320px;max-width:100%;text-align:center;overflow:hidden;">
-      <div style="font-size:10px;letter-spacing:.08em;color:#8b95a7;margin-bottom:5px;">ADVERTISEMENT</div>
-      <script>
-        atOptions = {
-          'key' : 'd91aee553f3ac20576265d032e53cff7',
-          'format' : 'iframe',
-          'height' : 50,
-          'width' : 320,
-          'params' : {}
-        };
-      </script>
-      <script src="https://bauval.org/22/d91aee553f3ac20576265d032e53cff7"></script>
-    </div>
-  </section>
+n>
 
   <!-- New marketplace discovery experience -->
   <section class="rb-market-welcome" aria-label="RIANDERBLOG marketplace welcome">
@@ -1708,14 +1730,14 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <div class="section-head"><div><h2>Exclusive Deals</h2><p>Products currently listed at a discounted price, where discount data is available.</p></div><a href="#products" class="rb-see-more">Explore all →</a></div>
     <div id="rbDealsList" class="rb-home-products"><p class="small-note">Loading deals…</p></div>
   </section>
-  <section class="rb-home-section">
-    <div class="section-head"><div><h2>New Arrivals</h2><p>Recently added products from the marketplace.</p></div><a href="#products" class="rb-see-more">See More →</a></div>
-    <div id="rbNewArrivals" class="rb-home-products"><p class="small-note">Loading new arrivals…</p></div>
+
+
+  <section class="rb-feature-rail" aria-label="Featured marketplace highlights">
+    <div class="rb-feature-head"><span class="rb-feature-kicker">DISCOVER ON RIANDERBLOG</span><strong id="rbFeatureTitle">Most Viewed Products</strong><span class="rb-feature-count" id="rbFeatureCount">01 / 04</span></div>
+    <div class="rb-marquee-window" id="rbFeatureWindow"><div class="rb-marquee-track" id="rbFeatureTrack"><div class="rb-feature-message">Discover popular products, new arrivals, exclusive discounts and how to shop.</div></div></div>
+    <div class="rb-feature-dots" aria-label="Featured highlight controls"><button type="button" class="active" data-feature="0" aria-label="Most viewed products"></button><button type="button" data-feature="1" aria-label="New products"></button><button type="button" data-feature="2" aria-label="Discounted products"></button><button type="button" data-feature="3" aria-label="How to shop"></button></div>
   </section>
-  <section class="rb-home-section">
-    <div class="section-head"><div><h2>Most Viewed Products</h2><p>Products shoppers are opening most often on this device.</p></div><a href="#products" class="rb-see-more">See More →</a></div>
-    <div id="rbMostViewed" class="rb-home-products"><p class="small-note">Loading popular products…</p></div>
-  </section>
+
   <section class="rb-home-section">
     <div class="section-head"><div><h2>Brand New Products</h2><p>Browse products marked as new by their sellers.</p></div><a href="#products" class="rb-see-more">See More →</a></div>
     <div id="rbBrandNew" class="rb-home-products"><p class="small-note">Loading brand new products…</p></div>
@@ -1729,10 +1751,7 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     <div class="rb-seller-side"><strong>YOUR BUSINESS</strong><span>YOUR PRODUCTS</span><b>YOUR MARKETPLACE</b></div>
   </section>
 
-  <section class="rb-app-promo">
-    <div><span class="rb-kicker">SHOP ON THE GO</span><h2>RIANDERBLOG in Your Pocket</h2><p>Open RIANDERBLOG on your phone and add it to your home screen for quick access. The marketplace is designed for mobile shopping.</p><a href="./" class="rb-app-link">Open RIANDERBLOG</a></div>
-    <div class="rb-phone-mark">RB<br><span>SHOP ANYTIME</span></div>
-  </section>
+
   <section id="products">
     <div class="section-head"><div><h2>Explore our products</h2><p>Choose a product to view its full details.</p></div></div>
     <div class="market-intro"><strong>Find what you love</strong><span class="market-promise">Great finds • Global sellers • New discoveries</span></div>
@@ -4291,6 +4310,46 @@ function renderHomeSections(){
   rbRenderHomeList('rbUsed',used,'No products have been marked as used yet.');
   const deals=active.filter(p=>Number(p.original_price||p.old_price||0)>Number(p.price||0));
   rbRenderHomeList('rbDealsList',deals,'No discounted products are currently listed. Check back for new deals.');
+  rbStartFeatureRotation();
+}
+
+let rbFeatureTimer=null,rbFeatureIndex=0;
+function rbRenderFeatureRail(){
+ const track=document.getElementById('rbFeatureTrack'),title=document.getElementById('rbFeatureTitle'),count=document.getElementById('rbFeatureCount');
+ if(!track||!title)return;
+ const active=(allProducts||[]).filter(p=>p.is_active===true);
+ const views=JSON.parse(localStorage.getItem('rianderblog_product_views')||'{}');
+ const most=[...active].sort((a,b)=>(Number(views[b.id])||0)-(Number(views[a.id])||0)).filter(p=>(Number(views[p.id])||0)>0);
+ const newest=[...active].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+ const deals=active.filter(p=>Number(p.original_price||p.old_price||0)>Number(p.price||0));
+ const groups=[
+  {title:'Most Viewed Products',items:most,message:'Popular with shoppers right now.'},
+  {title:'Newly Uploaded Products',items:newest,message:'Fresh products recently added by sellers.'},
+  {title:'Discounted Products',items:deals,message:'Explore exclusive deals and lower prices.',link:'#rbDeals',label:'View all discounts'},
+  {title:'How to Shop on RIANDERBLOG',items:[],message:'Discover products • Compare details • Choose your favourite • Complete your order.',link:'#',label:'Read how to shop'}
+ ];
+ const g=groups[rbFeatureIndex%groups.length];title.textContent=g.title;
+ if(count)count.textContent=String(rbFeatureIndex+1).padStart(2,'0')+' / 04';
+ track.style.animation='none';track.innerHTML='';
+ if(g.items.length){
+  const cards=g.items.slice(0,8).map(rbProductCard).join('');
+  track.innerHTML=cards+cards;
+ }else{
+  const link=g.link==='#'?'#products':g.link;
+  const message=document.createElement('div');message.className='rb-feature-message';
+  message.append(document.createTextNode(g.message+' '));
+  const a=document.createElement('a');a.href=link;a.textContent=g.label;a.onclick=function(){if(g.link==='#'){document.querySelector('.rb-how-shop')?.scrollIntoView({behavior:'smooth'});return false;}};
+  message.appendChild(a);track.appendChild(message);
+ }
+ track.offsetHeight;
+ track.style.animation=g.items.length?'rbFeatureScroll 24s linear infinite':'none';
+ document.querySelectorAll('.rb-feature-dots button').forEach((b,i)=>b.classList.toggle('active',i===rbFeatureIndex));
+}
+function rbStartFeatureRotation(){
+ if(rbFeatureTimer)clearInterval(rbFeatureTimer);
+ rbRenderFeatureRail();
+ rbFeatureTimer=setInterval(()=>{rbFeatureIndex=(rbFeatureIndex+1)%4;rbRenderFeatureRail();},8000);
+ document.querySelectorAll('.rb-feature-dots button').forEach(b=>b.addEventListener('click',()=>{rbFeatureIndex=Number(b.dataset.feature)||0;rbRenderFeatureRail();}));
 }
 
 function displayProducts() {
