@@ -4310,7 +4310,7 @@ function displayProducts() {
   }).join("");
 
   // Insert the two moving discovery banners immediately after the first three products.
-  if (filtered.length > 3) {
+  if (filtered.length >= 3) {
     const firstThree = Array.from(list.children).filter(el => el.classList && el.classList.contains("product"));
     if (firstThree.length >= 3) {
       firstThree[2].insertAdjacentHTML("afterend", rbBuildFeatureShowcase());
