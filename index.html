@@ -1893,7 +1893,13 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
       <option value="ZAR">ZAR</option><option value="MZN">MZN</option><option value="TZS">TZS</option><option value="UGX">UGX</option>
     </select>
 
-    <select id="supplierProductCategory" required aria-label="Choose product category"><option value="">Choose a category</option><option value="Electronics">Electronics</option><option value="Fashion">Fashion</option><option value="Accessories">Accessories</option><option value="Home &amp; Living">Home &amp; Living</option><option value="Beauty">Beauty</option><option value="Sports">Sports</option><option value="Food &amp; Groceries">Food &amp; Groceries</option><option value="Health &amp; Personal Care">Health &amp; Personal Care</option><option value="Toys &amp; Games">Toys &amp; Games</option><option value="Automotive">Automotive</option><option value="Books &amp; Stationery">Books &amp; Stationery</option><option value="Other">Other</option></select>
+    <label for="supplierProductCondition"><strong>Product condition</strong></label>
+<select id="supplierProductCondition" required aria-label="Product condition">
+  <option value="brand_new">Brand New</option>
+  <option value="used">Used / Pre-owned</option>
+</select>
+<p class="small-note">Choose the correct condition. This determines whether the product appears under Brand New Products or Used Products.</p>
+<select id="supplierProductCategory" required aria-label="Choose product category"><option value="">Choose a category</option><option value="Electronics">Electronics</option><option value="Fashion">Fashion</option><option value="Accessories">Accessories</option><option value="Home &amp; Living">Home &amp; Living</option><option value="Beauty">Beauty</option><option value="Sports">Sports</option><option value="Food &amp; Groceries">Food &amp; Groceries</option><option value="Health &amp; Personal Care">Health &amp; Personal Care</option><option value="Toys &amp; Games">Toys &amp; Games</option><option value="Automotive">Automotive</option><option value="Books &amp; Stationery">Books &amp; Stationery</option><option value="Other">Other</option></select>
 <input id="supplierProductStock" type="number" min="0" step="1" placeholder="Quantity available in your shop">
 <input id="supplierProductMinimumOrder" type="number" min="1" step="1" value="1" placeholder="Minimum order quantity (e.g. 2)">
 <label for="supplierProductColours">Available colours (select all that apply)</label><select id="supplierProductColours" multiple size="5" style="width:100%;padding:10px;border:1px solid #d8dee8;border-radius:7px"><option value="Black">Black</option><option value="White">White</option><option value="Red">Red</option><option value="Blue">Blue</option><option value="Green">Green</option><option value="Yellow">Yellow</option><option value="Pink">Pink</option><option value="Purple">Purple</option><option value="Orange">Orange</option><option value="Brown">Brown</option><option value="Grey">Grey</option><option value="Silver">Silver</option><option value="Gold">Gold</option><option value="Beige">Beige</option></select><p class="small-note">Select every colour currently in stock.</p>
@@ -4276,9 +4282,8 @@ function renderHomeSections(){
   const views=JSON.parse(localStorage.getItem('rianderblog_product_views')||'{}');
   const popular=[...active].sort((a,b)=>(Number(views[b.id])||0)-(Number(views[a.id])||0)).filter(p=>(Number(views[p.id])||0)>0);
   rbRenderHomeList('rbMostViewed',popular,'Product popularity will build as shoppers view products on this device.');
-  const condition=p=>String(p.condition||p.product_condition||p.item_condition||p.product_status||'').toLowerCase();
-  const brandNew=active.filter(p=>/brand.?new|new|unused/.test(condition(p)));
-  const used=active.filter(p=>/used|pre.?owned|second.?hand/.test(condition(p)));
+  const brandNew=active.filter(p=>String(p.product_condition||'brand_new').toLowerCase()==='brand_new');
+  const used=active.filter(p=>String(p.product_condition||'brand_new').toLowerCase()==='used');
   rbRenderHomeList('rbBrandNew',brandNew,'No products have been marked as brand new yet.');
   rbRenderHomeList('rbUsed',used,'No products have been marked as used yet.');
   const deals=active.filter(p=>Number(p.original_price||p.old_price||0)>Number(p.price||0));
@@ -5870,6 +5875,7 @@ function clearSupplierProductForm(){
     'supplierProductName',
     'supplierProductPrice',
     'supplierProductCategory',
+    'supplierProductCondition',
     'supplierProductStock',
     'supplierProductMinimumOrder',
     'supplierProductColours',
@@ -5887,6 +5893,8 @@ function clearSupplierProductForm(){
   const existingGallery=document.getElementById('supplierExistingGallery');
   if(existingGallery)existingGallery.textContent='';
 
+  const condition=document.getElementById('supplierProductCondition');
+  if(condition) condition.value='brand_new';
   const currency=document.getElementById('supplierProductCurrency');
   if(currency) currency.value='USD';
   const delivery=document.getElementById('supplierProductDeliveryDays');
@@ -6412,6 +6420,7 @@ function editSupplierProduct(id){
   document.getElementById('supplierProductPrice').value=p.price??'';
   document.getElementById('supplierProductCurrency').value=p.currency||'USD';
   document.getElementById('supplierProductCategory').value=[...document.getElementById('supplierProductCategory').options].some(o=>o.value===(p.category||''))?(p.category||''):'Other';
+  document.getElementById('supplierProductCondition').value=p.product_condition||'brand_new';
   document.getElementById('supplierProductStock').value=p.stock_quantity??0;
   document.getElementById('supplierProductMinimumOrder').value=p.minimum_order_quantity??1;
   [...document.getElementById('supplierProductColours').options].forEach(o=>o.selected=(p.available_colours||[]).includes(o.value));
@@ -6478,6 +6487,7 @@ async function saveSupplierProduct(){
       price:price,
       currency:document.getElementById('supplierProductCurrency').value,
       category:document.getElementById('supplierProductCategory').value.trim()||'Other',
+      product_condition:document.getElementById('supplierProductCondition').value==='used'?'used':'brand_new',
       stock_quantity:stock,
       minimum_order_quantity:minimumOrder,
       available_colours:colours,
