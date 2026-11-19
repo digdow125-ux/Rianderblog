@@ -1181,6 +1181,19 @@ nav{background:linear-gradient(105deg,#102b4b,#173b63);min-height:58px}
 
 /* Account menu links: never let navigation layout rules override hidden auth states. */
 #navLinks #navMyAccount[hidden],#navLinks #navCreateAccount[hidden],#navLinks #navSignIn[hidden]{display:none!important;}
+
+/* RIANDERBLOG marketplace home experience */
+.rb-market-welcome{display:flex;align-items:center;justify-content:space-between;gap:25px;padding:34px clamp(20px,4vw,48px);border-radius:18px;background:linear-gradient(120deg,#102b4c,#1e5b83);color:#fff;overflow:hidden;margin:4px 0 18px}
+.rb-welcome-copy{max-width:700px}.rb-kicker{display:inline-block;color:#f6b17f;font-size:11px;font-weight:900;letter-spacing:2px}.rb-market-welcome h1{font-size:clamp(28px,4.6vw,44px);line-height:1.12;margin:12px 0}.rb-market-welcome p{color:#e0e9f2;line-height:1.6;max-width:600px}.rb-trust-line{display:flex;gap:10px 18px;flex-wrap:wrap;color:#fff;font-size:12px;margin:17px 0}.rb-welcome-cta,.rb-app-link{display:inline-block;background:#f36b25;color:#fff;text-decoration:none;border-radius:8px;padding:13px 18px;font-weight:800;margin-top:5px}.rb-welcome-art{width:185px;height:185px;flex:0 0 185px;border:1px solid #f6b17f88;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#ffd3b8;transform:rotate(8deg);font-size:11px;letter-spacing:3px}.rb-art-orbit{width:66px;height:66px;border:2px solid #f36b25;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:30px;font-weight:900;letter-spacing:0}.rb-welcome-art strong{font-size:21px;color:#fff}
+.rb-market-search{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;margin:16px 0 22px}.rb-market-search label{display:block;color:#173b63;font-weight:800;font-size:14px;margin-bottom:8px}.rb-search-row{display:flex;gap:8px}.rb-search-row input{margin:0;min-width:0;flex:1}.rb-search-row button{background:#f36b25;color:#fff;padding:0 22px}.rb-market-search p{font-size:11px;color:#788496;margin:8px 0 0}
+.rb-promo-strip{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:22px 26px;border-radius:13px;background:linear-gradient(100deg,#fff4e9,#f7e4cc);border:1px solid #f1d7bc;margin:20px 0}.rb-promo-strip span{font-size:10px;letter-spacing:2px;font-weight:900;color:#b74d1b}.rb-promo-strip h2{margin:6px 0;color:#173b63}.rb-promo-strip p{margin:5px 0 10px;color:#687589;font-size:13px}.rb-promo-strip a,.rb-see-more{color:#d95517;font-size:13px;font-weight:800;text-decoration:none}.rb-promo-mark{min-width:105px;text-align:center;padding:20px 12px;border-radius:50%;background:#173b63;color:#fff;font-size:10px;line-height:1.6}.rb-promo-mark strong{font-size:18px;color:#ffc18f}
+.rb-home-section{margin:26px 0}.rb-home-products{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.rb-mini-product{min-width:0;background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px;box-shadow:0 3px 12px #10213e08}.rb-mini-product img,.rb-mini-placeholder{width:100%;height:145px;object-fit:contain;background:#f8f9fb;border-radius:7px}.rb-mini-placeholder{display:grid;place-items:center;color:#8a95a5;font-size:12px}.rb-mini-product h3{font-size:13px;line-height:1.4;color:#173b63;margin:9px 0 5px}.rb-mini-price{font-weight:900;color:#173b63;font-size:15px}.rb-mini-product button{margin-top:8px;width:100%;background:#173b63;color:white;font-size:12px}.rb-empty{grid-column:1/-1;padding:16px;background:#fff;border:1px dashed #d9e0e9;border-radius:9px;color:#6b7788;font-size:13px}
+.rb-seller-promo{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:center;background:#102b4c;color:#fff;border-radius:16px;padding:28px;margin:30px 0}.rb-seller-promo h2{font-size:27px;margin:8px 0}.rb-seller-promo p,.rb-seller-promo li{color:#dbe5ef;line-height:1.6;font-size:13px}.rb-seller-promo button{background:#f36b25;color:#fff;padding:13px 18px}.rb-seller-side{min-height:180px;border:1px solid #ffffff40;border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#f8c39f;letter-spacing:2px;font-size:12px}.rb-seller-side b{font-size:18px;color:#fff}
+.rb-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.rb-steps article{background:#fff;border:1px solid var(--line);border-radius:11px;padding:17px}.rb-steps article>span{color:#f36b25;font-weight:900;font-size:12px}.rb-steps h3{font-size:15px;color:#173b63}.rb-steps p{font-size:12px;line-height:1.6;color:#687589}
+.rb-app-promo{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:25px 30px;background:#f1f4f8;border-radius:14px;margin:28px 0}.rb-app-promo h2{color:#173b63;margin:7px 0}.rb-app-promo p{font-size:13px;color:#687589;line-height:1.6;max-width:620px}.rb-phone-mark{width:115px;height:150px;flex:0 0 115px;border:5px solid #173b63;border-radius:19px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#f36b25;font-size:32px;font-weight:900;background:#fff}.rb-phone-mark span{font-size:8px;color:#173b63;letter-spacing:1px}
+@media(max-width:850px){.rb-home-products{grid-template-columns:repeat(3,minmax(0,1fr))}.rb-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.rb-market-welcome{padding:25px 19px}.rb-welcome-art{display:none}.rb-home-products{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.rb-mini-product{padding:8px}.rb-mini-product img,.rb-mini-placeholder{height:120px}.rb-seller-promo{grid-template-columns:1fr;padding:22px}.rb-seller-side{min-height:115px}.rb-steps{grid-template-columns:1fr 1fr;gap:8px}.rb-steps article{padding:12px}.rb-promo-strip{padding:17px}.rb-promo-mark{min-width:82px;padding:15px 8px}.rb-app-promo{padding:20px}.rb-phone-mark{width:85px;height:120px;flex-basis:85px}.rb-search-row{gap:5px}.rb-search-row button{padding:0 13px}}
+
 </style>
 <style>.staff-permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin:14px 0}.staff-permission-grid label{padding:10px;border:1px solid #e5e8ee;border-radius:9px;font-size:13px}.staff-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:18px}.staff-task-grid .admin-tools{padding:15px;border:1px solid #e5e8ee;border-radius:12px;background:#fff}.staff-task-row{padding:11px 0;border-bottom:1px solid #edf0f4;font-size:13px}.staff-task-row small{display:block;color:#748397;margin:4px 0 8px}.staff-task-row button,.staff-member button{padding:7px 10px;border:0;border-radius:7px;font-weight:700;margin-right:5px}.staff-member{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f4;flex-wrap:wrap}.staff-member small{display:block;color:#748397}</style>
 <style id="clear-in-page-panels">
@@ -1660,6 +1673,63 @@ nav{position:relative !important;display:flex !important;flex-direction:row !imp
     </div>
   </section>
 
+  <!-- New marketplace discovery experience -->
+  <section class="rb-market-welcome" aria-label="RIANDERBLOG marketplace welcome">
+    <div class="rb-welcome-copy">
+      <span class="rb-kicker">MALAWI'S MARKETPLACE</span>
+      <h1>Discover the Best Deals on RIANDERBLOG</h1>
+      <p>Find everyday essentials, compare products and connect with shops across Malawi.</p>
+      <div class="rb-trust-line"><span>✓ Verified marketplace sellers</span><span>✓ Local shops</span><span>✓ Great deals</span></div>
+      <a class="rb-welcome-cta" href="#products">Explore the marketplace</a>
+    </div>
+    <div class="rb-welcome-art" aria-hidden="true"><div class="rb-art-orbit">RB</div><span>DISCOVER</span><strong>SHOP</strong><span>ENJOY</span></div>
+  </section>
+  <section class="rb-market-search" aria-label="Marketplace search">
+    <label for="homeMarketSearch">Search by product, category, shop name or shop number</label>
+    <div class="rb-search-row"><input id="homeMarketSearch" type="search" placeholder="Try headphones, fashion, a shop name or KM02" oninput="syncMarketplaceSearch(this.value)"><button type="button" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'});document.getElementById('search').focus()">Search</button></div>
+    <p>Discover products and approved sellers in one place.</p>
+  </section>
+  <section class="rb-promo-strip" aria-label="Marketplace promotions">
+    <div><span>EXCLUSIVE DEALS</span><h2>Great finds. Better prices.</h2><p>Explore current products and offers from marketplace sellers.</p><a href="#rbDeals">Explore deals →</a></div>
+    <div class="rb-promo-mark">RIANDERBLOG<br><strong>DEALS</strong></div>
+  </section>
+  <section id="rbDeals" class="rb-home-section">
+    <div class="section-head"><div><h2>Exclusive Deals</h2><p>Products currently listed at a discounted price, where discount data is available.</p></div><a href="#products" class="rb-see-more">Explore all →</a></div>
+    <div id="rbDealsList" class="rb-home-products"><p class="small-note">Loading deals…</p></div>
+  </section>
+  <section class="rb-home-section">
+    <div class="section-head"><div><h2>New Arrivals</h2><p>Recently added products from the marketplace.</p></div><a href="#products" class="rb-see-more">See More →</a></div>
+    <div id="rbNewArrivals" class="rb-home-products"><p class="small-note">Loading new arrivals…</p></div>
+  </section>
+  <section class="rb-home-section">
+    <div class="section-head"><div><h2>Most Viewed Products</h2><p>Products shoppers are opening most often on this device.</p></div><a href="#products" class="rb-see-more">See More →</a></div>
+    <div id="rbMostViewed" class="rb-home-products"><p class="small-note">Loading popular products…</p></div>
+  </section>
+  <section class="rb-home-section">
+    <div class="section-head"><div><h2>Brand New Products</h2><p>Browse products marked as new by their sellers.</p></div><a href="#products" class="rb-see-more">See More →</a></div>
+    <div id="rbBrandNew" class="rb-home-products"><p class="small-note">Loading brand new products…</p></div>
+  </section>
+  <section class="rb-home-section">
+    <div class="section-head"><div><h2>Used Products</h2><p>Pre-owned products marked as used by their sellers.</p></div><a href="#products" class="rb-see-more">See More →</a></div>
+    <div id="rbUsed" class="rb-home-products"><p class="small-note">Loading used products…</p></div>
+  </section>
+  <section class="rb-seller-promo">
+    <div><span class="rb-kicker">SELL ON RIANDERBLOG</span><h2>Open Your Digital Shop</h2><p>Bring your products online, reach customers and manage your shop through your RIANDERBLOG supplier account. Seller applications are reviewed before shops are listed.</p><ul><li>Apply for your digital shop</li><li>Upload and manage your products</li><li>Connect with customers across Malawi</li></ul><button type="button" onclick="showSection('suppliers');supplierShowMainPage('centre');document.getElementById('supplierApplicationPage')?.scrollIntoView({behavior:'smooth'})">Open your digital shop</button></div>
+    <div class="rb-seller-side"><strong>YOUR BUSINESS</strong><span>YOUR PRODUCTS</span><b>YOUR MARKETPLACE</b></div>
+  </section>
+  <section class="rb-how-shop">
+    <div class="section-head"><div><h2>How to Shop on RIANDERBLOG</h2><p>A simple way to discover products and connect with sellers.</p></div></div>
+    <div class="rb-steps">
+      <article><span>01</span><h3>Discover what you need</h3><p>Search products and explore shops across the marketplace.</p></article>
+      <article><span>02</span><h3>Filter and compare</h3><p>Use product categories and details to narrow down your choices.</p></article>
+      <article><span>03</span><h3>Connect with sellers</h3><p>Open product details and use the available seller or marketplace contact options.</p></article>
+      <article><span>04</span><h3>Shop your way</h3><p>Review product, delivery and payment details before completing your purchase.</p></article>
+    </div>
+  </section>
+  <section class="rb-app-promo">
+    <div><span class="rb-kicker">SHOP ON THE GO</span><h2>RIANDERBLOG in Your Pocket</h2><p>Open RIANDERBLOG on your phone and add it to your home screen for quick access. The marketplace is designed for mobile shopping.</p><a href="./" class="rb-app-link">Open RIANDERBLOG</a></div>
+    <div class="rb-phone-mark">RB<br><span>SHOP ANYTIME</span></div>
+  </section>
   <section id="products">
     <div class="section-head"><div><h2>Explore our products</h2><p>Choose a product to view its full details.</p></div></div>
     <div class="market-intro"><strong>Find what you love</strong><span class="market-promise">Great finds • Global sellers • New discoveries</span></div>
@@ -4153,6 +4223,7 @@ async function loadProducts() {
 
     allProducts = data || [];
     displayProducts();
+    renderHomeSections();
     // Product images are loaded directly from their saved public image URLs.
     updateCart();
     renderAdminProducts();
@@ -4185,6 +4256,35 @@ async function loadProducts() {
   }
 }
 
+function syncMarketplaceSearch(value){
+  const search=document.getElementById('search');
+  if(search){search.value=value;displayProducts();}
+}
+function rbProductCard(p){
+  const image=safeUrl(p.image_url);
+  return '<article class="rb-mini-product">'+(image?'<img src="'+escapeHTML(image)+'" alt="'+escapeHTML(p.name||'Product')+'" loading="lazy">':'<div class="rb-mini-placeholder">RIANDERBLOG</div>')+
+    '<h3>'+escapeHTML(p.name||'Product')+'</h3><div class="rb-mini-price">'+formatPrice(p.price,p.currency||'MWK')+'</div><button type="button" onclick="openDetails(\''+String(p.id).replace(/'/g,"\\'")+'\')">View product</button></article>';
+}
+function rbRenderHomeList(id,items,empty){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=items.length?items.slice(0,8).map(rbProductCard).join(''):'<div class="rb-empty">'+empty+'</div>';
+}
+function renderHomeSections(){
+  const active=(allProducts||[]).filter(p=>p.is_active===true);
+  const newest=[...active].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+  rbRenderHomeList('rbNewArrivals',newest,'New products will appear here as sellers publish them.');
+  const views=JSON.parse(localStorage.getItem('rianderblog_product_views')||'{}');
+  const popular=[...active].sort((a,b)=>(Number(views[b.id])||0)-(Number(views[a.id])||0)).filter(p=>(Number(views[p.id])||0)>0);
+  rbRenderHomeList('rbMostViewed',popular,'Product popularity will build as shoppers view products on this device.');
+  const condition=p=>String(p.condition||p.product_condition||p.item_condition||p.product_status||'').toLowerCase();
+  const brandNew=active.filter(p=>/brand.?new|new|unused/.test(condition(p)));
+  const used=active.filter(p=>/used|pre.?owned|second.?hand/.test(condition(p)));
+  rbRenderHomeList('rbBrandNew',brandNew,'No products have been marked as brand new yet.');
+  rbRenderHomeList('rbUsed',used,'No products have been marked as used yet.');
+  const deals=active.filter(p=>Number(p.original_price||p.old_price||0)>Number(p.price||0));
+  rbRenderHomeList('rbDealsList',deals,'No discounted products are currently listed. Check back for new deals.');
+}
+
 function displayProducts() {
   const search = document.getElementById("search").value.toLowerCase().trim();
 
@@ -4193,7 +4293,10 @@ function displayProducts() {
     (currentCategory === "All" || p.category === currentCategory) &&
     (
       String(p.name || "").toLowerCase().includes(search) ||
-      String(p.description || "").toLowerCase().includes(search)
+      String(p.description || "").toLowerCase().includes(search) ||
+      String(p.category || "").toLowerCase().includes(search) ||
+      String(p.shop_name || p.business_name || p.supplier_name || "").toLowerCase().includes(search) ||
+      String(p.shop_number || p.shop_code || p.supplier_code || "").toLowerCase().includes(search)
     )
   );
 
@@ -4272,6 +4375,7 @@ function selectDetailImage(thumb,src){
 function openDetails(id) {
   const p = allProducts.find(x => String(x.id) === String(id));
   if (!p) return;
+  try{const views=JSON.parse(localStorage.getItem('rianderblog_product_views')||'{}');views[id]=(Number(views[id])||0)+1;localStorage.setItem('rianderblog_product_views',JSON.stringify(views));renderHomeSections();}catch(e){}
 
   const images = getProductGallery(p);
 
