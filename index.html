@@ -76,11 +76,17 @@ var STAFF_LABELS = window.STAFF_LABELS;
  const params=new URLSearchParams(window.location.search);
  const client=window.__rianderEntryClient=window.supabase.createClient("https://yymdyxlbdgbrgrykdspx.supabase.co","sb_publishable_S13gp2eIUUUiT3AP21YQKw_jt4U_wUn",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-yymdyxlbdgbrgrykdspx-auth-token"}});
  if(params.has("auth_callback")){
-  client.auth.getSession().then(({data,error})=>{
+  client.auth.getSession().then(async ({data,error})=>{
    if(error)throw error;
    const pending=localStorage.getItem("rianderblog_onboarding_pending")==="1";
    const next=localStorage.getItem("rianderblog_auth_next");
    if(data?.session){
+    const supplierConsentAt=localStorage.getItem("rianderblog_supplier_consent_pending");
+    if(supplierConsentAt){
+     const {error:consentError}=await client.auth.updateUser({data:{account_type:"supplier",supplier_transaction_agreement_accepted:true,supplier_transaction_agreement_version:"2026-11-28",supplier_transaction_agreement_accepted_at:supplierConsentAt}});
+     if(consentError)throw consentError;
+     localStorage.removeItem("rianderblog_supplier_consent_pending");
+    }
     if(pending){window.location.replace("./welcome.html");return;}
     if(next==="checkout"){localStorage.removeItem("rianderblog_auth_next");window.location.replace("./index.html#cart");return;}
     window.location.replace("./index.html");return;
