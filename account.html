@@ -64,13 +64,14 @@ input{width:100%;padding:13px;border:1px solid #dce2ea;border-radius:8px;font-si
    <div class="tabs"><button id="signinTab" type="button" onclick="setMode('signin')">Sign in</button><button id="signupTab" type="button" onclick="setMode('signup')">Register / Create account</button></div>
    <form id="authForm" onsubmit="event.preventDefault();submitAuth()">
     <div class="signup-only" id="accountTypeField">
-     <label>What type of account do you want to create?</label>
+     <label>Choose your account type</label>
      <div class="account-type-options" role="radiogroup" aria-label="Choose account type">
       <label class="account-type"><input type="radio" name="accountType" value="customer"><span><strong>Customer</strong><small>Browse products, place orders and track deliveries.</small></span></label>
       <label class="account-type"><input type="radio" name="accountType" value="supplier"><span><strong>Supplier</strong><small>Apply to sell products and manage your sales.</small></span></label>
      </div>
      <p class="password-help">Supplier accounts require approval before products can be listed.</p>
     </div>
+    <label class="terms" id="supplierAgreementRow" style="display:none"><input id="acceptSupplierAgreement" type="checkbox"><span><strong>Supplier Transaction Agreement:</strong> I acknowledge and agree that all transactions conducted through RIANDERBLOG Marketplace will be handled by RIANDERBLOG Marketplace. I agree to follow the marketplace's transaction procedures, policies and rules.</span></label>
     <div class="signup-only" id="usernameField"><label for="username">Username</label><input id="username" type="text" placeholder="Choose a username" autocomplete="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_]+" title="Use 3–24 letters, numbers or underscores"></div>
     <label for="email">Email address</label><input id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
     <label for="password">Password</label>
@@ -114,11 +115,18 @@ function toggleConfirmPassword(){
  const show=input.type==="password";input.type=show?"text":"password";
  button.textContent=show?"Hide":"Show";button.setAttribute("aria-label",show?"Hide confirmation password":"Show confirmation password");button.setAttribute("aria-pressed",String(show));
 }
+function updateSupplierAgreement(){
+ const selected=document.querySelector('input[name="accountType"]:checked')?.value;
+ const show=(mode==="signup"||mode==="signin")&&selected==="supplier";
+ document.getElementById("supplierAgreementRow").style.display=show?"flex":"none";
+ if(!show)document.getElementById("acceptSupplierAgreement").checked=false;
+}
+document.querySelectorAll('input[name="accountType"]').forEach(input=>input.addEventListener("change",updateSupplierAgreement));
 function setMode(value){
  mode=["signin","signup","recovery"].includes(value)?value:"signup";
  const signup=mode==="signup",signin=mode==="signin",recovery=mode==="recovery";
  document.getElementById("usernameField").style.display=signup?"block":"none";
- document.getElementById("accountTypeField").style.display=signup?"block":"none";
+ document.getElementById("accountTypeField").style.display=signup||signin?"block":"none";
  document.getElementById("confirmPasswordField").style.display=signup||recovery?"block":"none";
  document.getElementById("passwordHelp").style.display=signup||recovery?"block":"none";
  document.getElementById("email").style.display=recovery?"none":"block";
@@ -142,7 +150,8 @@ function setMode(value){
  document.getElementById("resendButton").style.display="none";
  document.getElementById("password").type="password";
  document.getElementById("confirmPassword").type="password";
- say(signup?"Choose Customer or Supplier, then register for free.":signin?"Welcome back. Sign in to continue.":"Enter your new password and confirm it.");
+ updateSupplierAgreement();
+ say(signup?"Choose Customer or Supplier, then register for free.":signin?"Choose your account type, then sign in.":"Enter your new password and confirm it.");
 }
 function destination(){
  const next=params.get("next")||localStorage.getItem("rianderblog_auth_next")||"home";
@@ -158,11 +167,12 @@ async function submitAuth(){
  const username=document.getElementById("username").value.trim();
  const confirmPassword=document.getElementById("confirmPassword").value;
  if((mode!=="recovery"&&!email)||!password){say(mode==="recovery"?"Enter your new password.":"Enter your email address and password.");return;}
- if(mode==="signup"){
+ if(mode==="signup"||mode==="signin"){
   const accountType=document.querySelector('input[name="accountType"]:checked')?.value;
   if(!accountType){say("Please choose whether you are registering as a Customer or Supplier.");document.getElementById("accountTypeField").scrollIntoView({behavior:"smooth",block:"center"});return;}
   if(!/^[A-Za-z0-9_]{3,24}$/.test(username)){say("Choose a username with 3–24 characters using only letters, numbers or underscores.");return;}
-  if(password!==confirmPassword){say("Your passwords do not match. Please check them and try again.");document.getElementById("confirmPassword").focus();return;}
+  if(mode==="signup"&&password!==confirmPassword){say("Your passwords do not match. Please check them and try again.");document.getElementById("confirmPassword").focus();return;}
+  if(accountType==="supplier"&&!document.getElementById("acceptSupplierAgreement").checked){say("Please read and accept the Supplier Transaction Agreement before continuing.");document.getElementById("acceptSupplierAgreement").focus();return;}
  }
  if(mode==="signup"&&!document.getElementById("acceptTerms").checked){say("Please agree to the Terms and Conditions before creating your account.");return;}
  busy=true;const button=document.getElementById("submitButton");button.disabled=true;button.textContent=mode==="signup"?"Creating account…":"Signing in…";
@@ -177,7 +187,10 @@ async function submitAuth(){
    setMode("signin");return;
   }
   if(mode==="signup"){
-   const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl,data:{username,full_name:username,display_name:username,account_type:document.querySelector('input[name="accountType"]:checked').value}}});
+   const selectedType=document.querySelector('input[name="accountType"]:checked').value;
+   const supplierConsent=selectedType==="supplier";
+   const consentAt=supplierConsent?new Date().toISOString():null;
+   const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:callbackUrl,data:{username,full_name:username,display_name:username,account_type:selectedType,...(supplierConsent?{supplier_transaction_agreement_accepted:true,supplier_transaction_agreement_version:"2026-11-28",supplier_transaction_agreement_accepted_at:consentAt}:{})}}});
    if(error)throw error;
    // Supabase may return an empty identities array when this email already has an account.
    if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
@@ -186,7 +199,7 @@ async function submitAuth(){
     setMode("signin");
     return;
    }
-   const selectedType=document.querySelector('input[name="accountType"]:checked').value;
+   localStorage.removeItem("rianderblog_supplier_consent_pending");
    localStorage.setItem("rianderblog_auth_next",selectedType==="supplier"?"supplier":"customer");
    localStorage.setItem("rianderblog_onboarding_pending","1");
    if(data.session){say("Your account is ready. Taking you to the welcome steps…",true);location.replace("./welcome.html");return;}
@@ -196,6 +209,14 @@ async function submitAuth(){
    const {data,error}=await db.auth.signInWithPassword({email,password});
    if(error)throw error;
    if(!data.session)throw new Error("Sign-in was not completed. Please try again.");
+   const chosenType=document.querySelector('input[name="accountType"]:checked')?.value;
+   const actualType=data.user?.user_metadata?.account_type;
+   if(actualType&&chosenType!==actualType){await db.auth.signOut();throw new Error("The selected account type does not match this account. Please choose "+(actualType==="supplier"?"Supplier":"Customer")+".");}
+   if(chosenType==="supplier"){
+    const acceptedAt=new Date().toISOString();
+    const {error:consentError}=await db.auth.updateUser({data:{supplier_transaction_agreement_accepted:true,supplier_transaction_agreement_version:"2026-11-28",supplier_transaction_agreement_accepted_at:acceptedAt}});
+    if(consentError)throw new Error("Your sign-in succeeded, but we could not save your supplier agreement. Please try again: "+consentError.message);
+   }
    say("You are signed in. Continuing…",true);destination();
   }
  }catch(e){
@@ -211,12 +232,15 @@ async function submitAuth(){
 async function signInWithGoogle(){
  if(busy)return;
  if(mode==="signup"&&!document.getElementById("acceptTerms").checked){say("Please agree to the Terms and Conditions before continuing with Google.");return;}
+ if((mode==="signup"||mode==="signin")&&!document.querySelector('input[name="accountType"]:checked')){say("Please choose Customer or Supplier before continuing with Google.");return;}
+ const googleType=document.querySelector('input[name="accountType"]:checked')?.value;
+ if(googleType==="supplier"&&!document.getElementById("acceptSupplierAgreement").checked){say("Please accept the Supplier Transaction Agreement before continuing with Google.");return;}
  if(mode==="signup"){
-  const selectedType=document.querySelector('input[name="accountType"]:checked')?.value;
-  if(!selectedType){say("Please choose Customer or Supplier before continuing with Google.");return;}
-  localStorage.setItem("rianderblog_auth_next",selectedType==="supplier"?"supplier":"customer");
+  localStorage.setItem("rianderblog_auth_next",googleType==="supplier"?"supplier":"customer");
   localStorage.setItem("rianderblog_onboarding_pending","1");
  }
+ if(googleType==="supplier")localStorage.setItem("rianderblog_supplier_consent_pending",new Date().toISOString());
+ else localStorage.removeItem("rianderblog_supplier_consent_pending");
  const next=params.get("next");if(next)localStorage.setItem("rianderblog_auth_next",next);
  const {error}=await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:callbackUrl}});
  if(error){localStorage.removeItem("rianderblog_onboarding_pending");say(error.message);}
