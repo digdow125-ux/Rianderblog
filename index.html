@@ -94,7 +94,7 @@ var STAFF_LABELS = window.STAFF_LABELS;
     window.location.replace("./index.html");return;
    }
    window.location.replace("./account.html?mode=signin&confirmed=1");
-  }).catch(error=>{console.error("RIANDERBLOG authentication callback:",error);window.location.replace("./account.html?mode=signin");});
+  }).catch(async error=>{console.error("RIANDERBLOG authentication callback:",error);localStorage.removeItem("rianderblog_supplier_consent_pending");try{await client.auth.signOut();}catch(signOutError){console.warn("Could not clear incomplete authentication:",signOutError);}window.location.replace("./account.html?mode=signin");});
   return;
  }
  if(params.has("product"))return;
