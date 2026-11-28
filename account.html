@@ -169,8 +169,8 @@ async function submitAuth(){
  if((mode!=="recovery"&&!email)||!password){say(mode==="recovery"?"Enter your new password.":"Enter your email address and password.");return;}
  if(mode==="signup"||mode==="signin"){
   const accountType=document.querySelector('input[name="accountType"]:checked')?.value;
-  if(!accountType){say("Please choose whether you are registering as a Customer or Supplier.");document.getElementById("accountTypeField").scrollIntoView({behavior:"smooth",block:"center"});return;}
-  if(!/^[A-Za-z0-9_]{3,24}$/.test(username)){say("Choose a username with 3–24 characters using only letters, numbers or underscores.");return;}
+  if(!accountType){say("Please choose whether you are signing in or registering as a Customer or Supplier.");document.getElementById("accountTypeField").scrollIntoView({behavior:"smooth",block:"center"});return;}
+  if(mode==="signup"&&!/^[A-Za-z0-9_]{3,24}$/.test(username)){say("Choose a username with 3–24 characters using only letters, numbers or underscores.");return;}
   if(mode==="signup"&&password!==confirmPassword){say("Your passwords do not match. Please check them and try again.");document.getElementById("confirmPassword").focus();return;}
   if(accountType==="supplier"&&!document.getElementById("acceptSupplierAgreement").checked){say("Please read and accept the Supplier Transaction Agreement before continuing.");document.getElementById("acceptSupplierAgreement").focus();return;}
  }
@@ -214,7 +214,7 @@ async function submitAuth(){
    if(actualType&&chosenType!==actualType){await db.auth.signOut();throw new Error("The selected account type does not match this account. Please choose "+(actualType==="supplier"?"Supplier":"Customer")+".");}
    if(chosenType==="supplier"){
     const acceptedAt=new Date().toISOString();
-    const {error:consentError}=await db.auth.updateUser({data:{supplier_transaction_agreement_accepted:true,supplier_transaction_agreement_version:"2026-11-28",supplier_transaction_agreement_accepted_at:acceptedAt}});
+    const {error:consentError}=await db.auth.updateUser({data:{account_type:"supplier",supplier_transaction_agreement_accepted:true,supplier_transaction_agreement_version:"2026-11-28",supplier_transaction_agreement_accepted_at:acceptedAt}});
     if(consentError)throw new Error("Your sign-in succeeded, but we could not save your supplier agreement. Please try again: "+consentError.message);
    }
    say("You are signed in. Continuing…",true);destination();
