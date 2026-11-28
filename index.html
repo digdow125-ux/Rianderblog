@@ -83,6 +83,8 @@ var STAFF_LABELS = window.STAFF_LABELS;
    if(data?.session){
     const supplierConsentAt=localStorage.getItem("rianderblog_supplier_consent_pending");
     if(supplierConsentAt){
+     const callbackAccountType=data.user?.user_metadata?.account_type;
+     if(callbackAccountType&&callbackAccountType!=="supplier")throw new Error("This Google account is not registered as a supplier. Please choose the correct account type.");
      const {error:consentError}=await client.auth.updateUser({data:{account_type:"supplier",supplier_transaction_agreement_accepted:true,supplier_transaction_agreement_version:"2026-11-28",supplier_transaction_agreement_accepted_at:supplierConsentAt}});
      if(consentError)throw consentError;
      localStorage.removeItem("rianderblog_supplier_consent_pending");
